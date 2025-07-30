@@ -18,7 +18,7 @@ class ChallengeCell: UICollectionViewCell {
         super.init(frame: frame)
 
         contentView.backgroundColor = .darkGray
-        contentView.layer.cornerRadius = 12
+        contentView.layer.cornerRadius = 13
         contentView.clipsToBounds = true
 
         thumbnailImageView.contentMode = .scaleAspectFill
@@ -26,11 +26,11 @@ class ChallengeCell: UICollectionViewCell {
 
         titleLabel.font = UIFont.boldSystemFont(ofSize: 15)
         titleLabel.textColor = .white
-        titleLabel.numberOfLines = 2
-        titleLabel.backgroundColor = UIColor.black.withAlphaComponent(0.5)
+        titleLabel.numberOfLines = 1
+        titleLabel.backgroundColor = UIColor.black.withAlphaComponent(0.2)
 
         uploaderLabel.font = UIFont.systemFont(ofSize: 10)
-        uploaderLabel.textColor = .lightGray
+        uploaderLabel.textColor = .white
 
         contentView.addSubview(thumbnailImageView)
         contentView.addSubview(titleLabel)
@@ -44,11 +44,11 @@ class ChallengeCell: UICollectionViewCell {
             thumbnailImageView.topAnchor.constraint(equalTo: contentView.topAnchor),
             thumbnailImageView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
             thumbnailImageView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
-            thumbnailImageView.heightAnchor.constraint(equalTo: contentView.heightAnchor, multiplier: 0.7),
+            thumbnailImageView.heightAnchor.constraint(equalTo: contentView.heightAnchor, multiplier: 0.9),
 
             titleLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 8),
             titleLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -8),
-            titleLabel.bottomAnchor.constraint(equalTo: thumbnailImageView.bottomAnchor, constant: -8),
+            titleLabel.bottomAnchor.constraint(equalTo: thumbnailImageView.bottomAnchor, constant: -4),
 
             uploaderLabel.topAnchor.constraint(equalTo: thumbnailImageView.bottomAnchor, constant: 4),
             uploaderLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 8),
