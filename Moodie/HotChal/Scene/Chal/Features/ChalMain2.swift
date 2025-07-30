@@ -1,18 +1,23 @@
 //
-//  HomeController.swift
+//  ChalMain2.swift
 //  HotChal
 //
-//  Created by heojiwoo on 7/29/25.
+//  Created by heojiwoo on 7/30/25.
 //
+
 import UIKit
 
-class HomeViewController: UIViewController {
+protocol ChalMain2Delegate {
+    func next2()
+}
 
-    var didSendEventClosure: ((HomeViewController.Event) -> Void)?
+class ChalMain2: UIViewController {
 
+    var delegate: ChalCoordinator?
+    
     private let nextButton: UIButton = {
         let button = UIButton()
-        button.setTitle("home", for: .normal)
+        button.setTitle("next22222", for: .normal)
         button.backgroundColor = .systemGreen
         button.setTitleColor(.white, for: .normal)
         button.layer.cornerRadius = 8.0
@@ -43,12 +48,7 @@ class HomeViewController: UIViewController {
     }
     
     @objc private func didTapGoButton(_ sender: Any) {
-        didSendEventClosure?(.homeTwo)
-    }
-}
-
-extension HomeViewController {
-    enum Event {
-        case homeTwo
+        print("3131313")
+        self.delegate?.next2()
     }
 }
