@@ -130,7 +130,7 @@ class TabCoordinator: NSObject, Coordinator {
             learnViewController.didSendEventClosure = { [weak self] event in
                 switch event {
                 case .learnViewControllerTwo:
-                    print("222222")
+                    print("Learn!")
                 }
             }
             navController.pushViewController(learnViewController, animated: true)
