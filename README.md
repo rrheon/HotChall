@@ -1,3 +1,6 @@
+
+<img width="150" height="150" alt="ChatGPT Image 2025년 7월 30일 오후 04_13_52" src="https://github.com/user-attachments/assets/de39e92d-7c36-4604-8a4a-7e5ac2b54526" />
+
 # HotChall
 ADS : 사용자들에게 요즘 뜨는 챌린지를 보여주고 챌린지를 저장하여 배워볼 수 있는 앱
 # 주요기능
