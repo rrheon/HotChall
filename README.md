@@ -7,7 +7,7 @@ HotChall
 - (기능 3)
 
 # 작동환경
-- Xcode
+- Xcode 16.4
 - iOS 18.0
 
 # 개발자
