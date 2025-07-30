@@ -28,7 +28,7 @@ enum TabBarPage {
         case .home:
             return "인기차트"
         case .learn:
-            return "배우기"
+            return "핫한 챌린지 배우기 🔥"
         case .favorites:
             return "보관함"
         }
@@ -125,7 +125,7 @@ class TabCoordinator: NSObject, Coordinator {
             learnViewController.didSendEventClosure = { [weak self] event in
                 switch event {
                 case .learnViewControllerTwo:
-                    print("222222")
+                    print("Learn!")
                 }
             }
             navController.pushViewController(learnViewController, animated: true)
