@@ -17,22 +17,22 @@ struct ChallengeItem {
 }
 
 class LearnViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
-    
+
     var didSendEventClosure: ((LearnViewController.Event) -> Void)?
     
     private var collectionView: UICollectionView!
     
     private let items: [ChallengeItem] = [
-        ChallengeItem(thumbnailImage: UIImage(named: "Golden1"), title: "골든1", uploader: "랭킹바라", videoFilename: "Golden1"),
-        ChallengeItem(thumbnailImage: UIImage(named: "Golden2"), title: "골든2", uploader: "랭킹바라", videoFilename: "Golden2"),
-        ChallengeItem(thumbnailImage: UIImage(named: "Pokemon1"), title: "포켓댄스1", uploader: "아이튠스토리", videoFilename: "Pokemon1.mp4"),
-        ChallengeItem(thumbnailImage: UIImage(named: "Pokemon2"), title: "포켓댄스2", uploader: "아이즈원", videoFilename: "Pokemon2.mp4"),
-        ChallengeItem(thumbnailImage: UIImage(named: "SodaPop1"), title: "소다팝1", uploader: "댄서Yuna", videoFilename: "SodaPop1.mp4"),
-        ChallengeItem(thumbnailImage: UIImage(named: "SodaPop2"), title: "소다팝2", uploader: "사자보이즈", videoFilename: "SodaPop2.mp4"),
-        ChallengeItem(thumbnailImage: UIImage(named: "SodaPop3"), title: "소다팝3", uploader: "리듬냥", videoFilename: "SodaPop3.mp4"),
-        ChallengeItem(thumbnailImage: UIImage(named: "SodaPop4"), title: "소다팝4", uploader: "랭킹바라", videoFilename: "SodaPop4.mp4"),
-        ChallengeItem(thumbnailImage: UIImage(named: "Toca1"), title: "토카댄스1", uploader: "랭킹바라", videoFilename: "Toca1.mp4"),
-        ChallengeItem(thumbnailImage: UIImage(named: "Toca2"), title: "토카댄스2", uploader: "랭킹바라", videoFilename: "Toca2.mp4"),
+        ChallengeItem(thumbnailImage: UIImage(named: "Golden1"), title: "Golden 배우기 1", uploader: "춤선생 SIMBA", videoFilename: "golden1.mp4"),
+        ChallengeItem(thumbnailImage: UIImage(named: "Golden2"), title: "Golden 배우기 2", uploader: "춤추는 당근 Dancing Carrot", videoFilename: "golden2.mp4"),
+        ChallengeItem(thumbnailImage: UIImage(named: "Pokemon1"), title: "Pokedance 배우기 1", uploader: "몸치탈출연구소 (Fast dance)", videoFilename: "pokemon1.mp4"),
+        ChallengeItem(thumbnailImage: UIImage(named: "Pokemon2"), title: "Pokedance 배우기 2", uploader: "춤선생 SIMBA", videoFilename: "pokemon2.mp4"),
+        ChallengeItem(thumbnailImage: UIImage(named: "SodaPop1"), title: "SodaPop 배우기 ", uploader: "춤선생 SIMBA", videoFilename: "sodaPop1.mp4"),
+        ChallengeItem(thumbnailImage: UIImage(named: "SodaPop2"), title: "SodaPop 배우기 2", uploader: "댄싱꽥꽥 Dancing Duck", videoFilename: "sodaPop2.mp4"),
+        ChallengeItem(thumbnailImage: UIImage(named: "SodaPop3"), title: "SodaPop 배우기 3", uploader: "joohee kim", videoFilename: "sodaPop3.mp4"),
+        ChallengeItem(thumbnailImage: UIImage(named: "SodaPop4"), title: "SodaPop 배우기 4", uploader: "춤선생 SIMBA", videoFilename: "sodaPop4.mp4"),
+        ChallengeItem(thumbnailImage: UIImage(named: "Toca1"), title: "TocaToca 배우기 1", uploader: "PREMIUM DANCE STUDIO", videoFilename: "toca1.mp4"),
+        ChallengeItem(thumbnailImage: UIImage(named: "Toca2"), title: "TocaToca 배우기 2", uploader: "몸치탈출연구소 (Fast dance)", videoFilename: "toca2.mp4"),
     ]
 
     override func viewDidLoad() {
