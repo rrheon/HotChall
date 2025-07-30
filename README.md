@@ -8,7 +8,8 @@ HotChall
 
 # 작동환경
 - Xcode 16.4
-- iOS 18.0
+
+- iOS 16.5
 
 # 개발자
 - 이지훈
