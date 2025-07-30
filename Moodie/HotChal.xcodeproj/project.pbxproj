@@ -7,26 +7,26 @@
 	objects = {
 
 /* Begin PBXFileReference section */
-		9322F5752E384AEB00222654 /* Moodie.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Moodie.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		9322F5752E384AEB00222654 /* HotChal.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HotChal.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		9322F5872E384AEE00222654 /* Exceptions for "Moodie" folder in "Moodie" target */ = {
+		9322F5872E384AEE00222654 /* Exceptions for "HotChal" folder in "HotChal" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
 			);
-			target = 9322F5742E384AEB00222654 /* Moodie */;
+			target = 9322F5742E384AEB00222654 /* HotChal */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		9322F5772E384AEB00222654 /* Moodie */ = {
+		9322F5772E384AEB00222654 /* HotChal */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				9322F5872E384AEE00222654 /* Exceptions for "Moodie" folder in "Moodie" target */,
+				9322F5872E384AEE00222654 /* Exceptions for "HotChal" folder in "HotChal" target */,
 			);
-			path = Moodie;
+			path = HotChal;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -45,7 +45,7 @@
 		9322F56C2E384AEB00222654 = {
 			isa = PBXGroup;
 			children = (
-				9322F5772E384AEB00222654 /* Moodie */,
+				9322F5772E384AEB00222654 /* HotChal */,
 				9322F5762E384AEB00222654 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -53,7 +53,7 @@
 		9322F5762E384AEB00222654 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				9322F5752E384AEB00222654 /* Moodie.app */,
+				9322F5752E384AEB00222654 /* HotChal.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -61,9 +61,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		9322F5742E384AEB00222654 /* Moodie */ = {
+		9322F5742E384AEB00222654 /* HotChal */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 9322F5882E384AEE00222654 /* Build configuration list for PBXNativeTarget "Moodie" */;
+			buildConfigurationList = 9322F5882E384AEE00222654 /* Build configuration list for PBXNativeTarget "HotChal" */;
 			buildPhases = (
 				9322F5712E384AEB00222654 /* Sources */,
 				9322F5722E384AEB00222654 /* Frameworks */,
@@ -74,13 +74,13 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				9322F5772E384AEB00222654 /* Moodie */,
+				9322F5772E384AEB00222654 /* HotChal */,
 			);
-			name = Moodie;
+			name = HotChal;
 			packageProductDependencies = (
 			);
 			productName = Moodie;
-			productReference = 9322F5752E384AEB00222654 /* Moodie.app */;
+			productReference = 9322F5752E384AEB00222654 /* HotChal.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -98,7 +98,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 9322F5702E384AEB00222654 /* Build configuration list for PBXProject "Moodie" */;
+			buildConfigurationList = 9322F5702E384AEB00222654 /* Build configuration list for PBXProject "HotChal" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -112,7 +112,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				9322F5742E384AEB00222654 /* Moodie */,
+				9322F5742E384AEB00222654 /* HotChal */,
 			);
 		};
 /* End PBXProject section */
@@ -147,7 +147,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 5K89VAW8FB;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = Moodie/Info.plist;
+				INFOPLIST_FILE = HotChal/Info.plist;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
@@ -174,7 +174,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 5K89VAW8FB;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = Moodie/Info.plist;
+				INFOPLIST_FILE = HotChal/Info.plist;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
@@ -316,7 +316,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		9322F5702E384AEB00222654 /* Build configuration list for PBXProject "Moodie" */ = {
+		9322F5702E384AEB00222654 /* Build configuration list for PBXProject "HotChal" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				9322F58B2E384AEE00222654 /* Debug */,
@@ -325,7 +325,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		9322F5882E384AEE00222654 /* Build configuration list for PBXNativeTarget "Moodie" */ = {
+		9322F5882E384AEE00222654 /* Build configuration list for PBXNativeTarget "HotChal" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				9322F5892E384AEE00222654 /* Debug */,
