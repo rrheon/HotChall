@@ -7,13 +7,14 @@ HotChall
 - (기능 3)
 
 # 작동환경
-- (Xcode 버전 정보)
-- (iOS 버전 정보)
+- Xcode
+- iOS 18.0
 
 # 개발자
-- (개발자 이름 1)
-- (개발자 이름 2)
-- (개발자 이름 3)
+- 이지훈
+- 임종혁
+- 최용헌
+- 허지우
 
 # 라이선스
 Licensed under the [MIT](LICENSE) license.
