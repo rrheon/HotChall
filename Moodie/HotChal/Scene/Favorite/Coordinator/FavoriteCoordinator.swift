@@ -30,9 +30,9 @@ final class FavoriteCoordinator: Coordinator {
     }
 
     private func showFavoriteDetail() {
-        let detailVC = Favaor2Controller()
-        detailVC.hidesBottomBarWhenPushed = true
-        navigationController.pushViewController(detailVC, animated: true)
+        let favaor2Controller = Favaor2Controller()
+        favaor2Controller.hidesBottomBarWhenPushed = true
+        navigationController.pushViewController(favaor2Controller, animated: true)
     }
 }
 
