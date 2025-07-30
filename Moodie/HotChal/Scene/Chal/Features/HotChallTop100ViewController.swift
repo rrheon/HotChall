@@ -9,13 +9,22 @@ import UIKit
 
 class HotChallTop100ViewController: UIViewController {
     
-    private let sampleData: [String] = (1...20).map { "🔥 챌린지 \($0)번" }
+    private let sampleData: [String] = Array(repeating: "챌린지", count: 20) // 임시
+    
+    private let buttonsContainerView: UIView = {
+        let view = UIView()
+        view.backgroundColor = .systemGray6
+        view.layer.cornerRadius = 5
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
     
     private let allPlayButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle( "전체재생", for: .normal)
         button.backgroundColor = .grayEmotion
         button.setTitleColor(.white, for: .normal)
+        button.translatesAutoresizingMaskIntoConstraints = false
         button.layer.cornerRadius = 5
         
         return button
@@ -26,24 +35,17 @@ class HotChallTop100ViewController: UIViewController {
         button.setTitle( "랜덤재생", for: .normal)
         button.backgroundColor = .grayEmotion
         button.setTitleColor(.white, for: .normal)
+        button.translatesAutoresizingMaskIntoConstraints = false
         button.layer.cornerRadius = 5
         
         return button
     }()
     
-    private let buttonsContainerView: UIView = {
-        let view = UIView()
-        view.backgroundColor = .systemGray6
-        view.layer.cornerRadius = 5
-        view.translatesAutoresizingMaskIntoConstraints = false
-        return view
-    }()
-    
     private let top100ListView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
         layout.scrollDirection = .vertical
-        layout.itemSize = CGSize(width: UIScreen.main.bounds.width - 40, height: 80)
-        layout.minimumLineSpacing = 12
+        layout.itemSize = CGSize(width: UIScreen.main.bounds.width - 20, height: 80)
+        layout.minimumLineSpacing = 5
         
         let top100ListView = UICollectionView(frame: .zero, collectionViewLayout: layout)
         top100ListView.translatesAutoresizingMaskIntoConstraints = false
@@ -51,6 +53,16 @@ class HotChallTop100ViewController: UIViewController {
         return top100ListView
     }()
     
+    private let top100ListContainerView: UIView = {
+        let view = UIView()
+        view.backgroundColor = .systemGray6
+        view.layer.cornerRadius = 5
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
+    
+    
+    // MARK: - View
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .systemBackground
@@ -66,7 +78,7 @@ class HotChallTop100ViewController: UIViewController {
         
         navigationController?.navigationBar.standardAppearance = appearance
         navigationController?.navigationBar.scrollEdgeAppearance = appearance
-            
+        
         self.navigationItem.titleView?.backgroundColor = .black
         
         top100ListView.dataSource = self
@@ -76,41 +88,48 @@ class HotChallTop100ViewController: UIViewController {
         view.addSubview(buttonsContainerView)
         buttonsContainerView.addSubview(allPlayButton)
         buttonsContainerView.addSubview(randomPlayButton)
-        view.addSubview(top100ListView)
-        
-        allPlayButton.translatesAutoresizingMaskIntoConstraints = false
-        randomPlayButton.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(top100ListContainerView)
+        top100ListContainerView.addSubview(top100ListView)
         
         
         NSLayoutConstraint.activate([
             
             buttonsContainerView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 10),
-            buttonsContainerView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 10),
-            buttonsContainerView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -10),
-            buttonsContainerView.heightAnchor.constraint(equalToConstant: 70),
+            buttonsContainerView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 5),
+            buttonsContainerView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -5),
+            buttonsContainerView.heightAnchor.constraint(equalToConstant: 65),
             
-
-            allPlayButton.leadingAnchor.constraint(equalTo: buttonsContainerView.leadingAnchor, constant: 10),
-            allPlayButton.topAnchor.constraint(equalTo: buttonsContainerView.topAnchor, constant: 10),
-            allPlayButton.bottomAnchor.constraint(equalTo: buttonsContainerView.bottomAnchor, constant: -10),
+            
+            allPlayButton.leadingAnchor.constraint(equalTo: buttonsContainerView.leadingAnchor, constant: 5),
+            allPlayButton.topAnchor.constraint(equalTo: buttonsContainerView.topAnchor, constant: 5),
+            allPlayButton.bottomAnchor.constraint(equalTo: buttonsContainerView.bottomAnchor, constant: -5),
             allPlayButton.trailingAnchor.constraint(equalTo: buttonsContainerView.centerXAnchor, constant: -5),
             
             randomPlayButton.leadingAnchor.constraint(equalTo: buttonsContainerView.centerXAnchor, constant: 5),
-            randomPlayButton.topAnchor.constraint(equalTo: buttonsContainerView.topAnchor, constant: 10),
-            randomPlayButton.bottomAnchor.constraint(equalTo: buttonsContainerView.bottomAnchor, constant: -10),
-            randomPlayButton.trailingAnchor.constraint(equalTo: buttonsContainerView.trailingAnchor, constant: -10),
+            randomPlayButton.topAnchor.constraint(equalTo: buttonsContainerView.topAnchor, constant: 5),
+            randomPlayButton.bottomAnchor.constraint(equalTo: buttonsContainerView.bottomAnchor, constant: -5),
+            randomPlayButton.trailingAnchor.constraint(equalTo: buttonsContainerView.trailingAnchor, constant: -5),
             
-            top100ListView.topAnchor.constraint(equalTo: allPlayButton.bottomAnchor, constant: 20),
-            top100ListView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-            top100ListView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-            top100ListView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+            top100ListContainerView.topAnchor.constraint(equalTo: buttonsContainerView.bottomAnchor, constant: 5),
+            top100ListContainerView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 5),
+            top100ListContainerView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -5),
+            top100ListContainerView.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -5),
+            
+            top100ListView.topAnchor.constraint(equalTo: top100ListContainerView.topAnchor, constant: 5),
+            top100ListView.leadingAnchor.constraint(equalTo: top100ListContainerView.leadingAnchor, constant: 5),
+            top100ListView.trailingAnchor.constraint(equalTo: top100ListContainerView.trailingAnchor, constant: -5),
+            top100ListView.bottomAnchor.constraint(equalTo: top100ListContainerView.bottomAnchor, constant: -5)
         ])
     }
     
 }
 
+// MARK: - Cell 디자인
+
 class ChallengeCell: UICollectionViewCell {
     
+    let numberLabel = UILabel()
+    let chalThumbnailView = UIImageView()
     let titleLabel = UILabel()
     
     override init(frame: CGRect) {
@@ -118,13 +137,41 @@ class ChallengeCell: UICollectionViewCell {
         contentView.backgroundColor = .systemGray5
         contentView.layer.cornerRadius = 5
         
+        // 1. 번호 라벨
+        numberLabel.translatesAutoresizingMaskIntoConstraints = false
+        numberLabel.font = .boldSystemFont(ofSize: 18)
+        numberLabel.textColor = .darkGray
+        
+        // 2. 썸네일
+        chalThumbnailView.translatesAutoresizingMaskIntoConstraints = false
+        chalThumbnailView.image = UIImage(named: "SodaPop4")
+        chalThumbnailView.contentMode = .scaleAspectFill
+        chalThumbnailView.clipsToBounds = true
+        
+        // 3. 텍스트 라벨
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         titleLabel.font = .systemFont(ofSize: 18, weight: .medium)
+        titleLabel.textColor = .label
+        
+        
+        contentView.addSubview(numberLabel)
+        contentView.addSubview(chalThumbnailView)
         contentView.addSubview(titleLabel)
         
+        
         NSLayoutConstraint.activate([
-            titleLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
-            titleLabel.centerYAnchor.constraint(equalTo: contentView.centerYAnchor)
+            
+            numberLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            numberLabel.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+            
+            chalThumbnailView.leadingAnchor.constraint(equalTo: numberLabel.trailingAnchor, constant: 20),
+            chalThumbnailView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+            chalThumbnailView.heightAnchor.constraint(equalToConstant: 60),
+            chalThumbnailView.widthAnchor.constraint(equalTo: chalThumbnailView.heightAnchor, multiplier: 2),
+            
+            titleLabel.leadingAnchor.constraint(equalTo: chalThumbnailView.trailingAnchor, constant: 8),
+            titleLabel.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+            titleLabel.trailingAnchor.constraint(lessThanOrEqualTo: contentView.trailingAnchor, constant: -16)
         ])
     }
     
@@ -133,6 +180,8 @@ class ChallengeCell: UICollectionViewCell {
     }
 }
 
+// MARK: - UICollectionView 데이터소스 (챌린지 목록)
+
 extension HotChallTop100ViewController: UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         return sampleData.count
@@ -140,12 +189,16 @@ extension HotChallTop100ViewController: UICollectionViewDataSource {
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "ChallengeCell", for: indexPath) as! ChallengeCell
+        
+        let number = indexPath.item + 1
+        cell.numberLabel.text = "\(number)"
         cell.titleLabel.text = sampleData[indexPath.item]
+        
         return cell
     }
 }
 
 
 #Preview {
-    HotChallTop100ViewController()
+    UINavigationController(rootViewController: HotChallTop100ViewController())
 }
