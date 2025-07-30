@@ -116,14 +116,9 @@ class TabCoordinator: NSObject, Coordinator {
 
         switch page {
         case .home:
-            let homeViewController = HomeViewController()
-            homeViewController.didSendEventClosure = { [weak self] event in
-                switch event {
-                case .homeTwo:
-                    print("dadd")
-                }
-            }
-            navController.pushViewController(homeViewController, animated: true)
+            let chalCoordinator = ChalCoordinator(navController)
+            chalCoordinator.start()
+            childCoordinators.append(chalCoordinator)
             
         case .learn:
             let learnViewController = LearnViewController()
