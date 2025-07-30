@@ -54,7 +54,7 @@ class LearnViewController: UIViewController, UICollectionViewDataSource, UIColle
         collectionView.backgroundColor = .systemBackground
         collectionView.dataSource = self
         collectionView.delegate = self
-        collectionView.register(ChallengeCell.self, forCellWithReuseIdentifier: ChallengeCell.identifier)
+        collectionView.register(LearnChallengeCell.self, forCellWithReuseIdentifier: LearnChallengeCell.identifier)
         
         view.addSubview(collectionView)
 
@@ -96,7 +96,7 @@ class LearnViewController: UIViewController, UICollectionViewDataSource, UIColle
     }
 
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ChallengeCell.identifier, for: indexPath) as! ChallengeCell
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: LearnChallengeCell.identifier, for: indexPath) as! LearnChallengeCell
         cell.configure(with: items[indexPath.item])
         return cell
     }
