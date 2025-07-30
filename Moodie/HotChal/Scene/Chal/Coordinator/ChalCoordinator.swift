@@ -12,7 +12,7 @@ final class ChalCoordinator: Coordinator {
     }
 
     func start() {
-        let chalMainViewController = ChalMainViewController()
+        let chalMainViewController = HotChallViewController()
         chalMainViewController.view.backgroundColor = .systemBackground
         chalMainViewController.delegate = self
         self.navigationController.viewControllers = [chalMainViewController]

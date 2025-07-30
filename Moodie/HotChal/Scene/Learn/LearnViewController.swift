@@ -16,6 +16,7 @@ struct ChallengeItem {
     let videoFilename: String
 }
 
+
 class LearnViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
 
     var didSendEventClosure: ((LearnViewController.Event) -> Void)?

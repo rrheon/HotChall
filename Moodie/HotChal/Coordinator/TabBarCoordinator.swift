@@ -112,7 +112,8 @@ class TabCoordinator: NSObject, Coordinator {
         navController.setNavigationBarHidden(false, animated: false)
 
         navController.tabBarItem = UITabBarItem.init(title: page.pageTitleValue(),
-                                                     image: page.tabIcon(),                                 tag: page.pageOrderNumber(),)
+                                                     image: page.tabIcon(),
+                                                     tag: page.pageOrderNumber())
 
         switch page {
         case .home:

@@ -6,10 +6,12 @@
 //
 
 import UIKit
+import AVFoundation
+import AVKit
 
 class HotChallTop100ViewController: UIViewController {
     
-    private let sampleData: [String] = Array(repeating: "챌린지", count: 20) // 임시
+    private let sampleData: [String] = Array(repeating: "챌린지", count: 100) // 임시
     
     private let buttonsContainerView: UIView = {
         let view = UIView()
@@ -82,9 +84,17 @@ class HotChallTop100ViewController: UIViewController {
         self.navigationItem.titleView?.backgroundColor = .black
         
         top100ListView.dataSource = self
+      top100ListView.delegate = self
         top100ListView.register(ChallengeCell.self, forCellWithReuseIdentifier: "ChallengeCell")
         
         
+      // 임시
+      [allPlayButton, randomPlayButton].forEach {
+        $0.addAction(UIAction { _ in
+          self.playLocalVideo(named: "sodaPop4.mp4")
+        }, for: .touchUpInside)
+      }
+      
         view.addSubview(buttonsContainerView)
         buttonsContainerView.addSubview(allPlayButton)
         buttonsContainerView.addSubview(randomPlayButton)
@@ -198,10 +208,41 @@ extension HotChallTop100ViewController: UICollectionViewDataSource {
         
         return cell
     }
+  
 }
+
 
 
 @available(iOS 17.0, *)
 #Preview {
     UINavigationController(rootViewController: HotChallTop100ViewController())
+}
+
+
+// MARK: 임시
+
+extension HotChallTop100ViewController: UICollectionViewDelegateFlowLayout{
+  private func playLocalVideo(named filename: String) {
+    guard let path = Bundle.main.path(forResource: filename, ofType: nil) else {
+      print("❌ 영상 파일을 찾을 수 없습니다: \(filename)")
+      return
+    }
+    
+    let url = URL(fileURLWithPath: path)
+    let player = AVPlayer(url: url)
+    let playerVC = AVPlayerViewController()
+    playerVC.player = player
+    
+    present(playerVC, animated: true) {
+      player.play()
+    }
+  }
+  
+  func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+    print(#fileID, #function, #line, "- <#comment#>")
+
+    
+    playLocalVideo(named: "sodaPop4.mp4")
+    
+  }
 }
