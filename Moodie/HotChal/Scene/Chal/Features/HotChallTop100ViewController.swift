@@ -85,7 +85,7 @@ class HotChallTop100ViewController: UIViewController {
         
         top100ListView.dataSource = self
       top100ListView.delegate = self
-        top100ListView.register(Challenge100Cell.self, forCellWithReuseIdentifier: "Challenge100Cell")
+        top100ListView.register(TOP100ChallengeCell.self, forCellWithReuseIdentifier: "ChallengeCell")
         
         
       // 임시
@@ -136,7 +136,7 @@ class HotChallTop100ViewController: UIViewController {
 
 // MARK: - Cell 디자인
 
-class Challenge100Cell: UICollectionViewCell {
+class TOP100ChallengeCell: UICollectionViewCell {
     
     let numberLabel = UILabel()
     let chalThumbnailView = UIImageView()
@@ -200,7 +200,7 @@ extension HotChallTop100ViewController: UICollectionViewDataSource {
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "Challenge100Cell", for: indexPath) as! Challenge100Cell
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "ChallengeCell", for: indexPath) as! TOP100ChallengeCell
         
         let number = indexPath.item + 1
         cell.numberLabel.text = "\(number)"
