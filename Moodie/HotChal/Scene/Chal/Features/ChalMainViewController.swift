@@ -6,45 +6,17 @@ struct MoviePoster {
     let title: String
     let subtitle: String
 }
+struct ChallengeCategory {
+    let id: Int
+    let name: String
+    let challenges: [Challenge]
+}
 
-// MARK: - Custom Cell
-final class PosterCell: UICollectionViewCell {
-    static let reuseIdentifier = "PosterCell"
-
-    private let imageView = UIImageView()
-
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-
-        contentView.layer.cornerRadius = 12
-        contentView.layer.shadowColor = UIColor.black.cgColor
-        contentView.layer.shadowOpacity = 0.2
-        contentView.layer.shadowOffset = CGSize(width: 0, height: 4)
-        contentView.layer.shadowRadius = 8
-        contentView.clipsToBounds = false
-
-        imageView.contentMode = .scaleAspectFill
-        imageView.layer.cornerRadius = 12
-        imageView.clipsToBounds = true
-
-        contentView.addSubview(imageView)
-        imageView.translatesAutoresizingMaskIntoConstraints = false
-
-        NSLayoutConstraint.activate([
-            imageView.topAnchor.constraint(equalTo: contentView.topAnchor),
-            imageView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
-            imageView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
-            imageView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor)
-        ])
-    }
-
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-
-    func configure(with poster: MoviePoster) {
-        imageView.image = UIImage(named: poster.imageName)
-    }
+struct Challenge {
+    let id: Int
+    let profileImageName: String
+    let title: String
+    let subtitle: String
 }
 
 
@@ -62,82 +34,122 @@ final class ChalMainViewController: UIViewController {
         .init(imageName: "SodaPop2", title: "영화1", subtitle: "2025.08.01"),
         .init(imageName: "SodaPop3", title: "영화2", subtitle: "2025.08.15")
     ]
+    
+    let dummyCategories: [ChallengeCategory] = [
+        ChallengeCategory(
+            id: 0,
+            name: "소다팝 챌린지",
+            challenges: [
+                Challenge(id: 0, profileImageName: "Pokemon2", title: "눈물참기 (with. QWER)", subtitle: "주르르"),
+                Challenge(id: 1, profileImageName: "Pokemon2", title: "숲속의 작은 레스토랑 🎄", subtitle: "징버거"),
+                Challenge(id: 2, profileImageName: "Pokemon2", title: "안녕하세요 저는..", subtitle: "징버거")
+            ]
+        ),
+        ChallengeCategory(
+            id: 1,
+            name: "홍박사 챌린지",
+            challenges: [
+                Challenge(id: 0, profileImageName: "Pokemon2", title: "눈물참기 (with. QWER)", subtitle: "주르르"),
+                Challenge(id: 1, profileImageName: "Pokemon2", title: "숲속의 작은 레스토랑 🎄", subtitle: "징버거"),
+                Challenge(id: 2, profileImageName: "Pokemon2", title: "안녕하세요 저는..", subtitle: "징버거")
+            ]
+        )
+    ]
+    
+    private let posterHeaderView: UIView = {
+        let container = UIView()
 
-    private var collectionView: UICollectionView!
+        let titleLabel = UILabel()
+        titleLabel.text = "핫챌 TOP3 🔥"
+        titleLabel.font = .boldSystemFont(ofSize: 20)
+        titleLabel.textAlignment = .center
+        titleLabel.textColor = .black
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
 
-    private let nextButton: UIButton = {
-        let button = UIButton()
-        button.setTitle("home", for: .normal)
-        button.backgroundColor = .systemGreen
-        button.setTitleColor(.white, for: .normal)
-        button.layer.cornerRadius = 8.0
-        return button
+        let seeAllButton = UIButton(type: .system)
+        seeAllButton.setTitle("전체보기 >", for: .normal)
+        seeAllButton.setTitleColor(.black, for: .normal)
+        seeAllButton.titleLabel?.font = .systemFont(ofSize: 14, weight: .medium)
+        seeAllButton.translatesAutoresizingMaskIntoConstraints = false
+        
+        
+        container.addSubview(titleLabel)
+        container.addSubview(seeAllButton)
+
+        NSLayoutConstraint.activate([
+            titleLabel.centerXAnchor.constraint(equalTo: container.centerXAnchor),
+            titleLabel.centerYAnchor.constraint(equalTo: container.centerYAnchor),
+            seeAllButton.trailingAnchor.constraint(equalTo: container.trailingAnchor),
+            seeAllButton.centerYAnchor.constraint(equalTo: container.centerYAnchor)
+        ])
+
+        return container
     }()
 
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        view.backgroundColor = .systemBackground
-
-        setupCollectionView()
-        setupNextButton()
-    }
-
-    deinit {
-        print("ChalMainViewController deinit")
-    }
-
-    // MARK: - Setup CollectionView
-    private func setupCollectionView() {
-        collectionView = UICollectionView(frame: .zero, collectionViewLayout: createLayout())
+    private let collectionPosterView: UICollectionView = {
+        let layout = UICollectionViewCompositionalLayout.posterPagingLayout()
+        let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
         collectionView.register(PosterCell.self, forCellWithReuseIdentifier: PosterCell.reuseIdentifier)
-        collectionView.dataSource = self
         collectionView.showsHorizontalScrollIndicator = false
         collectionView.backgroundColor = .systemBackground
+        return collectionView
+    }()
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        view.backgroundColor = .white
+        collectionPosterView.dataSource = self
 
-        view.addSubview(collectionView)
-        collectionView.translatesAutoresizingMaskIntoConstraints = false
+        let scrollView = UIScrollView()
+        scrollView.translatesAutoresizingMaskIntoConstraints = false
+        scrollView.showsVerticalScrollIndicator = false
 
-        NSLayoutConstraint.activate([
-            collectionView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 16),
-            collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            collectionView.heightAnchor.constraint(equalToConstant: 360)
-        ])
-    }
+        let contentStackView = UIStackView()
+        contentStackView.axis = .vertical
+        contentStackView.spacing = 32
+        contentStackView.translatesAutoresizingMaskIntoConstraints = false
 
-    private func createLayout() -> UICollectionViewLayout {
-        let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(0.82), heightDimension: .fractionalHeight(1.0))
-        let item = NSCollectionLayoutItem(layoutSize: itemSize)
-
-        let groupSize = NSCollectionLayoutSize(widthDimension: .absolute(250), heightDimension: .absolute(250))
-        let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item])
-
-        let section = NSCollectionLayoutSection(group: group)
-        section.orthogonalScrollingBehavior = .groupPagingCentered
-        section.interGroupSpacing = 16
-        section.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16)
-
-        return UICollectionViewCompositionalLayout(section: section)
-    }
-
-    // MARK: - Setup Next Button
-    private func setupNextButton() {
-        view.addSubview(nextButton)
-        nextButton.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(scrollView)
+        scrollView.addSubview(contentStackView)
 
         NSLayoutConstraint.activate([
-            nextButton.topAnchor.constraint(equalTo: collectionView.bottomAnchor, constant: 24),
-            nextButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            nextButton.widthAnchor.constraint(equalToConstant: 200),
-            nextButton.heightAnchor.constraint(equalToConstant: 50)
+            scrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+
+            contentStackView.topAnchor.constraint(equalTo: scrollView.topAnchor, constant: 16),
+            contentStackView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
+            contentStackView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
+            contentStackView.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor),
+            contentStackView.widthAnchor.constraint(equalTo: scrollView.widthAnchor)
         ])
 
-        nextButton.addTarget(self, action: #selector(didTapGoButton(_:)), for: .touchUpInside)
+        contentStackView.addArrangedSubview(posterHeaderView)
+        NSLayoutConstraint.activate([
+            posterHeaderView.heightAnchor.constraint(equalToConstant: 30),
+            posterHeaderView.leadingAnchor.constraint(equalTo: contentStackView.leadingAnchor, constant: 16),
+            posterHeaderView.trailingAnchor.constraint(equalTo: contentStackView.trailingAnchor, constant: -16)
+        ])
+
+        collectionPosterView.translatesAutoresizingMaskIntoConstraints = false
+        contentStackView.addArrangedSubview(collectionPosterView)
+        NSLayoutConstraint.activate([
+            collectionPosterView.heightAnchor.constraint(equalToConstant: 250)
+        ])
+
+        for category in dummyCategories {
+            let challengeSectionView = ChallengeSectionView()
+            challengeSectionView.configure(title: category.name, challenges: category.challenges)
+            contentStackView.addArrangedSubview(challengeSectionView)
+
+            NSLayoutConstraint.activate([
+                challengeSectionView.heightAnchor.constraint(equalToConstant: 220)
+            ])
+        }
     }
 
-    @objc private func didTapGoButton(_ sender: Any) {
-        self.delegate?.next()
-    }
+
 }
 
 // MARK: - UICollectionViewDataSource
@@ -156,6 +168,32 @@ extension ChalMainViewController: UICollectionViewDataSource {
     }
 }
 
-//#Preview {
-//    ChalMainViewController()
-//}
+// MARK: - UICollectionLayOut
+extension UICollectionViewCompositionalLayout {
+    static func posterPagingLayout() -> UICollectionViewCompositionalLayout {
+        let itemSize = NSCollectionLayoutSize(
+            widthDimension: .fractionalWidth(1.0),
+            heightDimension: .fractionalHeight(1.0)
+        )
+        let item = NSCollectionLayoutItem(layoutSize: itemSize)
+
+        let groupSize = NSCollectionLayoutSize(
+            widthDimension: .fractionalWidth(0.5),
+            heightDimension: .absolute(250)
+        )
+        let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item])
+
+        let section = NSCollectionLayoutSection(group: group)
+        section.orthogonalScrollingBehavior = .groupPagingCentered
+        section.interGroupSpacing = 16
+        section.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16)
+
+        return UICollectionViewCompositionalLayout(section: section)
+    }
+}
+
+
+
+#Preview {
+    ChalMainViewController()
+}
