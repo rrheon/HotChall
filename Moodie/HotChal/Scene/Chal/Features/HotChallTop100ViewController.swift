@@ -11,7 +11,8 @@ import AVKit
 
 class HotChallTop100ViewController: UIViewController {
     
-    private let sampleData: [String] = Array(repeating: "챌린지", count: 100) // 임시
+    private let sampleData: [String] = Array(repeating: "챌린지 제목", count: 100) // 임시
+    private let sampleData2: [String] = Array(repeating: "아티스트", count: 100)
     
     private let buttonsContainerView: UIView = {
         let view = UIView()
@@ -84,17 +85,17 @@ class HotChallTop100ViewController: UIViewController {
         self.navigationItem.titleView?.backgroundColor = .black
         
         top100ListView.dataSource = self
-      top100ListView.delegate = self
+        top100ListView.delegate = self
         top100ListView.register(TOP100ChallengeCell.self, forCellWithReuseIdentifier: "ChallengeCell")
         
         
-      // 임시
-      [allPlayButton, randomPlayButton].forEach {
-        $0.addAction(UIAction { _ in
-          self.playLocalVideo(named: "sodaPop4.mp4")
-        }, for: .touchUpInside)
-      }
-      
+        // 임시
+        [allPlayButton, randomPlayButton].forEach {
+            $0.addAction(UIAction { _ in
+                self.playLocalVideo(named: "sodaPop4.mp4")
+            }, for: .touchUpInside)
+        }
+        
         view.addSubview(buttonsContainerView)
         buttonsContainerView.addSubview(allPlayButton)
         buttonsContainerView.addSubview(randomPlayButton)
@@ -141,6 +142,7 @@ class TOP100ChallengeCell: UICollectionViewCell {
     let numberLabel = UILabel()
     let chalThumbnailView = UIImageView()
     let titleLabel = UILabel()
+    let artistLabel = UILabel()
     
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -151,23 +153,29 @@ class TOP100ChallengeCell: UICollectionViewCell {
         numberLabel.translatesAutoresizingMaskIntoConstraints = false
         numberLabel.font = .boldSystemFont(ofSize: 18)
         numberLabel.textColor = .darkGray
-
+        
         // 2. 썸네일
         chalThumbnailView.translatesAutoresizingMaskIntoConstraints = false
         chalThumbnailView.image = UIImage(named: "SodaPop4")
         chalThumbnailView.contentMode = .scaleAspectFill
         chalThumbnailView.clipsToBounds = true
-
-        // 3. 텍스트
+        
+        // 3. 챌린지 제목
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         titleLabel.font = .systemFont(ofSize: 18, weight: .medium)
         titleLabel.textColor = .label
-
+        
+        // 4. 아티스트명
+        artistLabel.translatesAutoresizingMaskIntoConstraints = false
+        artistLabel.font = .systemFont(ofSize: 15, weight: .medium)
+        artistLabel.textColor = .label
+        
         
         contentView.addSubview(numberLabel)
         contentView.addSubview(chalThumbnailView)
         contentView.addSubview(titleLabel)
-
+        contentView.addSubview(artistLabel)
+        
         
         NSLayoutConstraint.activate([
             
@@ -182,9 +190,13 @@ class TOP100ChallengeCell: UICollectionViewCell {
             
             
             titleLabel.leadingAnchor.constraint(equalTo: chalThumbnailView.trailingAnchor, constant: 8),
-            titleLabel.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
-            titleLabel.trailingAnchor.constraint(lessThanOrEqualTo: contentView.trailingAnchor, constant: -16)
+            titleLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 18),
+            titleLabel.trailingAnchor.constraint(lessThanOrEqualTo: contentView.trailingAnchor, constant: -16),
+            
+            artistLabel.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
+            artistLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 4),
         ])
+        
     }
     
     required init?(coder: NSCoder) {
@@ -205,10 +217,11 @@ extension HotChallTop100ViewController: UICollectionViewDataSource {
         let number = indexPath.item + 1
         cell.numberLabel.text = "\(number)"
         cell.titleLabel.text = sampleData[indexPath.item]
+        cell.artistLabel.text = sampleData2[indexPath.item]
         
         return cell
     }
-  
+    
 }
 
 
@@ -222,27 +235,27 @@ extension HotChallTop100ViewController: UICollectionViewDataSource {
 // MARK: 임시
 
 extension HotChallTop100ViewController: UICollectionViewDelegateFlowLayout{
-  private func playLocalVideo(named filename: String) {
-    guard let path = Bundle.main.path(forResource: filename, ofType: nil) else {
-      print("❌ 영상 파일을 찾을 수 없습니다: \(filename)")
-      return
+    private func playLocalVideo(named filename: String) {
+        guard let path = Bundle.main.path(forResource: filename, ofType: nil) else {
+            print("❌ 영상 파일을 찾을 수 없습니다: \(filename)")
+            return
+        }
+        
+        let url = URL(fileURLWithPath: path)
+        let player = AVPlayer(url: url)
+        let playerVC = AVPlayerViewController()
+        playerVC.player = player
+        
+        present(playerVC, animated: true) {
+            player.play()
+        }
     }
     
-    let url = URL(fileURLWithPath: path)
-    let player = AVPlayer(url: url)
-    let playerVC = AVPlayerViewController()
-    playerVC.player = player
-    
-    present(playerVC, animated: true) {
-      player.play()
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        print(#fileID, #function, #line, "- <#comment#>")
+        
+        
+        playLocalVideo(named: "sodaPop4.mp4")
+        
     }
-  }
-  
-  func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-    print(#fileID, #function, #line, "- <#comment#>")
-
-    
-    playLocalVideo(named: "sodaPop4.mp4")
-    
-  }
 }
