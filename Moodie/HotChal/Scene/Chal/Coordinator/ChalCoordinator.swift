@@ -12,11 +12,10 @@ final class ChalCoordinator: Coordinator {
     }
 
     func start() {
-        let chalMainViewController = ChalMainViewController()
+        let chalMainViewController = HotChallViewController()
         chalMainViewController.view.backgroundColor = .systemBackground
         chalMainViewController.delegate = self
         self.navigationController.viewControllers = [chalMainViewController]
-    
     }
 
     func next() {
@@ -31,8 +30,6 @@ final class ChalCoordinator: Coordinator {
         navigationController.pushViewController(chalMain3, animated: true)
         print("다음페이지")
     }
-    
-    
 }
 
 

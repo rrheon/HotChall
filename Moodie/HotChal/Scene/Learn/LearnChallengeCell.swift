@@ -7,7 +7,7 @@
 
 import UIKit
 
-class ChallengeCell: UICollectionViewCell {
+class LearnChallengeCell: UICollectionViewCell {
     static let identifier = "ChallengeCell"
 
     private let thumbnailImageView = UIImageView()
