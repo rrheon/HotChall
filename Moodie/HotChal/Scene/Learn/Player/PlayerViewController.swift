@@ -174,13 +174,6 @@ class PlayerViewController: UIViewController {
         playerLayer.videoGravity = .resizeAspect
         view.layer.insertSublayer(playerLayer, at: 0)
         
-        NotificationCenter.default.addObserver(
-            self,
-            selector: #selector(playerDidFinishPlaying),
-            name: .AVPlayerItemDidPlayToEndTime,
-            object: player.currentItem
-        )
-        
         let interval = CMTime(seconds: 0.5, preferredTimescale: 600)
         timeObserverToken = player.addPeriodicTimeObserver(forInterval: interval, queue: .main) { [weak self] time in
             guard let self = self else { return }
