@@ -22,10 +22,10 @@ class ChallCompareViewController: UIViewController {
     private var playerLayerSub: AVPlayerLayer?
     
     // 서브 영상 뷰의 높이를 조절하기 위한 제약조건
-    private var challComparSubViewHeightConstraint: NSLayoutConstraint?
+    private var challCompareSubViewHeightConstraint: NSLayoutConstraint?
     
     // 메인 영상이 보여질 뷰
-    private let challComparMainView: UIView = {
+    private let challCompareMainView: UIView = {
         let view = UIView()
         view.backgroundColor = .systemBackground // 시스템 기본 배경색
         view.translatesAutoresizingMaskIntoConstraints = false
@@ -33,7 +33,7 @@ class ChallCompareViewController: UIViewController {
     }()
     
     // 서브 영상이 보여질 뷰 (모서리를 둥글게 처리)
-    private let challComparSubView: UIView = {
+    private let challCompareSubView: UIView = {
         let view = UIView()
         view.backgroundColor = .systemBackground
         view.layer.cornerRadius = 15
@@ -81,26 +81,26 @@ class ChallCompareViewController: UIViewController {
 
     // MARK: - 하위 뷰 추가
     private func setupViews() {
-        view.addSubview(challComparMainView)
-        view.addSubview(challComparSubView)
+        view.addSubview(challCompareMainView)
+        view.addSubview(challCompareSubView)
         view.addSubview(pauseButton)
     }
 
     // MARK: - 오토레이아웃 설정
     private func setupConstraints() {
         // 서브 뷰의 높이 초기 고정값 설정 (후에 동적으로 조정)
-        challComparSubViewHeightConstraint = challComparSubView.heightAnchor.constraint(equalToConstant: 100)
-        challComparSubViewHeightConstraint?.isActive = true
+        challCompareSubViewHeightConstraint = challCompareSubView.heightAnchor.constraint(equalToConstant: 100)
+        challCompareSubViewHeightConstraint?.isActive = true
 
         NSLayoutConstraint.activate([
-            challComparMainView.centerXAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerXAnchor),
-            challComparMainView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
-            challComparMainView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            challComparMainView.topAnchor.constraint(equalTo: view.topAnchor),
+            challCompareMainView.centerXAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerXAnchor),
+            challCompareMainView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            challCompareMainView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            challCompareMainView.topAnchor.constraint(equalTo: view.topAnchor),
 
-            challComparSubView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            challComparSubView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -20),
-            challComparSubView.widthAnchor.constraint(equalToConstant: 150),
+            challCompareSubView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            challCompareSubView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -20),
+            challCompareSubView.widthAnchor.constraint(equalToConstant: 150),
 
             pauseButton.centerXAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerXAnchor),
             pauseButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
@@ -114,12 +114,12 @@ class ChallCompareViewController: UIViewController {
 
         // 메인/서브 뷰 탭 시 레이어 교환
         let mainTap = UITapGestureRecognizer(target: self, action: #selector(swapVideoLayers))
-        challComparMainView.addGestureRecognizer(mainTap)
-        challComparMainView.isUserInteractionEnabled = true
+        challCompareMainView.addGestureRecognizer(mainTap)
+        challCompareMainView.isUserInteractionEnabled = true
 
         let subTap = UITapGestureRecognizer(target: self, action: #selector(swapVideoLayers))
-        challComparSubView.addGestureRecognizer(subTap)
-        challComparSubView.isUserInteractionEnabled = true
+        challCompareSubView.addGestureRecognizer(subTap)
+        challCompareSubView.isUserInteractionEnabled = true
     }
 
     // MARK: - 재생/일시정지 토글 함수
@@ -152,11 +152,11 @@ class ChallCompareViewController: UIViewController {
         mainLayer.removeFromSuperlayer()
         subLayer.removeFromSuperlayer()
 
-        challComparMainView.layer.addSublayer(subLayer)
-        challComparSubView.layer.addSublayer(mainLayer)
+        challCompareMainView.layer.addSublayer(subLayer)
+        challCompareSubView.layer.addSublayer(mainLayer)
 
-        subLayer.frame = challComparMainView.bounds
-        mainLayer.frame = challComparSubView.bounds
+        subLayer.frame = challCompareMainView.bounds
+        mainLayer.frame = challCompareSubView.bounds
 
         swap(&playerLayerMain, &playerLayerSub)
         swap(&playerMain, &playerSub)
@@ -173,9 +173,9 @@ class ChallCompareViewController: UIViewController {
                 guard let videoTrack = asset.tracks(withMediaType: .video).first else { return }
                 let size = videoTrack.naturalSize.applying(videoTrack.preferredTransform)
                 let aspectRatio = abs(size.height / size.width)
-                let width = self.challComparMainView.bounds.width
+                let width = self.challCompareMainView.bounds.width
                 let height = width * aspectRatio
-                let y = (self.challComparMainView.bounds.height - height) / 2
+                let y = (self.challCompareMainView.bounds.height - height) / 2
                 self.playerLayerMain?.frame = CGRect(x: 0, y: y, width: width, height: height)
             }
         }
@@ -192,9 +192,9 @@ class ChallCompareViewController: UIViewController {
         player.isMuted = false
 
         let layer = AVPlayerLayer(player: player)
-        layer.frame = challComparMainView.bounds
+        layer.frame = challCompareMainView.bounds
         layer.videoGravity = .resizeAspect
-        challComparMainView.layer.addSublayer(layer)
+        challCompareMainView.layer.addSublayer(layer)
         player.play()
 
         self.playerMain = player
@@ -223,9 +223,9 @@ class ChallCompareViewController: UIViewController {
                 let aspectRatio = abs(size.height / size.width)
 
                 // 기존 높이 제약 제거 후 새로운 비율로 재설정
-                self.challComparSubViewHeightConstraint?.isActive = false
-                self.challComparSubViewHeightConstraint = self.challComparSubView.heightAnchor.constraint(equalTo: self.challComparSubView.widthAnchor, multiplier: aspectRatio)
-                self.challComparSubViewHeightConstraint?.isActive = true
+                self.challCompareSubViewHeightConstraint?.isActive = false
+                self.challCompareSubViewHeightConstraint = self.challCompareSubView.heightAnchor.constraint(equalTo: self.challCompareSubView.widthAnchor, multiplier: aspectRatio)
+                self.challCompareSubViewHeightConstraint?.isActive = true
 
                 self.view.setNeedsLayout()
                 self.view.layoutIfNeeded()
@@ -234,9 +234,9 @@ class ChallCompareViewController: UIViewController {
                 player.isMuted = true
 
                 let layer = AVPlayerLayer(player: player)
-                layer.frame = self.challComparSubView.bounds
+                layer.frame = self.challCompareSubView.bounds
                 layer.videoGravity = .resizeAspect
-                self.challComparSubView.layer.addSublayer(layer)
+                self.challCompareSubView.layer.addSublayer(layer)
                 player.play()
 
                 self.playerSub = player
@@ -266,7 +266,7 @@ class ChallCompareViewController: UIViewController {
         if let url = playerMain?.currentItem?.asset as? AVURLAsset {
             updateMainPlayerAspectRatio(from: url.url)
         }
-        playerLayerSub?.frame = challComparSubView.bounds
+        playerLayerSub?.frame = challCompareSubView.bounds
     }
 }
 
