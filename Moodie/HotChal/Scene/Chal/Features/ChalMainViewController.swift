@@ -193,7 +193,3 @@ extension UICollectionViewCompositionalLayout {
 }
 
 
-
-#Preview {
-    ChalMainViewController()
-}

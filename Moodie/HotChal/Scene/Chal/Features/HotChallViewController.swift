@@ -226,7 +226,7 @@ class HotChallViewController: UIViewController {
       [topMoreButton, bottomMoreButton, middleMoreButton]
         .forEach {
           $0.addAction( UIAction { _ in
-            let vc = HotChallTop100ViewController()
+            let vc = CameraViewController()
             self.navigationController?.pushViewController(vc, animated: true)
           }, for: .touchUpInside)
         }
