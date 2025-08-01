@@ -74,20 +74,18 @@ class LearnViewController: UIViewController, UICollectionViewDataSource, UIColle
             print("❌ 영상 파일을 찾을 수 없습니다: \(filename)")
             return
         }
-
         let url = URL(fileURLWithPath: path)
-        let playerVC = PlayerViewController()
-        playerVC.videoURL = url
-        playerVC.videoTitle = title
-        playerVC.uploaderName = uploader
-        present(playerVC, animated: true)
     }
 
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        let selectedItem = items[indexPath.item]
-        playLocalVideo(named: selectedItem.videoFilename,
-                       title: selectedItem.title,
-                       uploader: selectedItem.uploader)
+        let item = items[indexPath.item]
+
+        let playerVC = PlayerViewController()
+        playerVC.videoFilename = item.videoFilename // 예: "golden.mp4"
+        playerVC.videoTitle = item.title
+        playerVC.uploader = item.uploader
+
+        navigationController?.pushViewController(playerVC, animated: true)
     }
 
 
