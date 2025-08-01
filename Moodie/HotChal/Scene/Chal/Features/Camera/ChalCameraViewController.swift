@@ -164,24 +164,21 @@ final class CameraViewController: UIViewController {
     }
     
     @objc private func onTimerButtonPressed() {
-        let bottomSheet = TimerSelectBottomSheet()
-        bottomSheet.modalPresentationStyle = .automatic
-        if let sheet = bottomSheet.sheetPresentationController {
-            sheet.detents = [.medium()] // iOS 15+
-            sheet.prefersGrabberVisible = true
+        let timerView = TimerSelectView()
+        timerView.onSelect = { selected in
+            print("선택된 타이머: \(selected ?? -1)초")
         }
 
-        bottomSheet.onSelect = { [weak self] selectedSec in
-            if let sec = selectedSec {
-                print("⏱ 선택한 타이머: \(sec)초")
-                // self?.startCountdown(seconds: sec)
-            } else {
-                print("❌ 타이머 선택 취소")
+        let bottomSheet = BaseBottomSheetViewController(
+            title: "타이머 설정",
+            contentView: timerView,
+            onDismiss: {
+                print("닫힘")
             }
-        }
-
+        )
         present(bottomSheet, animated: true)
     }
+
 }
 
 // MARK: - CameraDelegate
@@ -277,21 +274,26 @@ private final class RecordButton: UIControl {
 }
 
 
-final class TimerSelectBottomSheet: UIViewController {
+final class TimerSelectView: UIView {
 
     private let options = [3, 5, 10]
     private var selectedValue: Int?
-    var onSelect: ((Int?) -> Void)? // 선택 후 콜백
+    var onSelect: ((Int?) -> Void)?
 
-    override func viewDidLoad() {
-        super.viewDidLoad()
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        setupUI()
+    }
+
+    required init?(coder: NSCoder) {
+        super.init(coder: coder)
         setupUI()
     }
 
     private func setupUI() {
-        view.backgroundColor = .systemBackground
-        view.layer.cornerRadius = 16
-        view.clipsToBounds = true
+        backgroundColor = .systemBackground
+        layer.cornerRadius = 16
+        clipsToBounds = true
 
         let titleLabel = UILabel()
         titleLabel.text = "타이머 선택"
@@ -307,8 +309,8 @@ final class TimerSelectBottomSheet: UIViewController {
             let button = UIButton(type: .system)
             button.setTitle("\(sec)초", for: .normal)
             button.titleLabel?.font = .systemFont(ofSize: 16)
-            button.addTarget(self, action: #selector(timerOptionTapped(_:)), for: .touchUpInside)
             button.tag = sec
+            button.addTarget(self, action: #selector(timerOptionTapped(_:)), for: .touchUpInside)
             stackView.addArrangedSubview(button)
         }
 
@@ -323,26 +325,22 @@ final class TimerSelectBottomSheet: UIViewController {
         vStack.alignment = .fill
         vStack.translatesAutoresizingMaskIntoConstraints = false
 
-        view.addSubview(vStack)
+        addSubview(vStack)
 
         NSLayoutConstraint.activate([
-            vStack.topAnchor.constraint(equalTo: view.topAnchor, constant: 20),
-            vStack.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-            vStack.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-            vStack.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -20),
+            vStack.topAnchor.constraint(equalTo: topAnchor, constant: 20),
+            vStack.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 20),
+            vStack.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -20),
+            vStack.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -20),
         ])
     }
 
     @objc private func timerOptionTapped(_ sender: UIButton) {
         selectedValue = sender.tag
-        dismiss(animated: true) {
-            self.onSelect?(self.selectedValue)
-        }
+        onSelect?(selectedValue)
     }
 
     @objc private func onCancelPressed() {
-        dismiss(animated: true) {
-            self.onSelect?(nil)
-        }
+        onSelect?(nil)
     }
 }
