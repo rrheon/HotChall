@@ -35,13 +35,14 @@ class PlayerViewController: UIViewController {
     }
     
     private var isMuted = false
-    private var previousVolume: Float = 1.0
+    private var previousVolume: Float = 0.5
     
     private let infoBackgroundView: UIVisualEffectView = {
         let blur = UIBlurEffect(style: .dark)
-        let view = UIVisualEffectView(effect: blur)
+        let view = UIVisualEffectView(effect: .none)
         view.layer.cornerRadius = 10
         view.clipsToBounds = true
+        view.sizeToFit()
         return view
     }()
     
@@ -56,7 +57,7 @@ class PlayerViewController: UIViewController {
     
     private let uploaderLabel: UILabel = {
         let label = UILabel()
-        label.textColor = .lightGray
+        label.textColor = .darkGray
         label.font = .systemFont(ofSize: 14, weight: .medium)
         label.textAlignment = .left
         label.numberOfLines = 1
@@ -66,7 +67,7 @@ class PlayerViewController: UIViewController {
     private let timeLabel: UILabel = {
         let label = UILabel()
         label.textColor = .white
-        label.font = .monospacedDigitSystemFont(ofSize: 12, weight: .regular)
+        label.font = .monospacedDigitSystemFont(ofSize: 10, weight: .regular)
         label.textAlignment = .right
         label.text = "00:00 / 00:00"
         return label
@@ -86,7 +87,7 @@ class PlayerViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .black
+        view.backgroundColor = .systemBackground
         
         setupPlayer()
         setupUI()
@@ -98,45 +99,57 @@ class PlayerViewController: UIViewController {
         super.viewDidLayoutSubviews()
         
         if let window = view.window {
-            playerLayer.frame = CGRect(
-                x: 0,
-                y: 0,
-                width: window.bounds.width,
-                height: window.bounds.height
-            )
+            playerLayer.frame = window.bounds
         }
         
+        //margin - 뷰끼리의 간격
         let margin: CGFloat = 20
         let spacing: CGFloat = 8
         let sliderHeight: CGFloat = 30
         let maxWidth = view.bounds.width - margin * 2
         
-        let titleSize = titleLabel.sizeThatFits(CGSize(width: maxWidth - 24, height: .greatestFiniteMagnitude))
-        let uploaderSize = uploaderLabel.sizeThatFits(CGSize(width: maxWidth - 24, height: .greatestFiniteMagnitude))
+        let safeAreaBottom = view.safeAreaInsets.bottom
+        let safeAreaTop = view.safeAreaInsets.top
+        
+        let titleSize = titleLabel.sizeThatFits(CGSize(width: maxWidth - 12, height: .greatestFiniteMagnitude))
+        let uploaderSize = uploaderLabel.sizeThatFits(CGSize(width: maxWidth - 12, height: .greatestFiniteMagnitude))
         let infoHeight = titleSize.height + uploaderSize.height + spacing
+        let infoWidth = titleSize.width + uploaderSize.width + spacing
         
         let speedStackHeight: CGFloat = 40
+        let speedStackY = view.bounds.height - safeAreaBottom - speedStackHeight
+        
         speedStackView.frame = CGRect(
             x: margin,
-            y: view.bounds.height - speedStackHeight - margin,
+            y: speedStackY,
             width: maxWidth,
             height: speedStackHeight
         )
         
+        let progressSliderY = speedStackY - sliderHeight - spacing
         progressSlider.frame = CGRect(
             x: margin,
-            y: speedStackView.frame.minY - sliderHeight - spacing,
-            width: maxWidth,
+            y: progressSliderY,
+            width: maxWidth - 75,
             height: sliderHeight
         )
         
-        let volumeIconSize: CGFloat = sliderHeight
+//        let timeLabelSize: CGFloat = sliderHeight
+        timeLabel.frame = CGRect(
+            x: progressSlider.frame.maxX + 5,
+            y: progressSliderY,
+            width: 100,
+            height: sliderHeight
+        )
+        
+//        let volumeY = progressSlider.frame.minY - sliderHeight - spacing
         volumeIcon.frame = CGRect(
             x: margin,
             y: progressSlider.frame.minY - sliderHeight - spacing,
-            width: volumeIconSize,
-            height: volumeIconSize
+            width: sliderHeight,
+            height: sliderHeight
         )
+        
         volumeSlider.frame = CGRect(
             x: volumeIcon.frame.maxX + 8,
             y: volumeIcon.frame.minY,
@@ -147,7 +160,7 @@ class PlayerViewController: UIViewController {
         infoBackgroundView.frame = CGRect(
             x: margin,
             y: volumeSlider.frame.minY - infoHeight - spacing,
-            width: maxWidth,
+            width: infoWidth,
             height: infoHeight
         )
         titleLabel.frame = CGRect(x: 12, y: 6, width: maxWidth - 24, height: titleSize.height)
@@ -155,7 +168,7 @@ class PlayerViewController: UIViewController {
         
         timeLabel.frame = CGRect(
             x: view.bounds.width - margin - 100,
-            y: progressSlider.frame.minY - 20,
+            y: progressSlider.frame.minY - -5,
             width: 100,
             height: 20
         )
@@ -171,9 +184,10 @@ class PlayerViewController: UIViewController {
         let url = URL(fileURLWithPath: path)
         player = AVPlayer(url: url)
         playerLayer = AVPlayerLayer(player: player)
-        playerLayer.videoGravity = .resizeAspect
-        view.layer.insertSublayer(playerLayer, at: 0)
+        playerLayer.videoGravity = .resize
+        view.layer.insertSublayer(playerLayer, at: 70)
         
+        // 콜백이 호출되는 주기(0.5초 마다)
         let interval = CMTime(seconds: 0.5, preferredTimescale: 600)
         timeObserverToken = player.addPeriodicTimeObserver(forInterval: interval, queue: .main) { [weak self] time in
             guard let self = self else { return }
@@ -195,27 +209,28 @@ class PlayerViewController: UIViewController {
         infoBackgroundView.contentView.addSubview(titleLabel)
         infoBackgroundView.contentView.addSubview(uploaderLabel)
         
-        view.addSubview(timeLabel)
         view.addSubview(progressSlider)
+        view.addSubview(timeLabel)
         view.addSubview(volumeIcon)
         view.addSubview(volumeSlider)
         
         speedStackView.axis = .horizontal
         speedStackView.spacing = 8
+        
         for speed in speeds {
             let button = UIButton(type: .system)
             button.setTitle("\(speed)x", for: .normal)
             button.setTitleColor(.white, for: .normal)
             button.backgroundColor = UIColor.white.withAlphaComponent(0.2)
             button.layer.cornerRadius = 8
-            button.titleLabel?.font = .systemFont(ofSize: 12)
+            button.titleLabel?.font = .systemFont(ofSize: 15)
             button.tag = Int(speed * 10)
             button.addTarget(self, action: #selector(speedSelected(_:)), for: .touchUpInside)
             speedStackView.addArrangedSubview(button)
         }
         view.addSubview(speedStackView)
         
-        progressSlider.minimumTrackTintColor = .systemGreen
+        progressSlider.minimumTrackTintColor = .systemBlue
         progressSlider.maximumTrackTintColor = UIColor.white.withAlphaComponent(0.3)
         progressSlider.thumbTintColor = .white
         progressSlider.addTarget(self, action: #selector(progressSliderChanged), for: .valueChanged)
@@ -300,6 +315,16 @@ class PlayerViewController: UIViewController {
             let speed = Float(button.tag) / 10.0
             button.backgroundColor = (speed == selectedSpeed) ? .systemGreen : UIColor.white.withAlphaComponent(0.2)
         }
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        tabBarController?.tabBar.isHidden = true
+    }
+
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        tabBarController?.tabBar.isHidden = false
     }
     
     deinit {
