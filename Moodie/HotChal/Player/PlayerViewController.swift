@@ -5,210 +5,226 @@
 //  Created by jonghyuck on 8/1/25.
 //
 
+//
+//  Player.swift
+//  HotChal
+//
+//  Created by jonghyuck on 8/1/25.
+//
+
 import UIKit
 import AVFoundation
+import MediaPlayer
 
 class PlayerViewController: UIViewController {
-    
-    private var player: AVPlayer!
-    private var playerLayer: AVPlayerLayer!
-    private let playerView = UIView()
+
     var videoURL: URL?
     var videoTitle: String?
     var uploaderName: String?
-    
-    var infoLabelAlpha: CGFloat = 0 // 기본값 (외부에서 조정 가능)
-    private var hasFinishedPlaying = false
-    
+
+    private var player: AVPlayer!
+    private var playerLayer: AVPlayerLayer!
+
+    private let infoStackView = UIStackView()
+    private let titleLabel = UILabel()
+    private let uploaderLabel = UILabel()
+
     private let playbackSlider = UISlider()
-    private let volumeSlider = UISlider()
-    private let speedSegment = UISegmentedControl(items: ["0.5x", "1.0x", "1.5x", "2.0x"])
-    private let playPauseButton = UIButton(type: .system)
+    private var timeObserverToken: Any?
+
+    private let volumeViewContainer = UIView()
+    private let systemVolumeView = MPVolumeView()
+    private let volumeButton = UIButton(type: .system)
+    private var volumeVisible = false
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .systemBackground
-        
-        do {
-                try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default, options: [])
-                try AVAudioSession.sharedInstance().setActive(true)
-            } catch {
-                print("Failed to set audio session: \(error)")
-            }
-        
-        setupPlayer()
-        setupControls()
-        setupInfoLabels()
-        startTrackingSlider()
-        addTapGestureForPlayPause()
-        
-        NotificationCenter.default.addObserver(self,
-                                               selector: #selector(videoDidFinishPlaying),
-                                               name: .AVPlayerItemDidPlayToEndTime,
-                                               object: nil)
-    }
-    
-    private func setupInfoLabels() {
-        let blurEffect = UIBlurEffect(style: .dark)
-        let blurView = UIVisualEffectView(effect: blurEffect)
-        blurView.translatesAutoresizingMaskIntoConstraints = false
-        blurView.layer.cornerRadius = 12
-        blurView.clipsToBounds = true
-        blurView.backgroundColor = UIColor.black.withAlphaComponent(infoLabelAlpha) // 외부 조정 가능
+        view.backgroundColor = .black
 
-        
-        let titleLabel = UILabel()
-        titleLabel.text = videoTitle ?? "제목 없음"
-        titleLabel.textColor = .white
-        titleLabel.font = UIFont.boldSystemFont(ofSize: 16)
-        titleLabel.numberOfLines = 1
-        
-        let uploaderLabel = UILabel()
-        uploaderLabel.text = uploaderName ?? "업로더 없음"
-        uploaderLabel.textColor = .lightGray
-        uploaderLabel.font = UIFont.systemFont(ofSize: 13)
-        
-        let stack = UIStackView(arrangedSubviews: [titleLabel, uploaderLabel])
-        stack.axis = .vertical
-        stack.spacing = 2
-        stack.alignment = .leading
-        stack.translatesAutoresizingMaskIntoConstraints = false
-        
-        blurView.contentView.addSubview(stack)
-        view.addSubview(blurView)
-        
-        NSLayoutConstraint.activate([
-            stack.topAnchor.constraint(equalTo: blurView.contentView.topAnchor, constant: 8),
-            stack.leadingAnchor.constraint(equalTo: blurView.contentView.leadingAnchor, constant: 12),
-            stack.trailingAnchor.constraint(equalTo: blurView.contentView.trailingAnchor, constant: -12),
-            stack.bottomAnchor.constraint(equalTo: blurView.contentView.bottomAnchor, constant: -8),
-            
-            blurView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-            blurView.trailingAnchor.constraint(lessThanOrEqualTo: view.trailingAnchor, constant: -20),
-            blurView.bottomAnchor.constraint(equalTo: playbackSlider.topAnchor, constant: -10) // 재생바 위로 16pt 올림
-        ])
-    }
-    
-    override func viewDidLayoutSubviews() {
-        super.viewDidLayoutSubviews()
-        playerLayer.frame = playerView.bounds
+        do {
+            try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default, options: [])
+            try AVAudioSession.sharedInstance().setActive(true)
+        } catch {
+            print("Failed to set audio session: \(error)")
+        }
+
+        setupPlayer()
+        setupPlaybackSlider()
+        setupInfoLabel()
+        setupVolumeSlider()
+        setupVolumeButton()
+        setupTapGesture()
     }
 
     private func setupPlayer() {
-        guard let url = videoURL else {
-            print("videoURL이 설정되지 않았습니다.")
-            return
+        guard let url = videoURL else { return }
+        player = AVPlayer(url: url)
+
+        playerLayer = AVPlayerLayer(player: player)
+        playerLayer.videoGravity = .resizeAspectFill
+        view.layer.insertSublayer(playerLayer, at: 0)
+
+        timeObserverToken = player.addPeriodicTimeObserver(forInterval: CMTime(seconds: 1, preferredTimescale: 600), queue: .main) { [weak self] time in
+            guard let self = self else { return }
+            let duration = self.player.currentItem?.duration.seconds ?? 0
+            if duration > 0 {
+                self.playbackSlider.value = Float(time.seconds / duration)
+            }
         }
 
-        let item = AVPlayerItem(url: url)
-        player = AVPlayer(playerItem: item)
-        player.volume = 1.0
-
-        // ✅ playerLayer를 UIView 위에 붙이기
-        playerLayer = AVPlayerLayer(player: player)
-        playerLayer.videoGravity = .resizeAspect
-
-        playerView.layer.addSublayer(playerLayer)
-        view.addSubview(playerView)
-
-        playerView.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            playerView.topAnchor.constraint(equalTo: view.topAnchor),
-            playerView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            playerView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            playerView.heightAnchor.constraint(equalTo: playerView.widthAnchor, multiplier: 16.0/9.0) // 16:9 비율
-        ])
-
-        // Layer는 layoutSubviews에서 사이즈 맞추기
-        view.setNeedsLayout()
-
+        NotificationCenter.default.addObserver(self, selector: #selector(playerDidFinishPlaying), name: .AVPlayerItemDidPlayToEndTime, object: player.currentItem)
         player.play()
     }
 
-    private func setupControls() {
-        playbackSlider.addTarget(self, action: #selector(sliderValueChanged), for: .valueChanged)
-        volumeSlider.addTarget(self, action: #selector(volumeChanged), for: .valueChanged)
-        speedSegment.addTarget(self, action: #selector(speedChanged), for: .valueChanged)
-        speedSegment.selectedSegmentIndex = 1
+    @objc private func playerDidFinishPlaying() {
+        player.seek(to: .zero)
+        playbackSlider.value = 0
+    }
 
-        // 재생바 스타일
-        playbackSlider.minimumTrackTintColor = UIColor.systemBlue
-        playbackSlider.maximumTrackTintColor = UIColor.white.withAlphaComponent(0.3)
-        playbackSlider.thumbTintColor = UIColor.systemBlue
-        
-        // 볼륨 슬라이더 스타일 & 크기 조절
-        volumeSlider.minimumTrackTintColor = UIColor.systemGreen
-        volumeSlider.maximumTrackTintColor = UIColor.white.withAlphaComponent(0.3)
-        volumeSlider.thumbTintColor = UIColor.systemGreen
-        volumeSlider.value = 1.0
-        
-        volumeSlider.transform = CGAffineTransform(scaleX: 1.0, y: 0.6) // 슬라이더 높이 축소
-        
-        let stack = UIStackView(arrangedSubviews: [playbackSlider, volumeSlider, speedSegment])
-        stack.axis = .vertical
-        stack.spacing = 12
-        stack.translatesAutoresizingMaskIntoConstraints = false
-        
-        view.addSubview(stack)
+    private func setupInfoLabel() {
+        titleLabel.text = videoTitle ?? "제목 없음"
+        titleLabel.textColor = .white
+        titleLabel.font = UIFont.boldSystemFont(ofSize: 18)
+        titleLabel.textAlignment = .left
+        titleLabel.numberOfLines = 0
+
+        uploaderLabel.text = uploaderName ?? "업로더"
+        uploaderLabel.textColor = .lightGray
+        uploaderLabel.font = UIFont.systemFont(ofSize: 14)
+        uploaderLabel.textAlignment = .left
+        uploaderLabel.numberOfLines = 0
+
+        infoStackView.axis = .vertical
+        infoStackView.alignment = .leading
+        infoStackView.spacing = 2
+        infoStackView.translatesAutoresizingMaskIntoConstraints = false
+        infoStackView.backgroundColor = UIColor.black.withAlphaComponent(0.5)
+        infoStackView.layer.cornerRadius = 8
+        infoStackView.layoutMargins = UIEdgeInsets(top: 6, left: 10, bottom: 6, right: 10)
+        infoStackView.isLayoutMarginsRelativeArrangement = true
+
+        infoStackView.addArrangedSubview(titleLabel)
+        infoStackView.addArrangedSubview(uploaderLabel)
+        view.addSubview(infoStackView)
+
         NSLayoutConstraint.activate([
-            stack.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-            stack.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-            stack.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20)
+            infoStackView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            infoStackView.bottomAnchor.constraint(equalTo: playbackSlider.topAnchor, constant: -20),
         ])
     }
-    
-    private func addTapGestureForPlayPause() {
-            let tapGesture = UITapGestureRecognizer(target: self, action: #selector(togglePlayPause))
-            view.addGestureRecognizer(tapGesture)
-        }
 
-    @objc private func togglePlayPause() {
-        if hasFinishedPlaying {
-            player.seek(to: .zero)
-            player.play()
-            hasFinishedPlaying = false
-        } else {
-            if player.timeControlStatus == .playing {
-                player.pause()
-            } else {
-                player.play()
+    private func setupPlaybackSlider() {
+        playbackSlider.translatesAutoresizingMaskIntoConstraints = false
+        playbackSlider.minimumTrackTintColor = .white
+        playbackSlider.maximumTrackTintColor = UIColor.white.withAlphaComponent(0.3)
+        playbackSlider.thumbTintColor = .white
+        playbackSlider.addTarget(self, action: #selector(sliderValueChanged), for: .valueChanged)
+        view.addSubview(playbackSlider)
+
+        NSLayoutConstraint.activate([
+            playbackSlider.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            playbackSlider.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+            playbackSlider.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20)
+        ])
+    }
+
+    @objc private func sliderValueChanged() {
+        guard let duration = player.currentItem?.duration else { return }
+        let newTime = CMTime(seconds: Double(playbackSlider.value) * duration.seconds, preferredTimescale: 600)
+        player.seek(to: newTime)
+    }
+
+    private func setupVolumeSlider() {
+        volumeViewContainer.translatesAutoresizingMaskIntoConstraints = false
+        volumeViewContainer.alpha = 0
+        view.addSubview(volumeViewContainer)
+
+        NSLayoutConstraint.activate([
+            volumeViewContainer.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+            volumeViewContainer.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 60),
+            volumeViewContainer.widthAnchor.constraint(equalToConstant: 150),
+            volumeViewContainer.heightAnchor.constraint(equalToConstant: 40)
+        ])
+
+        systemVolumeView.translatesAutoresizingMaskIntoConstraints = false
+        systemVolumeView.showsRouteButton = false
+        volumeViewContainer.addSubview(systemVolumeView)
+
+        NSLayoutConstraint.activate([
+            systemVolumeView.topAnchor.constraint(equalTo: volumeViewContainer.topAnchor),
+            systemVolumeView.leadingAnchor.constraint(equalTo: volumeViewContainer.leadingAnchor),
+            systemVolumeView.trailingAnchor.constraint(equalTo: volumeViewContainer.trailingAnchor),
+            systemVolumeView.bottomAnchor.constraint(equalTo: volumeViewContainer.bottomAnchor)
+        ])
+
+        for view in systemVolumeView.subviews {
+            if let button = view as? UIButton {
+                button.isHidden = true
+            } else if let slider = view as? UISlider {
+                slider.minimumTrackTintColor = .systemGreen
+                slider.maximumTrackTintColor = .lightGray
+                slider.thumbTintColor = .systemGreen
+                slider.value = 1.0
+                slider.transform = CGAffineTransform(scaleX: 1.0, y: 1.5)
             }
         }
     }
 
-    @objc private func sliderValueChanged() {
-        let duration = player.currentItem?.duration.seconds ?? 0
-        let newTime = CMTime(seconds: Double(playbackSlider.value) * duration, preferredTimescale: 600)
-        player.seek(to: newTime)
+    private func setupVolumeButton() {
+        volumeButton.setImage(UIImage(systemName: "speaker.wave.2.fill"), for: .normal)
+        volumeButton.tintColor = .white
+        volumeButton.translatesAutoresizingMaskIntoConstraints = false
+        volumeButton.addTarget(self, action: #selector(toggleVolumeSlider), for: .touchUpInside)
+        view.addSubview(volumeButton)
+
+        NSLayoutConstraint.activate([
+            volumeButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+            volumeButton.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 20),
+            volumeButton.widthAnchor.constraint(equalToConstant: 30),
+            volumeButton.heightAnchor.constraint(equalToConstant: 30)
+        ])
     }
 
-    @objc private func volumeChanged() {
-        player.volume = volumeSlider.value
-        print("Volume changed to \(player.volume)")
-    }
+    @objc private func toggleVolumeSlider() {
+        UIView.animate(withDuration: 0.3) {
+            self.volumeViewContainer.alpha = self.volumeVisible ? 0 : 1
+        }
+        volumeVisible.toggle()
 
-    @objc private func speedChanged() {
-        let speeds: [Float] = [0.5, 1.0, 1.5, 2.0]
-        player.rate = player.timeControlStatus == .paused ? 0 : speeds[speedSegment.selectedSegmentIndex]
-    }
-
-    private func startTrackingSlider() {
-        player.addPeriodicTimeObserver(forInterval: CMTime(seconds: 0.5, preferredTimescale: 600), queue: .main) { [weak self] time in
-            guard let self = self,
-                  let duration = self.player.currentItem?.duration.seconds, duration > 0 else { return }
-            self.playbackSlider.value = Float(time.seconds / duration)
+        if volumeVisible {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 4) {
+                UIView.animate(withDuration: 0.3) {
+                    self.volumeViewContainer.alpha = 0
+                    self.volumeVisible = false
+                }
+            }
         }
     }
-    
-    @objc private func videoDidFinishPlaying() {
-        hasFinishedPlaying = true
-        playbackSlider.value = 0 // 끝까지 갔다는 의미로 슬라이더 유지
+
+    private func setupTapGesture() {
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleTapGesture))
+        view.addGestureRecognizer(tapGesture)
     }
-    
-    func setVideo(url: URL) {
-        player.replaceCurrentItem(with: AVPlayerItem(url: url))
-        player.play()
+
+    @objc private func handleTapGesture() {
+        if let player = player {
+            if player.timeControlStatus == .paused {
+                player.play()
+            } else {
+                player.pause()
+            }
+        }
+    }
+
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        playerLayer?.frame = view.bounds
+    }
+
+    deinit {
+        if let token = timeObserverToken {
+            player.removeTimeObserver(token)
+        }
+        NotificationCenter.default.removeObserver(self)
     }
 }
-
-

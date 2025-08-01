@@ -80,7 +80,6 @@ class LearnViewController: UIViewController, UICollectionViewDataSource, UIColle
         playerVC.videoURL = url
         playerVC.videoTitle = title
         playerVC.uploaderName = uploader
-        playerVC.infoLabelAlpha = 0
         present(playerVC, animated: true)
     }
 
