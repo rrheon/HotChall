@@ -28,7 +28,7 @@ enum TabBarPage {
         case .home:
             return "인기차트"
         case .learn:
-            return "핫한 챌린지 배우기 🔥"
+            return "핫한 챌린지 배우기"
         case .favorites:
             return "보관함"
         }
