@@ -21,6 +21,7 @@ class LearnViewController: UIViewController, UICollectionViewDataSource, UIColle
 
     var didSendEventClosure: ((LearnViewController.Event) -> Void)?
     
+    
     private var collectionView: UICollectionView!
     
     private let items: [ChallengeItem] = [
@@ -67,26 +68,27 @@ class LearnViewController: UIViewController, UICollectionViewDataSource, UIColle
         ])
     }
     
-    private func playLocalVideo(named filename: String) {
+
+    private func playLocalVideo(named filename: String, title: String, uploader: String) {
         guard let path = Bundle.main.path(forResource: filename, ofType: nil) else {
             print("❌ 영상 파일을 찾을 수 없습니다: \(filename)")
             return
         }
 
         let url = URL(fileURLWithPath: path)
-        let player = AVPlayer(url: url)
-        let playerVC = AVPlayerViewController()
-        playerVC.player = player
-
-        present(playerVC, animated: true) {
-            player.play()
-        }
+        let playerVC = PlayerViewController()
+        playerVC.videoURL = url
+        playerVC.videoTitle = title
+        playerVC.uploaderName = uploader
+        playerVC.infoLabelAlpha = 0
+        present(playerVC, animated: true)
     }
 
-    
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         let selectedItem = items[indexPath.item]
-        playLocalVideo(named: selectedItem.videoFilename)
+        playLocalVideo(named: selectedItem.videoFilename,
+                       title: selectedItem.title,
+                       uploader: selectedItem.uploader)
     }
 
 

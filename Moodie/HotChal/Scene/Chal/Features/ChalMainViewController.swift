@@ -191,9 +191,9 @@ extension UICollectionViewCompositionalLayout {
         return UICollectionViewCompositionalLayout(section: section)
     }
 }
-
-
-
-#Preview {
-    ChalMainViewController()
-}
+//
+//
+//
+//#Preview {
+//    ChalMainViewController()
+//}
