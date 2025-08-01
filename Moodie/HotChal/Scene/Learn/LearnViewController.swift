@@ -74,7 +74,6 @@ class LearnViewController: UIViewController, UICollectionViewDataSource, UIColle
             print("❌ 영상 파일을 찾을 수 없습니다: \(filename)")
             return
         }
-        let url = URL(fileURLWithPath: path)
     }
 
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
@@ -116,7 +115,3 @@ extension LearnViewController {
         case learnViewControllerTwo
     }
 }
-//
-//#Preview {
-//    LearnViewController()
-//}

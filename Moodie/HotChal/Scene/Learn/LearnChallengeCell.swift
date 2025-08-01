@@ -1,5 +1,5 @@
 //
-//  ChallengeCell.swift
+//  LearnChallengeCell.swift
 //  HotChal
 //
 //  Created by jonghyuck on 7/30/25.
@@ -8,7 +8,7 @@
 import UIKit
 
 class LearnChallengeCell: UICollectionViewCell {
-    static let identifier = "ChallengeCell"
+    static let identifier = "LearnChallengeCell"
 
     private let thumbnailImageView = UIImageView()
     private let titleLabel = UILabel()
@@ -67,7 +67,3 @@ class LearnChallengeCell: UICollectionViewCell {
         uploaderLabel.text = item.uploader
     }
 }
-
-//#Preview {
-//    LearnViewController()
-//}
