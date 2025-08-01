@@ -49,11 +49,12 @@ final class ChallengeCell: UICollectionViewCell {
         ])
     }
 
-    func configure(with challenge: Challenge) {
-        imageView.image = UIImage(named: challenge.profileImageName)
-        titleLabel.text = challenge.title
-        subtitleLabel.text = challenge.subtitle
-    }
+  func configure(with challenge: ChallengeVideo) {
+    
+    imageView.image = UIImage(named: challenge.thumbnailImage ?? "")
+    titleLabel.text = challenge.title
+    subtitleLabel.text = challenge.title ?? ""
+  }
 
     required init?(coder: NSCoder) { fatalError() }
 }

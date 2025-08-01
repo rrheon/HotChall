@@ -28,7 +28,7 @@ enum TabBarPage {
         case .home:
             return "인기차트"
         case .learn:
-            return "핫한 챌린지 배우기 🔥"
+            return "핫한 챌린지 배우기"
         case .favorites:
             return "보관함"
         }
@@ -48,7 +48,7 @@ enum TabBarPage {
     func tabIcon() -> UIImage? {
            switch self {
            case .home:
-               return UIImage(systemName: "star.fill")
+             return UIImage(systemName: "flame")
            case .learn:
                return UIImage(systemName: "star.fill")
            case .favorites:
@@ -82,6 +82,7 @@ class TabCoordinator: NSObject, Coordinator {
     required init(_ navigationController: UINavigationController) {
         self.navigationController = navigationController
         self.tabBarController = .init()
+
     }
 
     func start() {
@@ -101,9 +102,8 @@ class TabCoordinator: NSObject, Coordinator {
         tabBarController.delegate = self
         tabBarController.setViewControllers(tabControllers, animated: true)
         tabBarController.selectedIndex = TabBarPage.home.pageOrderNumber()
-    
-        tabBarController.tabBar.isTranslucent = false
-        
+
+      
         navigationController.viewControllers = [tabBarController]
     }
       

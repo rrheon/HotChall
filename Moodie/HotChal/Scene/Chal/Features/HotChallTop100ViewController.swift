@@ -9,8 +9,10 @@ import UIKit
 import AVFoundation
 import AVKit
 
-class HotChallTop100ViewController: UIViewController {
-    
+/// HotChall - front - HotChallTop100ViewController
+final class HotChallTop100ViewController: UIViewController {
+  weak var delegate: ChalCoordinator?
+
     private let sampleData: [String] = Array(repeating: "챌린지 제목", count: 100) // 임시
     private let sampleData2: [String] = Array(repeating: "아티스트", count: 100)
     
@@ -71,18 +73,7 @@ class HotChallTop100ViewController: UIViewController {
         view.backgroundColor = .systemBackground
         self.navigationItem.title = "핫챌 TOP100"
         
-        let appearance = UINavigationBarAppearance()
-        appearance.configureWithOpaqueBackground()
-        appearance.titleTextAttributes = [
-            .font: UIFont.boldSystemFont(ofSize: 24),
-            .foregroundColor: UIColor.white
-        ]
-        appearance.backgroundColor = .black
-        
-        navigationController?.navigationBar.standardAppearance = appearance
-        navigationController?.navigationBar.scrollEdgeAppearance = appearance
-        
-        self.navigationItem.titleView?.backgroundColor = .black
+      setupNavigationController()
         
         top100ListView.dataSource = self
         top100ListView.delegate = self
@@ -138,7 +129,8 @@ class HotChallTop100ViewController: UIViewController {
 // MARK: - Cell 디자인
 
 class TOP100ChallengeCell: UICollectionViewCell {
-    
+  weak var delegate: ChalCoordinator?
+
     let numberLabel = UILabel()
     let chalThumbnailView = UIImageView()
     let titleLabel = UILabel()
@@ -225,13 +217,6 @@ extension HotChallTop100ViewController: UICollectionViewDataSource {
 }
 
 
-
-@available(iOS 17.0, *)
-#Preview {
-    UINavigationController(rootViewController: HotChallTop100ViewController())
-}
-
-
 // MARK: 임시
 
 extension HotChallTop100ViewController: UICollectionViewDelegateFlowLayout{
@@ -245,7 +230,7 @@ extension HotChallTop100ViewController: UICollectionViewDelegateFlowLayout{
         let player = AVPlayer(url: url)
         let playerVC = AVPlayerViewController()
         playerVC.player = player
-        
+      playerVC.player?.volume = 0.6
         present(playerVC, animated: true) {
             player.play()
         }
