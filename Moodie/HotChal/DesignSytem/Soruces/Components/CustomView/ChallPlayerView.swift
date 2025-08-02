@@ -24,6 +24,8 @@ final class ChallPlayerManager {
   
   let playerView: ChallPlayerView = ChallPlayerView()
 
+  
+  /// 플레이어 UI 보여주기
   func showChallPlayer(){
     guard let keyWindow = UIApplication.shared.windows.first(where: { $0.isKeyWindow }) else { return }
     
@@ -31,6 +33,7 @@ final class ChallPlayerManager {
     playerView.translatesAutoresizingMaskIntoConstraints = false
     
     playerView.layer.cornerRadius = 10
+    playerView.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
     NSLayoutConstraint.activate([
       playerView.centerXAnchor.constraint(equalTo: keyWindow.centerXAnchor),
       playerView.leadingAnchor.constraint(equalTo: keyWindow.leadingAnchor),

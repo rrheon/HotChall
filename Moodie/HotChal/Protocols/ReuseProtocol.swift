@@ -12,6 +12,9 @@ protocol ReuseIdentifiable {
 }
 
 extension ReuseIdentifiable {
+  
+  /// 현재 타입의 이름을 문자열로 반환
+  /// ex) CustomCell.reuseIdentifier -> "CustomCell"
   static var reuseIdentifier: String {
     get {
       return String(describing: Self.self)

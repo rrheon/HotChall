@@ -16,7 +16,7 @@ final class ChalCoordinator: Coordinator {
   
   /// 처음 시작화면
   func start() {
-    let chalMainViewController = HotChallViewController()
+    let chalMainViewController = HotChalMainViewController()
     chalMainViewController.delegate = self
     self.navigationController.viewControllers = [chalMainViewController]
   }

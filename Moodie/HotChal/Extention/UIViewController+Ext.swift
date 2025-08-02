@@ -10,7 +10,7 @@ import UIKit
 extension UIViewController {
   
   /// 네비게이션 바 색상 설정
-  func setupNavigationController(){
+  func setupNavigationController(largeTitle: Bool = true){
     let appearance = UINavigationBarAppearance()
     appearance.configureWithTransparentBackground()
     appearance.backgroundColor = .backgroundColor
@@ -19,8 +19,9 @@ extension UIViewController {
     
     navigationController?.navigationBar.standardAppearance = appearance
     navigationController?.navigationBar.scrollEdgeAppearance = appearance
-    navigationController?.navigationBar.prefersLargeTitles = true
+    navigationController?.navigationBar.prefersLargeTitles = largeTitle
     navigationController?.navigationBar.backgroundColor = .backgroundColor
+    navigationController?.navigationBar.tintColor = .appPink
 
   }
   
@@ -34,5 +35,11 @@ extension UIViewController {
     tabBarController?.tabBar.standardAppearance = tabBarAppearance
     tabBarController?.tabBar.scrollEdgeAppearance = tabBarAppearance
     tabBarController?.tabBar.tintColor = .appPink
+  }
+  
+  func setupBackButton(){
+    let backBarButtonItem = UIBarButtonItem(title: "뒤로가기", style: .plain, target: self, action: nil)
+    backBarButtonItem.tintColor = .white  // 색상 변경
+    self.navigationItem.backBarButtonItem = backBarButtonItem
   }
 }

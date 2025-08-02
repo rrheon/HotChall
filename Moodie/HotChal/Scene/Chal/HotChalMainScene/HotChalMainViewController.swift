@@ -7,13 +7,22 @@
 
 import UIKit
 
+/*
+ Top3 셀 하나씩 보이게 수정하기
+ 
+ */
+
 /// HotChall - front - HotChallMainViewController
 /// 핫챌 메인 화면
-class HotChallViewController: UIViewController {
+class HotChalMainViewController: UIViewController {
   
   weak var delegate: ChalCoordinator?
   
   private let mainView: HotChalMainView = HotChalMainView()
+  
+  override func viewWillAppear(_ animated: Bool) {
+    navigationController?.navigationBar.prefersLargeTitles = true
+  }
   
   /// viewDidLoad
   override func viewDidLoad() {
@@ -29,9 +38,12 @@ class HotChallViewController: UIViewController {
     addButtonActions()
   }
   
-  
   override func loadView() {
     self.view = mainView
+  }
+  
+  override func viewWillDisappear(_ animated: Bool) {
+    ChallPlayerManager.shared.closeChallPlayer()
   }
   
   /// 셀 등록
@@ -59,7 +71,7 @@ class HotChallViewController: UIViewController {
 
 // MARK: - UICollectionViewDataSource
 
-extension HotChallViewController: UICollectionViewDataSource {
+extension HotChalMainViewController: UICollectionViewDataSource {
   
   func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
     if collectionView == mainView.topCollectionView {
@@ -85,7 +97,7 @@ extension HotChallViewController: UICollectionViewDataSource {
 
 // MARK: CollectionView Delegate
 
-extension HotChallViewController: UICollectionViewDelegateFlowLayout{
+extension HotChalMainViewController: UICollectionViewDelegateFlowLayout{
   
   func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
     print(#fileID, #function, #line, "- tap")

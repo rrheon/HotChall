@@ -11,7 +11,7 @@ import AVKit
 
 
 /// 챌린지 플레이어 모델
-final class ChallengePlayerModel {
+final class ChallengePlayerManager {
   
   func playLocalVideo(named filename: String) {
     guard let path = Bundle.main.path(forResource: filename, ofType: nil) else {
