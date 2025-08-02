@@ -22,9 +22,9 @@ final class ChalCoordinator: Coordinator {
   }
   
   /// 핫챌 Top100 VC로 이동하기
-  func navToHotChallTop100ViewController(){
+  func navToHotChallTop100ViewController(with challengeName: String){
     let vc = HotChallTop100ViewController()
-    vc.delegate = self
+    vc.challengeName = challengeName
     self.navigationController.pushViewController(vc, animated: true)
   }
 

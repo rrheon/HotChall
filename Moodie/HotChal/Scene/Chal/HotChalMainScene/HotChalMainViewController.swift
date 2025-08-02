@@ -7,11 +7,6 @@
 
 import UIKit
 
-/*
- Top3 셀 하나씩 보이게 수정하기
- 
- */
-
 /// HotChall - front - HotChallMainViewController
 /// 핫챌 메인 화면
 class HotChalMainViewController: UIViewController {
@@ -34,7 +29,7 @@ class HotChalMainViewController: UIViewController {
     setupNavigationController()
     setupTabBarControler()
     
-    registerCells()
+    setupMainViewCell()
     addButtonActions()
   }
   
@@ -46,26 +41,41 @@ class HotChalMainViewController: UIViewController {
     ChallPlayerManager.shared.closeChallPlayer()
   }
   
-  /// 셀 등록
-  private func registerCells() {
+  /// 셀 delegate 및 dataSource 설정
+  private func setupMainViewCell() {
     
     mainView.topCollectionView.delegate = self
     mainView.topCollectionView.dataSource = self
     
-    [mainView.top1ChallengeView, mainView.top2ChallengeView, mainView.top3ChallengeView]
-      .compactMap { $0.subviews.compactMap { $0 as? UICollectionView }.first }
-      .forEach {
-        $0.delegate = self
-        $0.dataSource = self
-      }
+    [
+      mainView.top1ChallengeView.collectionView,
+      mainView.top2ChallengeView.collectionView,
+      mainView.top3ChallengeView.collectionView
+    ].forEach {
+      $0.delegate = self
+      $0.dataSource = self
+    }
   }
   
   
   /// 버튼 액션 추가하기
   private func addButtonActions(){
     mainView.topMoreButton.addAction(UIAction { [weak self] _ in
-      self?.delegate?.navToHotChallTop100ViewController()
+      self?.delegate?.navToHotChallTop100ViewController(with: "핫챌 Top100")
     } , for: .touchUpInside)
+    
+    // 카테고리 별 전체보기 버튼을 찾아서 버튼 액션 달아주기
+    [
+      mainView.top1ChallengeView,
+      mainView.top2ChallengeView,
+      mainView.top3ChallengeView
+    ].forEach {
+      guard let challengeName: String = $0.titleLabel.text else { return }
+      
+      $0.moreButton.addAction(UIAction { [weak self] _ in
+        self?.delegate?.navToHotChallTop100ViewController(with: challengeName)
+      }, for: .touchUpInside)
+    }
   }
 }
 
@@ -81,27 +91,43 @@ extension HotChalMainViewController: UICollectionViewDataSource {
     }
   }
   
-  func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+  func collectionView(
+    _ collectionView: UICollectionView,
+    cellForItemAt indexPath: IndexPath
+  ) -> UICollectionViewCell {
+    var cellID: String
     
     if collectionView == mainView.topCollectionView {
-      let cell = collectionView.dequeueReusableCell(withReuseIdentifier: HotChallTopCell.reuseIdentifier,
-                                                    for: indexPath)
-      return cell
+      cellID = HotChallTopCell.reuseIdentifier
     } else {
-      let cell = collectionView.dequeueReusableCell(withReuseIdentifier: SavedChallengeCell.reuseIdentifier,
-                                                    for: indexPath)
-      return cell
+      cellID = SavedChallengeCell.reuseIdentifier
     }
+    
+    let cell = collectionView.dequeueReusableCell(withReuseIdentifier: cellID, for: indexPath)
+    return cell
   }
 }
 
-// MARK: CollectionView Delegate
+// MARK: CollectionView DelegateFlowLayout
 
 extension HotChalMainViewController: UICollectionViewDelegateFlowLayout{
   
   func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-    print(#fileID, #function, #line, "- tap")
     ChallPlayerManager.shared.showChallPlayer()
+  }
+  
+  func collectionView(
+    _ collectionView: UICollectionView,
+    layout collectionViewLayout: UICollectionViewLayout,
+    sizeForItemAt indexPath: IndexPath
+  ) -> CGSize {
+    let width = collectionView.frame.width
+    let height = collectionView.frame.height
     
+    if collectionView == mainView.topCollectionView {
+      return CGSize(width: width, height: height)
+    } else {
+      return CGSize(width: width / 2.5, height: height)
+    }
   }
 }

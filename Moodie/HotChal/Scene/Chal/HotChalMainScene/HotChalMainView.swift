@@ -11,7 +11,7 @@ import UIKit
 /// HotChall - front - HotChallMainViewController
 /// UIView
 final class HotChalMainView: UIView {
-  let scrollView = UIScrollView()
+  private let scrollView = UIScrollView()
   private let contentView = UIView()
   
   /// 핫챌차트 전체보기 버튼
@@ -33,18 +33,19 @@ final class HotChalMainView: UIView {
     let layout = UICollectionViewFlowLayout()
     layout.scrollDirection = .horizontal
     layout.minimumLineSpacing = 12
-    layout.itemSize = CGSize(width: 200, height: 300)
     
     let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
     collectionView.backgroundColor = .clear
-    
+    collectionView.showsHorizontalScrollIndicator = false
+    collectionView.isPagingEnabled = true
+
     return collectionView
   }()
   
-  
-  lazy var top1ChallengeView = createChallengeSection(title: "소다팝 챌린지")
-  lazy var top2ChallengeView = createChallengeSection(title: "챌린지")
-  lazy var top3ChallengeView = createChallengeSection(title: "챌린지111111")
+  /// 각 챌린지의 카테고리에 맞는 컬렉션뷰
+  let top1ChallengeView = HotChallTop3CategoryView(title: "소다팝 챌린지")
+  let top2ChallengeView = HotChallTop3CategoryView(title: "챌린지1")
+  let top3ChallengeView = HotChallTop3CategoryView(title: "챌린지2")
   
   override init(frame: CGRect) {
     super.init(frame: frame)
@@ -110,85 +111,5 @@ final class HotChalMainView: UIView {
       top3ChallengeView.trailingAnchor.constraint(equalTo: top1ChallengeView.trailingAnchor),
       top3ChallengeView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -40)
     ])
-
- 
-  }
-  
-  
-  /// 챌린지 View 생성 (카테고리 라벨 + 컬렉션뷰)
-  /// - Parameter title: 챌린지 카테고리
-  /// - Returns: 챌린지 UIView
-  func createChallengeSection(title: String) -> UIView {
-    // 섹션을 담을 전체 컨테이너 뷰
-    let containerView = UIView()
-    
-    // 1. 섹션 헤더 (라벨 + 버튼)
-    let headerStackView = UIStackView()
-    headerStackView.axis = .horizontal
-    headerStackView.distribution = .equalCentering
-    headerStackView.spacing = 8
-    
-    // 라벨 생성
-    let titleLabel: UILabel = {
-      let label = UILabel()
-      label.text = title
-      label.font = .boldSystemFont(ofSize: 18)
-      label.textColor = .white
-      
-      return label
-    }()
-    
-    // 전체보기 버튼 생성
-    let moreButton: UIButton = {
-      let button = UIButton(configuration: UIButton.Configuration.plain())
-      button.setTitle("전체보기", for: .normal)
-      button.setTitleColor(.white, for: .normal)
-      button.setImage(UIImage(systemName: "chevron.right"), for: .normal)
-      button.semanticContentAttribute = .forceRightToLeft
-      button.configuration?.imagePadding = 10
-      button.tintColor = .white
-      
-      return button
-    }()
-
-
-    // 헤더 스택 뷰에 라벨과 버튼 추가
-    headerStackView.addArrangedSubview(titleLabel)
-    headerStackView.addArrangedSubview(moreButton)
-        
-    // 2. 컬렉션 뷰
-    let layout = UICollectionViewFlowLayout()
-    layout.scrollDirection = .horizontal
-    layout.minimumLineSpacing = 20
-    layout.itemSize = CGSize(width: 120, height: 180)
-    
-    let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
-    collectionView.backgroundColor = .clear
-    collectionView.register(SavedChallengeCell.self,
-                            forCellWithReuseIdentifier: SavedChallengeCell.reuseIdentifier)
-    
-    // 3. 전체 뷰에 헤더와 컬렉션 뷰 추가
-    containerView.addSubview(headerStackView)
-    containerView.addSubview(collectionView)
-    
-    headerStackView.translatesAutoresizingMaskIntoConstraints = false
-    collectionView.translatesAutoresizingMaskIntoConstraints = false
-    
-    NSLayoutConstraint.activate([
-
-      // 헤더 스택 뷰 제약 조건
-      headerStackView.topAnchor.constraint(equalTo: containerView.topAnchor),
-      headerStackView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 10),
-      headerStackView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -5),
-      
-      // 컬렉션 뷰 제약 조건
-      collectionView.topAnchor.constraint(equalTo: headerStackView.bottomAnchor, constant: 12),
-      collectionView.leadingAnchor.constraint(equalTo: headerStackView.leadingAnchor),
-      collectionView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),
-      collectionView.bottomAnchor.constraint(equalTo: containerView.bottomAnchor),
-      collectionView.heightAnchor.constraint(equalToConstant: 180)
-    ])
-    
-    return containerView
   }
 }

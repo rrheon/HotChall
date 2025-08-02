@@ -11,6 +11,7 @@ import UIKit
 /// HotChall - front - HotChallTop100ViewController
 /// 핫챌 Top100 화면
 final class HotChallTop100ViewController: UIViewController {
+  var challengeName: String = "핫챌 Top100"
   
   private let sampleData: [String] = Array(repeating: "챌린지 제목", count: 100) // 임시
   private let sampleData2: [String] = Array(repeating: "아티스트", count: 100)
@@ -23,7 +24,7 @@ final class HotChallTop100ViewController: UIViewController {
     super.viewDidLoad()
     
     view.backgroundColor = .systemBackground
-    self.navigationItem.title = "핫챌 TOP100"
+    self.navigationItem.title = challengeName
     
     setupNavigationController(largeTitle: false)
     setupBackButton()
@@ -82,9 +83,22 @@ extension HotChallTop100ViewController: UICollectionViewDataSource {
 extension HotChallTop100ViewController: UICollectionViewDelegateFlowLayout{
 
   
-  func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-    print(#fileID, #function, #line, "- <#comment#>")
+  func collectionView(
+    _ collectionView: UICollectionView,
+    didSelectItemAt indexPath: IndexPath
+  ) {
     
     ChallPlayerManager.shared.showChallPlayer()
+  }
+  
+  func collectionView(
+    _ collectionView: UICollectionView,
+    layout collectionViewLayout: UICollectionViewLayout,
+    sizeForItemAt indexPath: IndexPath
+  ) -> CGSize {
+    let width = collectionView.frame.width
+    let height = collectionView.frame.height / 10
+    
+    return CGSize(width: width, height: height)
   }
 }

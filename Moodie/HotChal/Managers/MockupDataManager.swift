@@ -41,7 +41,6 @@ final class MockupDataManager {
                    uploader: "춤선생 SIMBA",
                    videoFilename: "pokemon2.mp4",
                    mp4Filename: "",
-
                    category: "Pokedance"),
     
     ChallengeVideo(thumbnailImage: "SodaPop1",
@@ -49,7 +48,6 @@ final class MockupDataManager {
                    uploader: "춤선생 SIMBA",
                    videoFilename: "sodaPop1.mp4",
                    mp4Filename: "",
-
                    category: "SodaPop"),
     
     ChallengeVideo(thumbnailImage: "SodaPop2",
@@ -57,7 +55,6 @@ final class MockupDataManager {
                    uploader: "댄싱꽥꽥 Dancing Duck",
                    videoFilename: "sodaPop2.mp4",
                    mp4Filename: "",
-
                    category: "SodaPop"),
     
     ChallengeVideo(thumbnailImage: "SodaPop3",
@@ -65,7 +62,6 @@ final class MockupDataManager {
                    uploader: "joohee kim",
                    videoFilename: "sodaPop3.mp4",
                    mp4Filename: "",
-
                    category: "SodaPop"),
     
     ChallengeVideo(thumbnailImage: "SodaPop4",
@@ -73,7 +69,6 @@ final class MockupDataManager {
                    uploader: "춤선생 SIMBA",
                    videoFilename: "sodaPop4.mp4",
                    mp4Filename: "",
-
                    category: "SodaPop"),
     
     ChallengeVideo(thumbnailImage: "Toca1",
@@ -81,7 +76,6 @@ final class MockupDataManager {
                    uploader: "PREMIUM DANCE STUDIO",
                    videoFilename: "toca1.mp4",
                    mp4Filename: "",
-
                    category: "TocaToca"),
     
     ChallengeVideo(thumbnailImage: "Toca2",
@@ -89,7 +83,6 @@ final class MockupDataManager {
                    uploader: "몸치탈출연구소 (Fast dance)",
                    videoFilename: "toca2.mp4",
                    mp4Filename: "",
-
                    category: "TocaToca")
   ]
 }
