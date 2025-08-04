@@ -9,14 +9,14 @@ import UIKit
 
 
 /// 플레이어 액션 Delegate
-protocol PlayerButtonsDelegate: AnyObject {
+protocol ChallengePlayerViewDelegate: AnyObject {
   func navToLearnChallenge(with data: ChallengeVideo)
   func navToShowChallenge(with data: ChallengeVideo)
   func saveChallenge(with data: ChallengeVideo)
   func closePlayerUI()
 }
 
-extension PlayerButtonsDelegate {
+extension ChallengePlayerViewDelegate {
   func closePlayerUI(){
     ChallengPlayerUIManager.shared.closeChallPlayer()
   }
@@ -25,7 +25,7 @@ extension PlayerButtonsDelegate {
 /// 챌린지 영상 플레이어 UIView
 final class ChallPlayerView: UIView {
   
-  weak var delegate: PlayerButtonsDelegate?
+  weak var delegate: ChallengePlayerViewDelegate?
   
   var challengeData: ChallengeVideo?
   
@@ -34,8 +34,8 @@ final class ChallPlayerView: UIView {
                                                                         imageName: "figure.dance")
   
   /// 챌린지 저장하기 버튼
-  private lazy var saveChallengeButton: UIButton = makeChallengeButton(title: "저장하기",
-                                                                       imageName: "square.and.arrow.down")
+  lazy var saveChallengeButton: UIButton = makeChallengeButton(title: "저장하기",
+                                                               imageName: "square.and.arrow.down")
   
   /// 챌린지 보기 버튼
   private lazy var showChallengeButton: UIButton = makeChallengeButton(title: "챌린지 보기",

@@ -30,7 +30,7 @@ final class HotChallLearnViewController: UIViewController {
     super.viewDidLoad()
     self.title = "챌린지 배우기"
   
-    view.backgroundColor = .backgroundColor
+    self.view.backgroundColor = .backgroundColor
     
     setupCollectionView()
     setupLayout()
@@ -113,7 +113,7 @@ extension HotChallLearnViewController {
 
 // MARK: Challenge Player Delegate
 
-extension HotChallLearnViewController: PlayerButtonsDelegate {
+extension HotChallLearnViewController: ChallengePlayerViewDelegate {
   func navToLearnChallenge(with data: ChallengeVideo) {
     print(#fileID, #function, #line, "- 챌린지 배우기 화면으로 이동")
     

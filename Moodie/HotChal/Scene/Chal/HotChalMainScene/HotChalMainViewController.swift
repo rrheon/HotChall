@@ -24,11 +24,7 @@ class HotChalMainViewController: UIViewController {
     super.viewDidLoad()
     
     self.title = "핫챌 TOP3"
-//    navigationItem.largeTitleDisplayMode = .always
-    
-//    setupNavigationController()
-//    setupTabBarControler()
-    
+
     setupMainViewCell()
     addButtonActions()
   }
@@ -148,7 +144,7 @@ extension HotChalMainViewController: UICollectionViewDelegateFlowLayout{
 
 // MARK: Challenge Player Delegate
 
-extension HotChalMainViewController: PlayerButtonsDelegate {
+extension HotChalMainViewController: ChallengePlayerViewDelegate {
   func navToLearnChallenge(with data: ChallengeVideo) {
     print(#fileID, #function, #line, "- 챌린지 배우기 화면으로 이동")
     
@@ -161,7 +157,10 @@ extension HotChalMainViewController: PlayerButtonsDelegate {
   }
   
   func saveChallenge(with data: ChallengeVideo) {
-    print(#fileID, #function, #line, "- 챌린지 저장")
+    CoreDataManager.shared.saveChallenge(with: data) { result in
+      print(#fileID, #function, #line, "- 챌린지 저장")
+      let comment = result ? "챌린지가 저장되었습니다." : "이미 저장된 챌린지입니다."
+    }
 
   }
 }

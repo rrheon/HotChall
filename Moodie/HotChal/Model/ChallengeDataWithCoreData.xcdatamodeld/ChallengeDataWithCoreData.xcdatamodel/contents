@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="23605" systemVersion="23H407" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithSwiftData="YES" userDefinedModelVersionIdentifier="">
+    <entity name="ChallengeVideoWithCoreData" representedClassName=".ChallengeVideoWithCoreData" syncable="YES">
+        <attribute name="category" optional="YES" attributeType="String"/>
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="mp4Filename" optional="YES" attributeType="String"/>
+        <attribute name="thumbnailImage" optional="YES" attributeType="String"/>
+        <attribute name="title" optional="YES" attributeType="String"/>
+        <attribute name="uploader" optional="YES" attributeType="String"/>
+        <attribute name="videoFilename" optional="YES" attributeType="String"/>
+    </entity>
+</model>

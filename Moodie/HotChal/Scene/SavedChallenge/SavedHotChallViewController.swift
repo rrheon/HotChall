@@ -5,37 +5,23 @@
 //  Created by heojiwoo on 7/29/25.
 //
 import UIKit
-import AVFoundation
-import AVKit
-
 
 
 /// HotChall - front - SavedHotChallViewController
 /// 저장된 챌린지 화면
-final class FavoriteViewController: UIViewController {
+final class SavedHotChallViewController: UIViewController {
   
-  private lazy var divideWithCategory: [String: [ChallengeVideo]] = {
-    Dictionary(grouping: MockupDataManager.shared.challengeVideos) { $0.category ?? "" }
-  }()
+  private lazy var divideWithCategory: [String: [ChallengeVideo]] = [:]
   
-  private lazy var categories: [String] = Array(divideWithCategory.keys).sorted()
+  private lazy var categories: [String] = []
   
-  var didSendEventClosure: ((FavoriteViewController.Event) -> Void)?
-  
-  // 저장된 챌린지 라벨
-  //  private let favoriteTitleLabel: UILabel = {
-  //    let label = UILabel()
-  //    label.text = "저장된 챌린지"
-  //    label.font = .boldSystemFont(ofSize: 24)
-  //
-  //    return label
-  //  }()
-  
+  weak var delegate: SavedChallengeCoordinator?
+
   // 챌린지 컬렉션뷰
   private lazy var challengeCollectionView: UICollectionView = {
     
     let view = UICollectionView(frame: .zero, collectionViewLayout: createCollectionViewLayout())
-    view.backgroundColor = .black
+    view.backgroundColor = .backgroundColor
     view.translatesAutoresizingMaskIntoConstraints = false
     
     return view
@@ -46,12 +32,16 @@ final class FavoriteViewController: UIViewController {
     
     self.title = "저장된 챌린지"
     
-    view.backgroundColor = .systemBackground
+    view.backgroundColor = .backgroundColor
     
     registerCell()
     
     makeUI()
-    
+    reloadData()
+  }
+  
+  override func viewWillDisappear(_ animated: Bool) {
+    ChallengPlayerUIManager.shared.closeChallPlayer()
   }
   
   /// 화면 구성
@@ -82,6 +72,15 @@ final class FavoriteViewController: UIViewController {
                                      withReuseIdentifier: ChallengeCollectionHeaderView.reuseIdentifier)
   }
   
+  func reloadData() {
+    let savedList = CoreDataManager.shared.getSavedChallengeList()
+    divideWithCategory = Dictionary(grouping: savedList) { $0.category ?? "" }
+    categories = Array(divideWithCategory.keys).sorted()
+    
+    challengeCollectionView.reloadData()
+  }
+  
+  /// CollectionView 생성
   private func createCollectionViewLayout() -> UICollectionViewLayout{
     return UICollectionViewCompositionalLayout { sectionIndex, environment -> NSCollectionLayoutSection? in
       
@@ -110,7 +109,7 @@ final class FavoriteViewController: UIViewController {
         elementKind: UICollectionView.elementKindSectionHeader,
         alignment: .top)
       section.boundarySupplementaryItems = [sectionHeader]
-      section.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 16, bottom: 16, trailing: 16)
+      section.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 16, bottom: 50, trailing: 16)
       
       return section
     }
@@ -118,7 +117,7 @@ final class FavoriteViewController: UIViewController {
 }
 
 /// 화면 이동 Enum
-extension FavoriteViewController {
+extension SavedHotChallViewController {
   enum Event {
     case favoriteDateil
   }
@@ -126,7 +125,7 @@ extension FavoriteViewController {
 
 // MARK: CollectionView extension
 
-extension FavoriteViewController: UICollectionViewDataSource {
+extension SavedHotChallViewController: UICollectionViewDataSource {
   func numberOfSections(in collectionView: UICollectionView) -> Int {
     return categories.count
   }
@@ -148,9 +147,7 @@ extension FavoriteViewController: UICollectionViewDataSource {
     let category = categories[indexPath.section]
     guard let data = divideWithCategory[category]?[indexPath.item] else { return UICollectionViewCell() }
     
-//    cell.challengeImageView.image = UIImage(named: data.thumbnailImage ?? "")
-//    cell.challengeNameLabel.text = data.title
-//    cell.delegate = self
+    cell.challengeData = data
     
     return cell
   }
@@ -175,47 +172,56 @@ extension FavoriteViewController: UICollectionViewDataSource {
   
 }
 
-extension FavoriteViewController: UICollectionViewDelegateFlowLayout{
-  
-  private func playLocalVideo(named filename: String) {
-    guard let path = Bundle.main.path(forResource: filename, ofType: nil) else {
-      print("❌ 영상 파일을 찾을 수 없습니다: \(filename)")
-      return
-    }
-    
-    let url = URL(fileURLWithPath: path)
-    let player = AVPlayer(url: url)
-    let playerVC = AVPlayerViewController()
-    playerVC.player = player
-    
-    present(playerVC, animated: true) {
-      player.play()
-    }
-  }
-  
+// MARK: CollectionViewDelegate
+
+extension SavedHotChallViewController: UICollectionViewDelegate {
   func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-    print(#fileID, #function, #line, "- <#comment#>")
     let category = categories[indexPath.section]
-    guard let data = divideWithCategory[category]?[indexPath.item] else { return }
-    
-    playLocalVideo(named: data.videoFilename ?? "")
+    guard let data: ChallengeVideo = divideWithCategory[category]?[indexPath.item] else { return }
+
+    ChallengPlayerUIManager.shared.showChallPlayer(from: self, data: data)
+
     
   }
 }
 
 // MARK: 삭제팝업 프로토콜
 
-extension FavoriteViewController: DeleteSavedChallengeProtocol {
-  func showDeletePopup() {
-    let vc = PopupViewController()
-    vc.modalPresentationStyle = .fullScreen
-    self.present(vc, animated: true)
+//extension FavoriteViewController: DeleteSavedChallengeProtocol {
+//  func showDeletePopup() {
+//    let vc = PopupViewController()
+//    vc.modalPresentationStyle = .fullScreen
+//    self.present(vc, animated: true)
+//  }
+//}
+
+extension SavedHotChallViewController: ChallengeHeaderViewActionDelegate{
+  func showAllContent(category: String) {
+    delegate?.navToHotChallTop100ViewController(with: category)
   }
 }
 
-extension FavoriteViewController: ShowAllContentProtocol{
-  func showAllContent() {
-    let vc = HotChallTop100ViewController()
-    self.navigationController?.pushViewController(vc, animated: true)
+// MARK: Challenge Player Delegate
+
+extension SavedHotChallViewController: ChallengePlayerViewDelegate {
+  func navToLearnChallenge(with data: ChallengeVideo) {
+    print(#fileID, #function, #line, "- 챌린지 배우기 화면으로 이동")
+    
+  }
+  
+  func navToShowChallenge(with data: ChallengeVideo) {
+    print(#fileID, #function, #line, "- 챌린지 띄우기")
+    guard let challenge = data.videoFilename else { return }
+    ChallengePlayerManager.shared.playLocalVideo(named: challenge, from: self)
+  }
+  
+  func saveChallenge(with data: ChallengeVideo) {
+  
+    guard let uuid = data.id else { return }
+    CoreDataManager.shared.deleteSavedChallenge(with: uuid) {
+      print(#fileID, #function, #line, "- 챌린지 삭제")
+      ChallengPlayerUIManager.shared.closeChallPlayer()
+      self.reloadData()
+    }
   }
 }

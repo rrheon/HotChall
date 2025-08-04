@@ -134,7 +134,7 @@ class TabCoordinator: NSObject, Coordinator {
             }
             navController.pushViewController(learnViewController, animated: true)
         case .favorites:
-            let favoriteCoordinator = FavoriteCoordinator(navController)
+            let favoriteCoordinator = SavedChallengeCoordinator(navController)
             favoriteCoordinator.start()
             childCoordinators.append(favoriteCoordinator)
         }
