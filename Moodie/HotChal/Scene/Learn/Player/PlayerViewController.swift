@@ -7,6 +7,7 @@
 
 import UIKit
 import AVFoundation
+import MediaPlayer
 
 class PlayerViewController: UIViewController {
     
@@ -25,6 +26,7 @@ class PlayerViewController: UIViewController {
     }
     
     private let speeds: [Float] = [0.5, 1.0, 1.5, 2.0]
+    // MARK: - 속도 조절 버튼 업데이트
     private var selectedSpeed: Float = 1.0 {
         didSet {
             if isPlaying {
@@ -88,16 +90,25 @@ class PlayerViewController: UIViewController {
     private let volumeSlider = UISlider()
     private let speedStackView = UIStackView()
     
+    // A-B 반복용 텍스트 필드
+    private let startTimeField = UITextField()
+    private let endTimeField = UITextField()
+    
+    //MARK: - View Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .systemBackground
         
         setupPlayer()
         setupUI()
+        setupLoopInputFields()
+        addPeriodicTimeObserver()
         setupGestureRecognizers()
         setupVolumeIconTap()
     }
+
     
+    //MARK: -viewDidLayoutSubviews
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         
@@ -173,21 +184,22 @@ class PlayerViewController: UIViewController {
         )
     }
     
+    // MARK: - setupPlayer
     private func setupPlayer() {
-        guard let filename = videoFilename,
-              let path = Bundle.main.path(forResource: filename.replacingOccurrences(of: ".mp4", with: ""), ofType: "mp4") else {
-            print("❌ 영상 파일을 찾을 수 없습니다: \(videoFilename ?? "nil")")
-            return
-        }
-        
-        let url = URL(fileURLWithPath: path)
-        player = AVPlayer(url: url)
-        playerLayer = AVPlayerLayer(player: player)
-        playerLayer.videoGravity = .resize
-        view.layer.insertSublayer(playerLayer, at: 70)
+            guard let filename = videoFilename,
+                  let url = Bundle.main.url(forResource: filename, withExtension: nil) else {
+                print("Invalid video filename.")
+                return
+            }
+
+            player = AVPlayer(url: url)
+            playerLayer = AVPlayerLayer(player: player)
+            playerLayer.videoGravity = .resizeAspect
+            view.layer.insertSublayer(playerLayer, at: 0)
+            player.play()
         
         // 콜백이 호출되는 주기(0.5초 마다)
-        let interval = CMTime(seconds: 0.5, preferredTimescale: 600)
+        let interval = CMTime(seconds: 0.1, preferredTimescale: 600)
         timeObserverToken = player.addPeriodicTimeObserver(forInterval: interval, queue: .main) { [weak self] time in
             guard let self = self else { return }
             let duration = self.player.currentItem?.duration.seconds ?? 1
@@ -203,6 +215,7 @@ class PlayerViewController: UIViewController {
         player.playImmediately(atRate: selectedSpeed)
     }
     
+    // MARK: - setupUI
     private func setupUI() {
         view.addSubview(infoBackgroundView)
         infoBackgroundView.contentView.addSubview(titleLabel)
@@ -253,9 +266,59 @@ class PlayerViewController: UIViewController {
             speedStackView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20),
             speedStackView.heightAnchor.constraint(equalToConstant: 36)
         ])
-        
     }
-    
+    // MARK: - A-B 반복 입력 필드
+
+        private func setupLoopInputFields() {
+            [startTimeField, endTimeField].forEach {
+                $0.translatesAutoresizingMaskIntoConstraints = false
+                $0.borderStyle = .roundedRect
+                $0.keyboardType = .decimalPad
+                $0.backgroundColor = .white
+                $0.textAlignment = .center
+                $0.font = .systemFont(ofSize: 13)
+                view.addSubview($0)
+            }
+
+            startTimeField.placeholder = "시작 시간 (초)"
+            endTimeField.placeholder = "종료 시간 (초)"
+
+            NSLayoutConstraint.activate([
+                startTimeField.bottomAnchor.constraint(equalTo: volumeSlider.topAnchor, constant: -16),
+                startTimeField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 270),
+                startTimeField.widthAnchor.constraint(equalToConstant: 50),
+
+                endTimeField.centerYAnchor.constraint(equalTo: startTimeField.centerYAnchor),
+                endTimeField.leadingAnchor.constraint(equalTo: startTimeField.trailingAnchor, constant: 12),
+                endTimeField.widthAnchor.constraint(equalToConstant: 50)
+            ])
+        }
+    // MARK: - 타임 옵저버 (A-B 반복 기능)
+
+        private func addPeriodicTimeObserver() {
+            let interval = CMTime(seconds: 1, preferredTimescale: 1000)
+            timeObserverToken = player.addPeriodicTimeObserver(forInterval: interval, queue: .main) { [weak self] time in
+                guard let self = self else { return }
+
+                guard let startText = self.startTimeField.text,
+                      let endText = self.endTimeField.text,
+                      let start = Double(startText),
+                      let end = Double(endText),
+                      end > start else {
+                    return
+                }
+                
+                let currentSeconds = time.seconds
+                if currentSeconds >= end {
+                    let seekTime = CMTime(seconds: start, preferredTimescale: 600)
+                    self.player.seek(to: seekTime) { _ in
+                        if self.isPlaying {
+                            self.player.playImmediately(atRate: self.selectedSpeed)
+                    }
+                }
+            }
+        }
+    }
     
     private func setupGestureRecognizers() {
         view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(togglePlayPause)))
@@ -273,7 +336,10 @@ class PlayerViewController: UIViewController {
     @objc private func progressSliderChanged() {
         guard let duration = player.currentItem?.duration.seconds, duration > 0 else { return }
         let value = Double(progressSlider.value) * duration
-        player.seek(to: CMTime(seconds: value, preferredTimescale: 600))
+        
+        let rounded = round(value)
+        
+        player.seek(to: CMTime(seconds: rounded, preferredTimescale: 1000))
     }
     
     @objc private func volumeSliderChanged() {
