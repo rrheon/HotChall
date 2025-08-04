@@ -95,16 +95,29 @@ extension HotChalMainViewController: UICollectionViewDataSource {
     _ collectionView: UICollectionView,
     cellForItemAt indexPath: IndexPath
   ) -> UICollectionViewCell {
-    var cellID: String
-    
-    if collectionView == mainView.topCollectionView {
-      cellID = HotChallTopCell.reuseIdentifier
-    } else {
-      cellID = SavedChallengeCell.reuseIdentifier
+
+    switch collectionView {
+    // 메인 화면의 Top3 Cell
+    case mainView.topCollectionView:
+      guard let cell = collectionView.dequeueReusableCell(
+        withReuseIdentifier: HotChallTopCell.reuseIdentifier,
+        for: indexPath
+      ) as? HotChallTopCell else {
+        return UICollectionViewCell()
+      }
+      return cell
+      
+    // Top3 카테고리에 대한 챌린지 Cell
+    default:
+      guard let cell = collectionView.dequeueReusableCell(
+        withReuseIdentifier: ChallengeCell.reuseIdentifier,
+        for: indexPath
+      ) as? ChallengeCell else {
+        return UICollectionViewCell()
+      }
+      cell.challengeData = MockupDataManager.shared.challengeVideos[indexPath.item]
+      return cell
     }
-    
-    let cell = collectionView.dequeueReusableCell(withReuseIdentifier: cellID, for: indexPath)
-    return cell
   }
 }
 
@@ -113,7 +126,8 @@ extension HotChalMainViewController: UICollectionViewDataSource {
 extension HotChalMainViewController: UICollectionViewDelegateFlowLayout{
   
   func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-    ChallengPlayerUIManager.shared.showChallPlayer()
+    let challengeData: ChallengeVideo = MockupDataManager.shared.challengeVideos[indexPath.item]
+    ChallengPlayerUIManager.shared.showChallPlayer(from: self, data: challengeData)
   }
   
   func collectionView(
@@ -129,5 +143,25 @@ extension HotChalMainViewController: UICollectionViewDelegateFlowLayout{
     } else {
       return CGSize(width: width / 2.5, height: height)
     }
+  }
+}
+
+// MARK: Challenge Player Delegate
+
+extension HotChalMainViewController: PlayerButtonsDelegate {
+  func navToLearnChallenge(with data: ChallengeVideo) {
+    print(#fileID, #function, #line, "- 챌린지 배우기 화면으로 이동")
+    
+  }
+  
+  func navToShowChallenge(with data: ChallengeVideo) {
+    print(#fileID, #function, #line, "- 챌린지 띄우기")
+    guard let challenge = data.videoFilename else { return }
+    ChallengePlayerManager.shared.playLocalVideo(named: challenge, from: self)
+  }
+  
+  func saveChallenge(with data: ChallengeVideo) {
+    print(#fileID, #function, #line, "- 챌린지 저장")
+
   }
 }

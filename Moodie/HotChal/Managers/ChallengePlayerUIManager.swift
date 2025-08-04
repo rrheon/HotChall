@@ -17,10 +17,11 @@ final class ChallengPlayerUIManager {
 
   
   /// 플레이어 UI 보여주기
-  func showChallPlayer(){
+  func showChallPlayer(from viewController: UIViewController, data: ChallengeVideo){
     guard let keyWindow = UIApplication.shared.windows.first(where: { $0.isKeyWindow }) else { return }
-    
+  
     keyWindow.addSubview(playerView)
+    playerView.challengeData = data
     playerView.translatesAutoresizingMaskIntoConstraints = false
     
     playerView.layer.cornerRadius = 10
@@ -39,7 +40,9 @@ final class ChallengPlayerUIManager {
         self.playerView.alpha = 1
         self.playerView.transform = .identity
     }
-
+    
+    playerView.delegate = viewController as? PlayerButtonsDelegate
+    playerView.challengeData = data
   }
   
   func closeChallPlayer() {
@@ -49,8 +52,5 @@ final class ChallengPlayerUIManager {
           self.playerView.removeFromSuperview()
       }
   }
-
-  
-
 
 }
