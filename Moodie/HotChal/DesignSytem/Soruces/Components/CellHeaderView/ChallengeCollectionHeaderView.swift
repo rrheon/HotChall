@@ -8,7 +8,7 @@
 import UIKit
 
 protocol ChallengeHeaderViewActionDelegate: AnyObject {
-  func showAllContent(category: String)
+  func didTapShowAllContent(category: String)
 }
 
 /// 챌린지 컬랙션 뷰의 헤더뷰
@@ -46,7 +46,7 @@ final class ChallengeCollectionHeaderView: UICollectionReusableView, ReuseIdenti
     makeUI()
     
     showAllContentButton.addAction(UIAction { [weak self] _ in
-      self?.delegate?.showAllContent(category: self?.challengeCategoryLabel.text ?? "")
+      self?.delegate?.didTapShowAllContent(category: self?.challengeCategoryLabel.text ?? "")
     }, for: .touchUpInside)
   }
   

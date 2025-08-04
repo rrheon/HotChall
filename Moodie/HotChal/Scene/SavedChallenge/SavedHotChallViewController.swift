@@ -203,7 +203,7 @@ extension SavedHotChallViewController {
 }
 
 extension SavedHotChallViewController: ChallengeHeaderViewActionDelegate{
-  func showAllContent(category: String) {
+  func didTapShowAllContent(category: String) {
     delegate?.navToHotChallTop100ViewController(with: category)
   }
 }
