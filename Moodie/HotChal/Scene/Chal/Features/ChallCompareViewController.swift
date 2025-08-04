@@ -4,269 +4,304 @@
 //
 //  Created by 이지훈 on 8/1/25.
 //
-
-// 주석은 공부용으로 GPT한테 달아달라고 한거니 신경 ㄴㄴ
+// 주석은 gpt에게 요청
 
 import UIKit
 import AVFoundation
 
-// UIViewController를 상속받은 비교 영상 재생 화면 컨트롤러
+class LoopedVideoPlayer {
+    var queuePlayer: AVQueuePlayer?
+    var looper: AVPlayerLooper?
+    var playerLayer: AVPlayerLayer?
+    var containerView: UIView
+    var isMuted: Bool
+    var isMain: Bool
+    
+    init(containerView: UIView, isMuted: Bool = true, isMain: Bool = false) {
+        self.containerView = containerView
+        self.isMuted = isMuted
+        self.isMain = isMain
+    }
+    
+    func setupVideo(named fileName: String, completion: ((CGFloat) -> Void)? = nil) {
+        guard let path = Bundle.main.path(forResource: fileName, ofType: nil) else { return }
+        let url = URL(fileURLWithPath: path)
+        let item = AVPlayerItem(url: url)
+        let player = AVQueuePlayer(playerItem: item)
+        let looper = AVPlayerLooper(player: player, templateItem: item)
+        let layer = AVPlayerLayer(player: player)
+        
+        layer.frame = containerView.bounds
+        layer.videoGravity = isMain ? .resizeAspectFill : .resizeAspect
+        
+        containerView.layer.addSublayer(layer)
+        
+        self.queuePlayer = player
+        self.looper = looper
+        self.playerLayer = layer
+        
+        player.isMuted = isMuted
+        player.play()
+        
+        let asset = AVAsset(url: url)
+        asset.loadValuesAsynchronously(forKeys: ["tracks"]) {
+            guard let track = asset.tracks(withMediaType: .video).first else { return }
+            let size = track.naturalSize.applying(track.preferredTransform)
+            let aspectRatio = abs(size.height / size.width)
+            DispatchQueue.main.async {
+                completion?(aspectRatio)
+            }
+        }
+    }
+    
+    func updateFrame() {
+        guard let layer = playerLayer else { return }
+        DispatchQueue.main.async {
+            layer.frame = self.containerView.bounds
+            layer.videoGravity = self.isMain ? .resizeAspectFill : .resizeAspect
+        }
+    }
+    
+    func togglePlayPause() {
+        guard let player = queuePlayer else { return }
+        if player.timeControlStatus == .playing {
+            player.pause()
+        } else {
+            player.play()
+        }
+    }
+    
+    func setMuted(_ muted: Bool) {
+        queuePlayer?.isMuted = muted
+        isMuted = muted
+    }
+}
+
 class ChallCompareViewController: UIViewController {
     
-    // 메인 영상 재생용 AVPlayer와 화면에 보여주기 위한 AVPlayerLayer
-    private var playerMain: AVPlayer?
-    private var playerLayerMain: AVPlayerLayer?
+    private var mainVideoPlayer: LoopedVideoPlayer!
+    private var subVideoPlayer: LoopedVideoPlayer!
     
-    // 서브(보조) 영상 재생용 AVPlayer와 AVPlayerLayer
-    private var playerSub: AVPlayer?
-    private var playerLayerSub: AVPlayerLayer?
+    private var challComparSubViewHeightConstraint: NSLayoutConstraint?
     
-    // 서브 영상 뷰의 높이를 조절하기 위한 제약조건
-    private var challCompareSubViewHeightConstraint: NSLayoutConstraint?
-    
-    // 메인 영상이 보여질 뷰
-    private let challCompareMainView: UIView = {
+    private let challComparMainView: UIView = {
         let view = UIView()
-        view.backgroundColor = .systemBackground // 시스템 기본 배경색
+        view.backgroundColor = .systemBackground
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
     }()
     
-    // 서브 영상이 보여질 뷰 (모서리를 둥글게 처리)
-    private let challCompareSubView: UIView = {
+    private let challComparSubView: UIView = {
         let view = UIView()
         view.backgroundColor = .systemBackground
         view.layer.cornerRadius = 15
-        view.layer.masksToBounds = true // 둥근 모서리를 적용하기 위해 필요
+        view.layer.masksToBounds = true
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
     }()
     
-    // 재생/일시정지 토글 버튼
+    private let bottomBarView: UIView = {
+        let view = UIView()
+        view.backgroundColor = UIColor(red: 255/255, green: 199/255, blue: 194/255, alpha: 0.8)
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
+    
     private let pauseButton: UIButton = {
-        let button = UIButton(type: .system)
-        let config = UIImage.SymbolConfiguration(pointSize: 40, weight: .regular)
-        let image = UIImage(systemName: "pause.circle", withConfiguration: config)
-        button.setImage(image, for: .normal)
-        button.tintColor = .systemBlue
+        var config = UIButton.Configuration.plain()
+        let symbolConfig = UIImage.SymbolConfiguration(pointSize: 30, weight: .regular)
+        config.image = UIImage(systemName: "pause.circle", withConfiguration: symbolConfig)
+        config.title = "일시정지"
+        config.imagePlacement = .top
+        config.imagePadding = 5
+        config.baseForegroundColor = .systemBlue
+        config.attributedTitle = AttributedString("일시정지", attributes: AttributeContainer([
+            .font: UIFont.systemFont(ofSize: 15, weight: .regular)
+        ]))
+        let button = UIButton(configuration: config)
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
     
-    // MARK: - 생명주기 함수: 뷰가 로드될 때 실행
+    private let deleteButton: UIButton = {
+        var config = UIButton.Configuration.plain()
+        let symbolConfig = UIImage.SymbolConfiguration(pointSize: 30, weight: .regular)
+        config.image = UIImage(systemName: "trash.circle", withConfiguration: symbolConfig)
+        config.title = "삭제"
+        config.imagePlacement = .top
+        config.imagePadding = 5
+        config.baseForegroundColor = .systemRed
+        config.attributedTitle = AttributedString("삭제", attributes: AttributeContainer([
+            .font: UIFont.systemFont(ofSize: 15, weight: .regular)
+        ]))
+        let button = UIButton(configuration: config)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        return button
+    }()
+    
+    private let shareButton: UIButton = {
+        var config = UIButton.Configuration.plain()
+        let symbolConfig = UIImage.SymbolConfiguration(pointSize: 30, weight: .regular)
+        config.image = UIImage(systemName: "square.and.arrow.up.circle", withConfiguration: symbolConfig)
+        config.title = "공유하기"
+        config.imagePlacement = .top
+        config.imagePadding = 5
+        config.baseForegroundColor = .systemBlue
+        config.attributedTitle = AttributedString("공유하기", attributes: AttributeContainer([
+            .font: UIFont.systemFont(ofSize: 15, weight: .regular)
+        ]))
+        let button = UIButton(configuration: config)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        return button
+    }()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .systemBackground
-
-        // 하위 뷰 및 오토레이아웃 설정
+        
         setupViews()
         setupConstraints()
         setupActions()
-
-        // 영상 재생 시작
-        playVideoOnMainView(named: "nemonemo.mp4")
-        playVideoOnSubViewWithDynamicAspectRatio(named: "nemonemo2.mp4")
-
-        // 영상이 끝났을 때 반복 재생 설정
-        NotificationCenter.default.addObserver(self,
-                                               selector: #selector(replayVideos(_:)),
-                                               name: .AVPlayerItemDidPlayToEndTime,
-                                               object: nil)
+        
+        mainVideoPlayer = LoopedVideoPlayer(containerView: challComparMainView, isMuted: false, isMain: true)
+        subVideoPlayer = LoopedVideoPlayer(containerView: challComparSubView, isMuted: true, isMain: false)
+        
+        mainVideoPlayer.setupVideo(named: "nemonemo.mp4")
+        subVideoPlayer.setupVideo(named: "nemonemo2.mp4") { aspectRatio in
+            self.challComparSubViewHeightConstraint?.isActive = false
+            self.challComparSubViewHeightConstraint = self.challComparSubView.heightAnchor.constraint(equalTo: self.challComparSubView.widthAnchor, multiplier: aspectRatio)
+            self.challComparSubViewHeightConstraint?.isActive = true
+            self.view.layoutIfNeeded()
+        }
     }
     
-    // 뷰컨트롤러가 메모리에서 해제될 때 노티 제거
-    deinit {
-        NotificationCenter.default.removeObserver(self)
-    }
-
-    // MARK: - 하위 뷰 추가
     private func setupViews() {
-        view.addSubview(challCompareMainView)
-        view.addSubview(challCompareSubView)
-        view.addSubview(pauseButton)
+        view.addSubview(challComparMainView)
+        view.addSubview(challComparSubView)
+        view.addSubview(bottomBarView)
+        
+        bottomBarView.addSubview(pauseButton)
+        bottomBarView.addSubview(deleteButton)
+        bottomBarView.addSubview(shareButton)
     }
-
-    // MARK: - 오토레이아웃 설정
+    
     private func setupConstraints() {
-        // 서브 뷰의 높이 초기 고정값 설정 (후에 동적으로 조정)
-        challCompareSubViewHeightConstraint = challCompareSubView.heightAnchor.constraint(equalToConstant: 100)
-        challCompareSubViewHeightConstraint?.isActive = true
-
+        challComparSubViewHeightConstraint = challComparSubView.heightAnchor.constraint(equalToConstant: 100)
+        challComparSubViewHeightConstraint?.isActive = true
+        
         NSLayoutConstraint.activate([
-            challCompareMainView.centerXAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerXAnchor),
-            challCompareMainView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
-            challCompareMainView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            challCompareMainView.topAnchor.constraint(equalTo: view.topAnchor),
+            challComparMainView.topAnchor.constraint(equalTo: view.topAnchor),
+            challComparMainView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            challComparMainView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            challComparMainView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            
+            challComparSubView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            challComparSubView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -20),
+            challComparSubView.widthAnchor.constraint(equalToConstant: 150),
+            
+            bottomBarView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            bottomBarView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            bottomBarView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            bottomBarView.heightAnchor.constraint(equalToConstant: 85),
+            
+            pauseButton.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -10),
+            pauseButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
 
-            challCompareSubView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            challCompareSubView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -20),
-            challCompareSubView.widthAnchor.constraint(equalToConstant: 150),
+            deleteButton.centerYAnchor.constraint(equalTo: pauseButton.centerYAnchor),
+            deleteButton.centerXAnchor.constraint(equalTo: view.centerXAnchor, constant: -view.bounds.width * 0.28),
 
-            pauseButton.centerXAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerXAnchor),
-            pauseButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
+            shareButton.centerYAnchor.constraint(equalTo: pauseButton.centerYAnchor),
+            shareButton.centerXAnchor.constraint(equalTo: view.centerXAnchor, constant: view.bounds.width * 0.28),
         ])
     }
-
-    // MARK: - 사용자 동작 연결 (버튼, 탭 제스처)
+    
     private func setupActions() {
-        // 버튼 클릭 시 재생/정지
-        pauseButton.addTarget(self, action: #selector(togglePlayPause), for: .touchUpInside)
-
-        // 메인/서브 뷰 탭 시 레이어 교환
+        pauseButton.addTarget(self, action: #selector(updatePauseToPlay), for: .touchUpInside)
+        deleteButton.addTarget(self, action: #selector(deleteButtonTapped), for: .touchUpInside)
+        shareButton.addTarget(self, action: #selector(shareButtonTapped), for: .touchUpInside)
+        
         let mainTap = UITapGestureRecognizer(target: self, action: #selector(swapVideoLayers))
-        challCompareMainView.addGestureRecognizer(mainTap)
-        challCompareMainView.isUserInteractionEnabled = true
-
+        challComparMainView.addGestureRecognizer(mainTap)
+        challComparMainView.isUserInteractionEnabled = true
+        
         let subTap = UITapGestureRecognizer(target: self, action: #selector(swapVideoLayers))
-        challCompareSubView.addGestureRecognizer(subTap)
-        challCompareSubView.isUserInteractionEnabled = true
+        challComparSubView.addGestureRecognizer(subTap)
+        challComparSubView.isUserInteractionEnabled = true
     }
+    
+    private var isPlaying: Bool = true
+    
+    @objc private func updatePauseToPlay() {
+        [mainVideoPlayer, subVideoPlayer].forEach { $0?.togglePlayPause() }
+        
+        isPlaying.toggle()
+        
+        var config = UIButton.Configuration.plain()
+        let symbolConfig = UIImage.SymbolConfiguration(pointSize: 30, weight: .regular)
+        config.image = UIImage(
+            systemName: isPlaying ? "pause.circle" : "play.circle",
+            withConfiguration: symbolConfig)
+        config.title = isPlaying ? "일시정지" : "재생"
+        config.imagePlacement = .top
+        config.imagePadding = 5
+        config.baseForegroundColor = .systemBlue
+        config.attributedTitle = AttributedString(
+            isPlaying ? "일시정지" : "재생",
+            attributes: AttributeContainer([
+                .font: UIFont.systemFont(ofSize: 15, weight: .regular)
+            ]))
+        pauseButton.configuration = config
+    }
+    
+    @objc private func deleteButtonTapped() {
+        let alert = UIAlertController(title: "정말로 삭제하시겠습니까?", message: nil, preferredStyle: .alert)
+        
+        alert.addAction(UIAlertAction(title: "취소", style: .cancel))
+        alert.addAction(UIAlertAction(title: "삭제", style: .destructive))
+        
+        present(alert, animated: true)
+    }
+    
+    @objc private func shareButtonTapped() {
+        guard let path = Bundle.main.path(forResource: "nemonemo", ofType: "mp4") else { return }
+        let videoURL = URL(fileURLWithPath: path)
 
-    // MARK: - 재생/일시정지 토글 함수
-    @objc private func togglePlayPause() {
-        guard let playerMain = playerMain, let playerSub = playerSub else { return }
+        let activityVC = UIActivityViewController(activityItems: [videoURL], applicationActivities: nil)
 
-        let isPlaying = playerMain.timeControlStatus == .playing
-        if isPlaying {
-            playerMain.pause()
-            playerSub.pause()
-        } else {
-            playerMain.play()
-            playerSub.play()
+        if let popover = activityVC.popoverPresentationController {
+            popover.sourceView = self.view
+            popover.sourceRect = shareButton.frame
         }
-        updatePauseToPlay(isPlaying: !isPlaying)
-    }
 
-    // MARK: - 버튼 이미지 업데이트
-    private func updatePauseToPlay(isPlaying: Bool) {
-        let config = UIImage.SymbolConfiguration(pointSize: 40, weight: .regular)
-        let imageName = isPlaying ? "pause.circle" : "play.circle"
-        let image = UIImage(systemName: imageName, withConfiguration: config)
-        pauseButton.setImage(image, for: .normal)
+        present(activityVC, animated: true)
     }
-
-    // MARK: - 메인/서브 영상 위치 교환 및 사운드 처리
+    
     @objc private func swapVideoLayers() {
-        guard let mainLayer = playerLayerMain, let subLayer = playerLayerSub else { return }
-
-        mainLayer.removeFromSuperlayer()
-        subLayer.removeFromSuperlayer()
-
-        challCompareMainView.layer.addSublayer(subLayer)
-        challCompareSubView.layer.addSublayer(mainLayer)
-
-        subLayer.frame = challCompareMainView.bounds
-        mainLayer.frame = challCompareSubView.bounds
-
-        swap(&playerLayerMain, &playerLayerSub)
-        swap(&playerMain, &playerSub)
-
-        playerMain?.isMuted = false
-        playerSub?.isMuted = true
+        
+        mainVideoPlayer.playerLayer?.removeFromSuperlayer()
+        subVideoPlayer.playerLayer?.removeFromSuperlayer()
+        
+        challComparMainView.layer.addSublayer(subVideoPlayer.playerLayer!)
+        challComparSubView.layer.addSublayer(mainVideoPlayer.playerLayer!)
+        
+        mainVideoPlayer.isMain = false
+        subVideoPlayer.isMain = true
+        
+        swap(&mainVideoPlayer.containerView, &subVideoPlayer.containerView)
+        
+        swap(&mainVideoPlayer, &subVideoPlayer)
+        
+        mainVideoPlayer.setMuted(false)
+        subVideoPlayer.setMuted(true)
+        
+        mainVideoPlayer.updateFrame()
+        subVideoPlayer.updateFrame()
     }
-
-    // MARK: - 메인 영상의 비율에 맞춰 AVPlayerLayer 크기 조정
-    private func updateMainPlayerAspectRatio(from url: URL) {
-        let asset = AVAsset(url: url)
-        asset.loadValuesAsynchronously(forKeys: ["tracks"]) {
-            DispatchQueue.main.async {
-                guard let videoTrack = asset.tracks(withMediaType: .video).first else { return }
-                let size = videoTrack.naturalSize.applying(videoTrack.preferredTransform)
-                let aspectRatio = abs(size.height / size.width)
-                let width = self.challCompareMainView.bounds.width
-                let height = width * aspectRatio
-                let y = (self.challCompareMainView.bounds.height - height) / 2
-                self.playerLayerMain?.frame = CGRect(x: 0, y: y, width: width, height: height)
-            }
-        }
-    }
-
-    // MARK: - 메인 영상 재생 (사운드 ON)
-    private func playVideoOnMainView(named fileName: String) {
-        guard let path = Bundle.main.path(forResource: fileName, ofType: nil) else {
-            print("❌ 메인 영상 파일을 찾을 수 없음")
-            return
-        }
-        let url = URL(fileURLWithPath: path)
-        let player = AVPlayer(url: url)
-        player.isMuted = false
-
-        let layer = AVPlayerLayer(player: player)
-        layer.frame = challCompareMainView.bounds
-        layer.videoGravity = .resizeAspect
-        challCompareMainView.layer.addSublayer(layer)
-        player.play()
-
-        self.playerMain = player
-        self.playerLayerMain = layer
-
-        updateMainPlayerAspectRatio(from: url)
-    }
-
-    // MARK: - 서브 영상 재생 (사운드 OFF + 비율 기반 높이 자동 조정)
-    private func playVideoOnSubViewWithDynamicAspectRatio(named fileName: String) {
-        guard let path = Bundle.main.path(forResource: fileName, ofType: nil) else {
-            print("❌ 서브 영상 파일을 찾을 수 없음")
-            return
-        }
-
-        let url = URL(fileURLWithPath: path)
-        let asset = AVAsset(url: url)
-
-        asset.loadValuesAsynchronously(forKeys: ["tracks"]) {
-            DispatchQueue.main.async {
-                guard let videoTrack = asset.tracks(withMediaType: .video).first else {
-                    print("❌ 비디오 트랙 없음")
-                    return
-                }
-                let size = videoTrack.naturalSize.applying(videoTrack.preferredTransform)
-                let aspectRatio = abs(size.height / size.width)
-
-                // 기존 높이 제약 제거 후 새로운 비율로 재설정
-                self.challCompareSubViewHeightConstraint?.isActive = false
-                self.challCompareSubViewHeightConstraint = self.challCompareSubView.heightAnchor.constraint(equalTo: self.challCompareSubView.widthAnchor, multiplier: aspectRatio)
-                self.challCompareSubViewHeightConstraint?.isActive = true
-
-                self.view.setNeedsLayout()
-                self.view.layoutIfNeeded()
-
-                let player = AVPlayer(url: url)
-                player.isMuted = true
-
-                let layer = AVPlayerLayer(player: player)
-                layer.frame = self.challCompareSubView.bounds
-                layer.videoGravity = .resizeAspect
-                self.challCompareSubView.layer.addSublayer(layer)
-                player.play()
-
-                self.playerSub = player
-                self.playerLayerSub = layer
-            }
-        }
-    }
-
-    // MARK: - 영상 반복 재생 처리
-    @objc private func replayVideos(_ notification: Notification) {
-        if let playerItem = notification.object as? AVPlayerItem {
-            if playerMain?.currentItem === playerItem {
-                playerMain?.seek(to: .zero)
-                playerMain?.play()
-            }
-            if playerSub?.currentItem === playerItem {
-                playerSub?.seek(to: .zero)
-                playerSub?.play()
-            }
-        }
-    }
-
-    // MARK: - 뷰 크기 변경 시 영상 레이어 크기 업데이트
+    
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-
-        if let url = playerMain?.currentItem?.asset as? AVURLAsset {
-            updateMainPlayerAspectRatio(from: url.url)
-        }
-        playerLayerSub?.frame = challCompareSubView.bounds
+        mainVideoPlayer.updateFrame()
+        subVideoPlayer.updateFrame()
     }
 }
 
