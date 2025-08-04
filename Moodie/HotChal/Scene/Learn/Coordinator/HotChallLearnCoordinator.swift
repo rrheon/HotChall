@@ -28,4 +28,10 @@ final class HotChallLearnCoordinator: Coordinator {
     
   }
 
+  // 챌린지 찍기 화면으로 이동
+  func navToTakeChallengeViewController(){
+    let vc = CameraViewController()
+    self.navigationController.pushViewController(vc, animated: true)
+  }
+
 }
