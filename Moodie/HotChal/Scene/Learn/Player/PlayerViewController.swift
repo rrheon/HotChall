@@ -38,7 +38,6 @@ class PlayerViewController: UIViewController {
     private var previousVolume: Float = 0.5
     
     private let infoBackgroundView: UIVisualEffectView = {
-        let blur = UIBlurEffect(style: .dark)
         let view = UIVisualEffectView(effect: .none)
         view.layer.cornerRadius = 10
         view.clipsToBounds = true
@@ -46,15 +45,18 @@ class PlayerViewController: UIViewController {
         return view
     }()
     
+    // 챌린지 제목
     private let titleLabel: UILabel = {
         let label = UILabel()
         label.textColor = .white
         label.font = .systemFont(ofSize: 20, weight: .bold)
         label.textAlignment = .left
         label.numberOfLines = 1
+        label.shadowColor = .darkGray
         return label
     }()
     
+    // 업로더 이름
     private let uploaderLabel: UILabel = {
         let label = UILabel()
         label.textColor = .darkGray
@@ -64,10 +66,11 @@ class PlayerViewController: UIViewController {
         return label
     }()
     
+    // 재생 시간
     private let timeLabel: UILabel = {
         let label = UILabel()
         label.textColor = .white
-        label.font = .monospacedDigitSystemFont(ofSize: 10, weight: .regular)
+        label.font = .monospacedDigitSystemFont(ofSize: 11.5, weight: .regular)
         label.textAlignment = .right
         label.text = "00:00 / 00:00"
         return label
@@ -107,9 +110,7 @@ class PlayerViewController: UIViewController {
         let spacing: CGFloat = 8
         let sliderHeight: CGFloat = 30
         let maxWidth = view.bounds.width - margin * 2
-        
         let safeAreaBottom = view.safeAreaInsets.bottom
-        let safeAreaTop = view.safeAreaInsets.top
         
         let titleSize = titleLabel.sizeThatFits(CGSize(width: maxWidth - 12, height: .greatestFiniteMagnitude))
         let uploaderSize = uploaderLabel.sizeThatFits(CGSize(width: maxWidth - 12, height: .greatestFiniteMagnitude))
@@ -134,7 +135,6 @@ class PlayerViewController: UIViewController {
             height: sliderHeight
         )
         
-//        let timeLabelSize: CGFloat = sliderHeight
         timeLabel.frame = CGRect(
             x: progressSlider.frame.maxX + 5,
             y: progressSliderY,
@@ -142,7 +142,6 @@ class PlayerViewController: UIViewController {
             height: sliderHeight
         )
         
-//        let volumeY = progressSlider.frame.minY - sliderHeight - spacing
         volumeIcon.frame = CGRect(
             x: margin,
             y: progressSlider.frame.minY - sliderHeight - spacing,
@@ -214,8 +213,11 @@ class PlayerViewController: UIViewController {
         view.addSubview(volumeIcon)
         view.addSubview(volumeSlider)
         
+        // 속도 조절 버튼 위치 조정
         speedStackView.axis = .horizontal
         speedStackView.spacing = 8
+        speedStackView.distribution = .fillEqually
+        speedStackView.translatesAutoresizingMaskIntoConstraints = false
         
         for speed in speeds {
             let button = UIButton(type: .system)
@@ -223,7 +225,7 @@ class PlayerViewController: UIViewController {
             button.setTitleColor(.white, for: .normal)
             button.backgroundColor = UIColor.white.withAlphaComponent(0.2)
             button.layer.cornerRadius = 8
-            button.titleLabel?.font = .systemFont(ofSize: 15)
+            button.titleLabel?.font = UIFont.systemFont(ofSize: 15, weight: .medium)
             button.tag = Int(speed * 10)
             button.addTarget(self, action: #selector(speedSelected(_:)), for: .touchUpInside)
             speedStackView.addArrangedSubview(button)
@@ -243,7 +245,17 @@ class PlayerViewController: UIViewController {
         
         selectedSpeed = 1.0
         updateSpeedButtons()
+        
+        // 속도 조절 버튼 오토 레이아웃
+        NSLayoutConstraint.activate([
+            speedStackView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            speedStackView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+            speedStackView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20),
+            speedStackView.heightAnchor.constraint(equalToConstant: 36)
+        ])
+        
     }
+    
     
     private func setupGestureRecognizers() {
         view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(togglePlayPause)))
