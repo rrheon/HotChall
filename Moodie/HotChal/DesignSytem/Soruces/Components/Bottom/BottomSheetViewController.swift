@@ -47,40 +47,46 @@ final class BaseBottomSheetViewController: UIViewController {
     // MARK: - UI Setup
     private func setupLayout() {
         view.backgroundColor = .systemBackground
-        
+
         titleLabel.text = titleText
         titleLabel.font = .boldSystemFont(ofSize: 18)
         titleLabel.textAlignment = .left
-        
+
         closeButton.setImage(UIImage(systemName: "xmark"), for: .normal)
         closeButton.tintColor = .label
         closeButton.addTarget(self, action: #selector(closeButtonTapped), for: .touchUpInside)
-        
+
         titleLabel.setContentHuggingPriority(.defaultLow, for: .horizontal)
         closeButton.setContentHuggingPriority(.required, for: .horizontal)
-        
+
         headerStack.axis = .horizontal
         headerStack.alignment = .center
         headerStack.distribution = .equalSpacing
         headerStack.translatesAutoresizingMaskIntoConstraints = false
         headerStack.addArrangedSubview(titleLabel)
         headerStack.addArrangedSubview(closeButton)
-        
+
         containerStack.axis = .vertical
         containerStack.spacing = 20
         containerStack.translatesAutoresizingMaskIntoConstraints = false
         containerStack.addArrangedSubview(headerStack)
         containerStack.addArrangedSubview(contentView)
-        
+
+        // 주입받은 contentview가 남은부분 전부 차지하도록
+        contentView.setContentHuggingPriority(.defaultLow, for: .vertical)
+        contentView.setContentCompressionResistancePriority(.defaultLow, for: .vertical)
+
         view.addSubview(containerStack)
-        
+
         NSLayoutConstraint.activate([
             containerStack.topAnchor.constraint(equalTo: view.topAnchor, constant: 24),
             containerStack.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
             containerStack.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-            containerStack.bottomAnchor.constraint(lessThanOrEqualTo: view.bottomAnchor, constant: -24),
+            containerStack.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -24),
         ])
     }
+    
+    
     @objc private func closeButtonTapped() {
         dismiss(animated: true) {
             self.onDismiss?()

@@ -165,10 +165,7 @@ final class CameraViewController: UIViewController {
     
     @objc private func onTimerButtonPressed() {
         let timerView = TimerSelectView()
-        timerView.onSelect = { selected in
-            print("선택된 타이머: \(selected ?? -1)초")
-        }
-
+        
         let bottomSheet = BaseBottomSheetViewController(
             title: "타이머 설정",
             contentView: timerView,
@@ -176,6 +173,12 @@ final class CameraViewController: UIViewController {
                 print("닫힘")
             }
         )
+        
+        timerView.onStart = { selected in
+            print("선택된 타이머: \(selected)초")
+            bottomSheet.dismiss(animated: true)
+        }
+        
         present(bottomSheet, animated: true)
     }
 
@@ -274,73 +277,3 @@ private final class RecordButton: UIControl {
 }
 
 
-final class TimerSelectView: UIView {
-
-    private let options = [3, 5, 10]
-    private var selectedValue: Int?
-    var onSelect: ((Int?) -> Void)?
-
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-        setupUI()
-    }
-
-    required init?(coder: NSCoder) {
-        super.init(coder: coder)
-        setupUI()
-    }
-
-    private func setupUI() {
-        backgroundColor = .systemBackground
-        layer.cornerRadius = 16
-        clipsToBounds = true
-
-        let titleLabel = UILabel()
-        titleLabel.text = "타이머 선택"
-        titleLabel.textAlignment = .center
-        titleLabel.font = .boldSystemFont(ofSize: 18)
-
-        let stackView = UIStackView()
-        stackView.axis = .vertical
-        stackView.spacing = 12
-        stackView.alignment = .center
-
-        options.forEach { sec in
-            let button = UIButton(type: .system)
-            button.setTitle("\(sec)초", for: .normal)
-            button.titleLabel?.font = .systemFont(ofSize: 16)
-            button.tag = sec
-            button.addTarget(self, action: #selector(timerOptionTapped(_:)), for: .touchUpInside)
-            stackView.addArrangedSubview(button)
-        }
-
-        let cancelButton = UIButton(type: .system)
-        cancelButton.setTitle("취소", for: .normal)
-        cancelButton.setTitleColor(.red, for: .normal)
-        cancelButton.addTarget(self, action: #selector(onCancelPressed), for: .touchUpInside)
-
-        let vStack = UIStackView(arrangedSubviews: [titleLabel, stackView, cancelButton])
-        vStack.axis = .vertical
-        vStack.spacing = 20
-        vStack.alignment = .fill
-        vStack.translatesAutoresizingMaskIntoConstraints = false
-
-        addSubview(vStack)
-
-        NSLayoutConstraint.activate([
-            vStack.topAnchor.constraint(equalTo: topAnchor, constant: 20),
-            vStack.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 20),
-            vStack.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -20),
-            vStack.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -20),
-        ])
-    }
-
-    @objc private func timerOptionTapped(_ sender: UIButton) {
-        selectedValue = sender.tag
-        onSelect?(selectedValue)
-    }
-
-    @objc private func onCancelPressed() {
-        onSelect?(nil)
-    }
-}
