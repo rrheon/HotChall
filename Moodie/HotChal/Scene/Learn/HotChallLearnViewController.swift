@@ -10,7 +10,7 @@ import UIKit
 /// 챌린지 배우기 화면
 final class HotChallLearnViewController: UIViewController {
   
-  var didSendEventClosure: ((HotChallLearnViewController.Event) -> Void)?
+  weak var delegate: HotChallLearnCoordinator?
 
   private var collectionView: UICollectionView = {
     let layout = UICollectionViewFlowLayout()

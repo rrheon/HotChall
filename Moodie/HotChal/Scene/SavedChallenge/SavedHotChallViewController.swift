@@ -187,7 +187,6 @@ extension SavedHotChallViewController: UICollectionViewDelegate {
 
     ChallengePlayerUIManager.shared.showChallPlayer(from: self, data: data)
 
-    
   }
 }
 

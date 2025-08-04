@@ -82,8 +82,6 @@ class TabCoordinator: NSObject, Coordinator {
     required init(_ navigationController: UINavigationController) {
         self.navigationController = navigationController
         self.tabBarController = .init()
-      
-
     }
 
     func start() {
@@ -125,14 +123,9 @@ class TabCoordinator: NSObject, Coordinator {
             childCoordinators.append(chalCoordinator)
             
         case .learn:
-            let learnViewController = HotChallLearnViewController()
-            learnViewController.didSendEventClosure = { [weak self] event in
-                switch event {
-                case .learnViewControllerTwo:
-                    print("Learn!")
-                }
-            }
-            navController.pushViewController(learnViewController, animated: true)
+          let learnViewCoordinator = HotChallLearnCoordinator(navController)
+          learnViewCoordinator.start()
+          childCoordinators.append(learnViewCoordinator)
         case .favorites:
             let favoriteCoordinator = SavedChallengeCoordinator(navController)
             favoriteCoordinator.start()
@@ -160,7 +153,21 @@ extension TabCoordinator: UITabBarControllerDelegate {
     func tabBarController(_ tabBarController: UITabBarController,
                           didSelect viewController: UIViewController) {
         // Some implementation
+      UIView.setAnimationsEnabled(true)
+
     }
+  
+  // 탭바 컨트롤러에서 화면전환 시 화면이 깜빡거리는 이슈
+  // 애니메이션 비활성으로 임시 해결
+  func tabBarController(
+    _ tabBarController: UITabBarController,
+    shouldSelect viewController: UIViewController
+  ) -> Bool {
+    UIView.setAnimationsEnabled(false)
+    return true
+  }
+    
+
 }
 
 extension TabCoordinator {
