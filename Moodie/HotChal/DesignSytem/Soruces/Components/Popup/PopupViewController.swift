@@ -71,7 +71,6 @@ final class PopupViewController: UIViewController {
         $0.translatesAutoresizingMaskIntoConstraints = false
       }
     
-    let safeArea = view.safeAreaLayoutGuide
     
     NSLayoutConstraint.activate([
       popupView.centerXAnchor.constraint(equalTo: view.centerXAnchor),

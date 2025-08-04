@@ -48,11 +48,11 @@ enum TabBarPage {
     func tabIcon() -> UIImage? {
            switch self {
            case .home:
-               return UIImage(systemName: "star.fill")
+             return UIImage(systemName: "flame")
            case .learn:
-               return UIImage(systemName: "star.fill")
+             return UIImage(systemName: "figure.dance")
            case .favorites:
-               return UIImage(systemName: "star.fill")
+             return UIImage(systemName: "archivebox")
            }
        }
 }
@@ -82,6 +82,8 @@ class TabCoordinator: NSObject, Coordinator {
     required init(_ navigationController: UINavigationController) {
         self.navigationController = navigationController
         self.tabBarController = .init()
+      
+
     }
 
     func start() {
@@ -91,6 +93,7 @@ class TabCoordinator: NSObject, Coordinator {
         let controllers: [UINavigationController] = pages.map({ getTabController($0) })
         
         prepareTabBarController(withTabControllers: controllers)
+      
     }
     
     deinit {
@@ -101,20 +104,20 @@ class TabCoordinator: NSObject, Coordinator {
         tabBarController.delegate = self
         tabBarController.setViewControllers(tabControllers, animated: true)
         tabBarController.selectedIndex = TabBarPage.home.pageOrderNumber()
-    
-        tabBarController.tabBar.isTranslucent = false
-        
+
+        setupTabBarControler()
         navigationController.viewControllers = [tabBarController]
     }
       
     private func getTabController(_ page: TabBarPage) -> UINavigationController {
         let navController = UINavigationController()
         navController.setNavigationBarHidden(false, animated: false)
+        setupNavigationController(nav: navController)
 
         navController.tabBarItem = UITabBarItem.init(title: page.pageTitleValue(),
                                                      image: page.tabIcon(),
                                                      tag: page.pageOrderNumber())
-
+        
         switch page {
         case .home:
             let chalCoordinator = ChalCoordinator(navController)
@@ -122,7 +125,7 @@ class TabCoordinator: NSObject, Coordinator {
             childCoordinators.append(chalCoordinator)
             
         case .learn:
-            let learnViewController = LearnViewController()
+            let learnViewController = HotChallLearnViewController()
             learnViewController.didSendEventClosure = { [weak self] event in
                 switch event {
                 case .learnViewControllerTwo:
@@ -160,3 +163,32 @@ extension TabCoordinator: UITabBarControllerDelegate {
     }
 }
 
+extension TabCoordinator {
+  /// 네비게이션 바 색상 설정
+  func setupNavigationController(nav: UINavigationController, largeTitle: Bool = true){
+    let appearance = UINavigationBarAppearance()
+    appearance.configureWithTransparentBackground()
+    appearance.backgroundColor = .backgroundColor
+    appearance.titleTextAttributes = [.foregroundColor: UIColor.white]
+    appearance.largeTitleTextAttributes = [.foregroundColor: UIColor.white]
+    
+    nav.navigationBar.standardAppearance = appearance
+    nav.navigationBar.scrollEdgeAppearance = appearance
+    nav.navigationBar.prefersLargeTitles = largeTitle
+    nav.navigationBar.backgroundColor = .backgroundColor
+    nav.navigationBar.tintColor = .appPink
+  }
+  
+  
+  /// 탭바컨트롤러 색상 설정 및 스크롤 시 색상변경 방지
+  func setupTabBarControler(){
+    let tabBarAppearance = UITabBarAppearance()
+    tabBarAppearance.configureWithTransparentBackground()
+    tabBarAppearance.backgroundColor = .backgroundColor
+
+    tabBarController.tabBar.isTranslucent = false
+    tabBarController.tabBar.standardAppearance = tabBarAppearance
+    tabBarController.tabBar.scrollEdgeAppearance = tabBarAppearance
+    tabBarController.tabBar.tintColor = .appPink
+  }
+}
