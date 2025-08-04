@@ -11,7 +11,7 @@ class Favaor2Controller: UIViewController, UICollectionViewDataSource, UICollect
         layout.itemSize = UIScreen.main.bounds.size
 
         let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
-      collectionView.register(LearnChallengeCell.self, forCellWithReuseIdentifier: LearnChallengeCell.reuseIdentifier)
+      collectionView.register(ChallengeCell.self, forCellWithReuseIdentifier: ChallengeCell.reuseIdentifier)
         collectionView.isPagingEnabled = true
         collectionView.dataSource = self
         collectionView.delegate = self
@@ -39,8 +39,8 @@ class Favaor2Controller: UIViewController, UICollectionViewDataSource, UICollect
 
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
       guard let cell = collectionView.dequeueReusableCell(
-        withReuseIdentifier: LearnChallengeCell.reuseIdentifier,
-        for: indexPath) as? LearnChallengeCell else {
+        withReuseIdentifier: ChallengeCell.reuseIdentifier,
+        for: indexPath) as? ChallengeCell else {
             return UICollectionViewCell()
         }
 //        cell.configure(with: videos[indexPath.item])

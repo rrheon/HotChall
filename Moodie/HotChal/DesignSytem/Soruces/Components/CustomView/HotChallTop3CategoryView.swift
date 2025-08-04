@@ -41,8 +41,8 @@ final class HotChallTop3CategoryView: UIView {
     let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
     collectionView.backgroundColor = .clear
     collectionView.showsHorizontalScrollIndicator = false
-    collectionView.register(LearnChallengeCell.self,
-                            forCellWithReuseIdentifier: LearnChallengeCell.reuseIdentifier)
+    collectionView.register(ChallengeCell.self,
+                            forCellWithReuseIdentifier: ChallengeCell.reuseIdentifier)
     return collectionView
   }()
 

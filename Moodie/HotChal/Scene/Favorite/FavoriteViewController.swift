@@ -74,8 +74,8 @@ final class FavoriteViewController: UIViewController {
     challengeCollectionView.dataSource = self
     
     // 셀등록
-    challengeCollectionView.register(LearnChallengeCell.self,
-                                     forCellWithReuseIdentifier: LearnChallengeCell.reuseIdentifier)
+    challengeCollectionView.register(ChallengeCell.self,
+                                     forCellWithReuseIdentifier: ChallengeCell.reuseIdentifier)
     // 헤더 등록
     challengeCollectionView.register(ChallengeCollectionHeaderView.self,
                                      forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader,
@@ -141,9 +141,9 @@ extension FavoriteViewController: UICollectionViewDataSource {
     cellForItemAt indexPath: IndexPath
   ) -> UICollectionViewCell {
     guard let cell = collectionView.dequeueReusableCell(
-      withReuseIdentifier: LearnChallengeCell.reuseIdentifier,
+      withReuseIdentifier: ChallengeCell.reuseIdentifier,
       for: indexPath
-    ) as? LearnChallengeCell else { return UICollectionViewCell() }
+    ) as? ChallengeCell else { return UICollectionViewCell() }
     
     let category = categories[indexPath.section]
     guard let data = divideWithCategory[category]?[indexPath.item] else { return UICollectionViewCell() }

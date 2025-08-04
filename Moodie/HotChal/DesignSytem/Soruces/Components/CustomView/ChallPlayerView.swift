@@ -10,15 +10,17 @@ import UIKit
 
 /// 플레이어 액션 Delegate
 protocol PlayerButtonsDelegate: AnyObject {
-  func navToLearnChallenge()
-  func navToShowChallenge()
-  func saveChallenge()
+  func navToLearnChallenge(with data: ChallengeVideo)
+  func navToShowChallenge(with data: ChallengeVideo)
+  func saveChallenge(with data: ChallengeVideo)
 }
 
 /// 챌린지 영상 플레이어 UIView
 final class ChallPlayerView: UIView {
   
   weak var delegate: PlayerButtonsDelegate?
+  
+  var challengeData: ChallengeVideo?
   
   /// 챌린지 배우기 버튼
   private lazy var learnChallengeButton: UIButton = makeChallengeButton(title: "챌린지 배우기",
@@ -85,21 +87,23 @@ final class ChallPlayerView: UIView {
   
   /// 버튼의 액션 설정
   private func setupButtonActions(){
+    guard let mockupData = MockupDataManager.shared.challengeVideos.first else { return }
+    
     learnChallengeButton.addAction(UIAction { [weak self] _ in
-      self?.delegate?.navToLearnChallenge()
+      guard let self = self else { return }
+      self.delegate?.navToLearnChallenge(with: self.challengeData ?? mockupData)
     }, for: .touchUpInside)
-    
+
     saveChallengeButton.addAction(UIAction { [weak self] _ in
-      self?.delegate?.saveChallenge()
+      guard let self = self else { return }
+      self.delegate?.saveChallenge(with: self.challengeData ?? mockupData)
     }, for: .touchUpInside)
-    
+
     showChallengeButton.addAction(UIAction { [weak self] _ in
-      self?.delegate?.navToShowChallenge()
+      guard let self = self else { return }
+      self.delegate?.navToShowChallenge(with: self.challengeData ?? mockupData)
     }, for: .touchUpInside)
-    
-    closePlayerButton.addAction(UIAction {  _ in
-      ChallengPlayerUIManager.shared.closeChallPlayer()
-    }, for: .touchUpInside)
+
   }
   
   
