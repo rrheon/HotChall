@@ -216,7 +216,7 @@ extension SavedHotChallViewController: ChallengePlayerViewDelegate {
   
   func navToLearnChallenge(with data: ChallengeVideo) {
     print(#fileID, #function, #line, "- 챌린지 배우기 화면으로 이동")
-    
+    delegate?.navToLearnChallengeViewController()
   }
   
   func navToShowChallenge(with data: ChallengeVideo) {
