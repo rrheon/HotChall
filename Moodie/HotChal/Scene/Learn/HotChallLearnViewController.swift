@@ -5,113 +5,128 @@
 //  Created by heojiwoo on 7/29/25.
 //
 import UIKit
-import AVFoundation
-import AVKit
 
-// 데이터 모델
-struct ChallengeItem {
-    let thumbnailImage: UIImage?
-    let title: String
-    let uploader: String
-    let videoFilename: String
+/// HotChall - front - HotChallLearnViewController
+/// 챌린지 배우기 화면
+final class HotChallLearnViewController: UIViewController {
+  
+  var didSendEventClosure: ((HotChallLearnViewController.Event) -> Void)?
+
+  private var collectionView: UICollectionView = {
+    let layout = UICollectionViewFlowLayout()
+    layout.scrollDirection = .vertical
+    layout.minimumLineSpacing = 16
+    layout.minimumInteritemSpacing = 12
+    layout.sectionInset = UIEdgeInsets(top: 20, left: 15, bottom: 20, right: 15)
+    
+    let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
+    collectionView.translatesAutoresizingMaskIntoConstraints = false
+    collectionView.backgroundColor = .backgroundColor
+    
+    return collectionView
+  }()
+  
+  override func viewDidLoad() {
+    super.viewDidLoad()
+    self.title = "챌린지 배우기"
+  
+    view.backgroundColor = .backgroundColor
+    
+    setupCollectionView()
+    setupLayout()
+  }
+  
+  override func viewWillDisappear(_ animated: Bool) {
+    ChallengPlayerUIManager.shared.closeChallPlayer()
+  }
+  
+  // collectionView 설정
+  private func setupCollectionView() {
+    collectionView.dataSource = self
+    collectionView.delegate = self
+    collectionView.register(ChallengeCell.self, forCellWithReuseIdentifier: ChallengeCell.reuseIdentifier)
+  }
+  
+  // layout 설정
+  private func setupLayout(){
+    view.addSubview(collectionView)
+    
+    NSLayoutConstraint.activate([
+      collectionView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+      collectionView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
+      collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+      collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
+    ])
+  }
 }
 
 
-class LearnViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
+// MARK: - UICollectionViewDataSource
 
-    var didSendEventClosure: ((LearnViewController.Event) -> Void)?
+extension HotChallLearnViewController: UICollectionViewDataSource {
+  
+  func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+    return MockupDataManager.shared.challengeVideos.count
+  }
+  
+  func collectionView(
+    _ collectionView: UICollectionView,
+    cellForItemAt indexPath: IndexPath
+  ) -> UICollectionViewCell {
+    guard let cell = collectionView.dequeueReusableCell(
+      withReuseIdentifier: ChallengeCell.reuseIdentifier,
+      for: indexPath
+    ) as? ChallengeCell else { return UICollectionViewCell() }
     
+    cell.challengeData =  MockupDataManager.shared.challengeVideos[indexPath.item]
     
-    private var collectionView: UICollectionView!
-    
-    private let items: [ChallengeItem] = [
-        ChallengeItem(thumbnailImage: UIImage(named: "Golden1"), title: "Golden 배우기 1", uploader: "춤선생 SIMBA", videoFilename: "golden1.mp4"),
-        ChallengeItem(thumbnailImage: UIImage(named: "Golden2"), title: "Golden 배우기 2", uploader: "춤추는 당근 Dancing Carrot", videoFilename: "golden2.mp4"),
-        ChallengeItem(thumbnailImage: UIImage(named: "Pokemon1"), title: "Pokedance 배우기 1", uploader: "몸치탈출연구소 (Fast dance)", videoFilename: "pokemon1.mp4"),
-        ChallengeItem(thumbnailImage: UIImage(named: "Pokemon2"), title: "Pokedance 배우기 2", uploader: "춤선생 SIMBA", videoFilename: "pokemon2.mp4"),
-        ChallengeItem(thumbnailImage: UIImage(named: "SodaPop1"), title: "SodaPop 배우기 ", uploader: "춤선생 SIMBA", videoFilename: "sodaPop1.mp4"),
-        ChallengeItem(thumbnailImage: UIImage(named: "SodaPop2"), title: "SodaPop 배우기 2", uploader: "댄싱꽥꽥 Dancing Duck", videoFilename: "sodaPop2.mp4"),
-        ChallengeItem(thumbnailImage: UIImage(named: "SodaPop3"), title: "SodaPop 배우기 3", uploader: "joohee kim", videoFilename: "sodaPop3.mp4"),
-        ChallengeItem(thumbnailImage: UIImage(named: "SodaPop4"), title: "SodaPop 배우기 4", uploader: "춤선생 SIMBA", videoFilename: "sodaPop4.mp4"),
-        ChallengeItem(thumbnailImage: UIImage(named: "Toca1"), title: "TocaToca 배우기 1", uploader: "PREMIUM DANCE STUDIO", videoFilename: "toca1.mp4"),
-        ChallengeItem(thumbnailImage: UIImage(named: "Toca2"), title: "TocaToca 배우기 2", uploader: "몸치탈출연구소 (Fast dance)", videoFilename: "toca2.mp4"),
-    ]
-
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        view.backgroundColor = .systemBackground
-        title = "챌린지 배우기"
-        setupCollectionView()
-    }
-    
-    private func setupCollectionView() {
-        let layout = UICollectionViewFlowLayout()
-        layout.scrollDirection = .vertical
-        layout.minimumLineSpacing = 16
-        layout.minimumInteritemSpacing = 12
-        layout.sectionInset = UIEdgeInsets(top: 20, left: 15, bottom: 20, right: 15)
-
-        collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
-        collectionView.translatesAutoresizingMaskIntoConstraints = false
-        collectionView.backgroundColor = .systemBackground
-        collectionView.dataSource = self
-        collectionView.delegate = self
-        collectionView.register(LearnChallengeCell.self, forCellWithReuseIdentifier: LearnChallengeCell.identifier)
-        
-        view.addSubview(collectionView)
-
-        NSLayoutConstraint.activate([
-            collectionView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            collectionView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
-            collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
-        ])
-    }
-    
-
-    private func playLocalVideo(named filename: String, title: String, uploader: String) {
-        guard let path = Bundle.main.path(forResource: filename, ofType: nil) else {
-            print("❌ 영상 파일을 찾을 수 없습니다: \(filename)")
-            return
-        }
-    }
-
-    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        let item = items[indexPath.item]
-
-        let playerVC = PlayerViewController()
-        playerVC.videoFilename = item.videoFilename // 예: "golden.mp4"
-        playerVC.videoTitle = item.title
-        playerVC.uploader = item.uploader
-
-        navigationController?.pushViewController(playerVC, animated: true)
-    }
-
-
-    // MARK: - UICollectionViewDataSource
-
-    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return items.count
-    }
-
-    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: LearnChallengeCell.identifier, for: indexPath) as! LearnChallengeCell
-        cell.configure(with: items[indexPath.item])
-        return cell
-    }
-
-    
-    // MARK: - UICollectionViewDelegateFlowLayout
-
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        let width = (collectionView.frame.width - 50) / 2
-        return CGSize(width: width, height: width * 1.5)
-    }
-    
+    return cell
+  }
 }
 
-extension LearnViewController {
-    enum Event {
-        case learnViewControllerTwo
-    }
+// MARK: - UICollectionViewDelegateFlowLayout
+
+extension HotChallLearnViewController: UICollectionViewDelegateFlowLayout{
+  
+  func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+    let challengeData: ChallengeVideo = MockupDataManager.shared.challengeVideos[indexPath.item]
+
+    ChallengPlayerUIManager.shared.showChallPlayer(from: self, data: challengeData)
+
+  }
+  
+  func collectionView(
+    _ collectionView: UICollectionView,
+    layout collectionViewLayout: UICollectionViewLayout,
+    sizeForItemAt indexPath: IndexPath
+  ) -> CGSize {
+    let width = (collectionView.frame.width - 50) / 2
+    return CGSize(width: width, height: width * 1.5)
+  }
+}
+
+extension HotChallLearnViewController {
+  enum Event {
+    case learnViewControllerTwo
+  }
+}
+
+// MARK: Challenge Player Delegate
+
+extension HotChallLearnViewController: PlayerButtonsDelegate {
+  func navToLearnChallenge(with data: ChallengeVideo) {
+    print(#fileID, #function, #line, "- 챌린지 배우기 화면으로 이동")
+    
+  }
+  
+  func navToShowChallenge(with data: ChallengeVideo) {
+    print(#fileID, #function, #line, "- 챌린지 띄우기")
+    guard let challenge = data.videoFilename else { return }
+    ChallengePlayerManager.shared.playLocalVideo(named: challenge, from: self)
+  }
+  
+  func saveChallenge(with data: ChallengeVideo) {
+    print(#fileID, #function, #line, "- 챌린지 저장")
+
+  }
 }
