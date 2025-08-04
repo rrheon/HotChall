@@ -103,6 +103,8 @@ class PlayerViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .systemBackground
+        self.additionalSafeAreaInsets.bottom = 0 // safeArea 하단 없애기
+        self.edgesForExtendedLayout = [.bottom] // 전체 화면까지 확장
         
         setupPlayer()
         setupUI()
@@ -113,9 +115,10 @@ class PlayerViewController: UIViewController {
     }
 
     
-    //MARK: -viewDidLayoutSubviews
+    //MARK: - View DidLayoutSubviews
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
+        playerLayer.frame = view.bounds
         
         if let window = view.window {
             playerLayer.frame = window.bounds
@@ -263,13 +266,14 @@ class PlayerViewController: UIViewController {
         
         selectedSpeed = 1.0
         updateSpeedButtons()
+
         
         // 속도 조절 버튼 오토 레이아웃
         NSLayoutConstraint.activate([
+            speedStackView.heightAnchor.constraint(equalToConstant: 36),
             speedStackView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
             speedStackView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-            speedStackView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20),
-            speedStackView.heightAnchor.constraint(equalToConstant: 36)
+            speedStackView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
         ])
     }
     // MARK: - A-B 반복 입력 필드
@@ -401,6 +405,7 @@ class PlayerViewController: UIViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         tabBarController?.tabBar.isHidden = true
+        additionalSafeAreaInsets.bottom = 0
     }
 
     override func viewWillDisappear(_ animated: Bool) {
