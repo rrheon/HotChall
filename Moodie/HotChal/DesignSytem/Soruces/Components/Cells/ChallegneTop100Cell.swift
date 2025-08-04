@@ -25,7 +25,7 @@ final class ChallegneTop100Cell: UICollectionViewCell, ReuseIdentifiable {
     imageView.image = UIImage(named: "SodaPop4")
     imageView.contentMode = .scaleAspectFill
     imageView.clipsToBounds = true
-     imageView.backgroundColor = .yellow
+    imageView.backgroundColor = .yellow
     
     return imageView
   }()
@@ -74,6 +74,7 @@ final class ChallegneTop100Cell: UICollectionViewCell, ReuseIdentifiable {
       
       challengeRankLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 10),
       challengeRankLabel.centerYAnchor.constraint(equalTo: self.centerYAnchor),
+      challengeRankLabel.widthAnchor.constraint(equalToConstant: 40),
       
       challengeThumbnailView.leadingAnchor.constraint(equalTo: challengeRankLabel.trailingAnchor,
                                                       constant: 10),

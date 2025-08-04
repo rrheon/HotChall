@@ -26,7 +26,7 @@ final class HotChallTop100ViewController: UIViewController {
     view.backgroundColor = .systemBackground
     self.navigationItem.title = challengeName
     
-    setupNavigationController(largeTitle: false)
+
     setupBackButton()
     registerCell()
 
@@ -37,7 +37,7 @@ final class HotChallTop100ViewController: UIViewController {
   }
   
   override func viewWillDisappear(_ animated: Bool) {
-    ChallPlayerManager.shared.closeChallPlayer()
+    ChallengPlayerUIManager.shared.closeChallPlayer()
   }
 
   
@@ -88,7 +88,7 @@ extension HotChallTop100ViewController: UICollectionViewDelegateFlowLayout{
     didSelectItemAt indexPath: IndexPath
   ) {
     
-    ChallPlayerManager.shared.showChallPlayer()
+    ChallengPlayerUIManager.shared.showChallPlayer()
   }
   
   func collectionView(

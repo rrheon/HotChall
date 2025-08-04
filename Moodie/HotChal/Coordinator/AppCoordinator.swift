@@ -20,6 +20,7 @@ class AppCoordinator: AppCoordinatorProtocol {
         self.navigationController = navigationController
 
         navigationController.setNavigationBarHidden(true, animated: true)
+      
     }
     func start() {
         showMainFlow()

@@ -15,39 +15,6 @@ protocol PlayerButtonsDelegate: AnyObject {
   func saveChallenge()
 }
 
-
-/// 플레이어 매니저
-final class ChallPlayerManager {
-  static let shared = ChallPlayerManager()
-  
-  private init() {}
-  
-  let playerView: ChallPlayerView = ChallPlayerView()
-
-  
-  /// 플레이어 UI 보여주기
-  func showChallPlayer(){
-    guard let keyWindow = UIApplication.shared.windows.first(where: { $0.isKeyWindow }) else { return }
-    
-    keyWindow.addSubview(playerView)
-    playerView.translatesAutoresizingMaskIntoConstraints = false
-    
-    playerView.layer.cornerRadius = 10
-    playerView.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
-    NSLayoutConstraint.activate([
-      playerView.centerXAnchor.constraint(equalTo: keyWindow.centerXAnchor),
-      playerView.leadingAnchor.constraint(equalTo: keyWindow.leadingAnchor),
-      playerView.trailingAnchor.constraint(equalTo: keyWindow.trailingAnchor),
-      playerView.bottomAnchor.constraint(equalTo: keyWindow.safeAreaLayoutGuide.bottomAnchor,
-                                         constant: -49)
-    ])
-  }
-  
-  func closeChallPlayer(){
-    playerView.removeFromSuperview()
-  }
-}
-
 /// 챌린지 영상 플레이어 UIView
 final class ChallPlayerView: UIView {
   
@@ -58,7 +25,7 @@ final class ChallPlayerView: UIView {
                                                                         imageName: "figure.dance")
   
   /// 챌린지 저장하기 버튼
-  private lazy var saveChallengeButton: UIButton = makeChallengeButton(title: "챌린지 저장하기",
+  private lazy var saveChallengeButton: UIButton = makeChallengeButton(title: "저장하기",
                                                                        imageName: "square.and.arrow.down")
   
   /// 챌린지 보기 버튼
@@ -110,7 +77,7 @@ final class ChallPlayerView: UIView {
     NSLayoutConstraint.activate([
       buttonStackView.topAnchor.constraint(equalTo: topAnchor, constant: 10),
       buttonStackView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 10),
-      buttonStackView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: 10),
+      buttonStackView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -10),
       buttonStackView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -10),
     ])
   }
@@ -131,7 +98,7 @@ final class ChallPlayerView: UIView {
     }, for: .touchUpInside)
     
     closePlayerButton.addAction(UIAction {  _ in
-      ChallPlayerManager.shared.closeChallPlayer()
+      ChallengPlayerUIManager.shared.closeChallPlayer()
     }, for: .touchUpInside)
   }
   

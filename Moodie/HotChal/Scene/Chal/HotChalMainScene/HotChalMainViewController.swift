@@ -24,10 +24,10 @@ class HotChalMainViewController: UIViewController {
     super.viewDidLoad()
     
     self.title = "핫챌 TOP3"
-    navigationItem.largeTitleDisplayMode = .always
+//    navigationItem.largeTitleDisplayMode = .always
     
-    setupNavigationController()
-    setupTabBarControler()
+//    setupNavigationController()
+//    setupTabBarControler()
     
     setupMainViewCell()
     addButtonActions()
@@ -38,7 +38,7 @@ class HotChalMainViewController: UIViewController {
   }
   
   override func viewWillDisappear(_ animated: Bool) {
-    ChallPlayerManager.shared.closeChallPlayer()
+    ChallengPlayerUIManager.shared.closeChallPlayer()
   }
   
   /// 셀 delegate 및 dataSource 설정
@@ -113,7 +113,7 @@ extension HotChalMainViewController: UICollectionViewDataSource {
 extension HotChalMainViewController: UICollectionViewDelegateFlowLayout{
   
   func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-    ChallPlayerManager.shared.showChallPlayer()
+    ChallengPlayerUIManager.shared.showChallPlayer()
   }
   
   func collectionView(
