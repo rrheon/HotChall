@@ -100,7 +100,7 @@ extension HotChalMainViewController: UICollectionViewDataSource {
     if collectionView == mainView.topCollectionView {
       cellID = HotChallTopCell.reuseIdentifier
     } else {
-      cellID = SavedChallengeCell.reuseIdentifier
+      cellID = LearnChallengeCell.reuseIdentifier
     }
     
     let cell = collectionView.dequeueReusableCell(withReuseIdentifier: cellID, for: indexPath)

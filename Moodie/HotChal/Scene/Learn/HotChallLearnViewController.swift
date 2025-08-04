@@ -35,7 +35,7 @@ class HotChallLearnViewController: UIViewController {
     collectionView.backgroundColor = .backgroundColor
     collectionView.dataSource = self
     collectionView.delegate = self
-    collectionView.register(LearnChallengeCell.self, forCellWithReuseIdentifier: LearnChallengeCell.identifier)
+    collectionView.register(LearnChallengeCell.self, forCellWithReuseIdentifier: LearnChallengeCell.reuseIdentifier)
     
     view.addSubview(collectionView)
     
@@ -68,7 +68,7 @@ extension HotChallLearnViewController: UICollectionViewDataSource {
     cellForItemAt indexPath: IndexPath
   ) -> UICollectionViewCell {
     let cell = collectionView.dequeueReusableCell(
-      withReuseIdentifier: LearnChallengeCell.identifier,
+      withReuseIdentifier: LearnChallengeCell.reuseIdentifier,
       for: indexPath
     ) as! LearnChallengeCell
     cell.configure(with: MockupDataManager.shared.challengeVideos[indexPath.item])

@@ -7,8 +7,11 @@
 
 import UIKit
 
-class LearnChallengeCell: UICollectionViewCell {
-    static let identifier = "ChallengeCell"
+protocol DeleteSavedChallengeProtocol: AnyObject {
+  func showDeletePopup()
+}
+
+class LearnChallengeCell: UICollectionViewCell, ReuseIdentifiable {
 
     private let thumbnailImageView = UIImageView()
     private let titleLabel = UILabel()
