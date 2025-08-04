@@ -1,17 +1,40 @@
+// CameraViewController.swift
+
 import UIKit
 import AVFoundation
 
-// MARK: - 카메라 뷰컨트롤러
 final class CameraViewController: UIViewController {
 
-    private let captureSession = AVCaptureSession()
-    private var previewLayer: AVCaptureVideoPreviewLayer!
-    private var videoOutput = AVCaptureMovieFileOutput()
-    private var currentCameraPosition: AVCaptureDevice.Position = .back
+    // MARK: - Services & Managers
+    private let cameraService = CameraService()
+    private lazy var recordingService = RecordingService(session: cameraService.session)
+    private let countdownManager = CountdownManager()
+    private let progressManager = RecordingProgressManager(maxDuration: 15)
 
+    // MARK: - UI Components
     private let recordButton = RecordButton()
     private let flipCameraButton = UIButton(type: .system)
     private let timerCameraButton = UIButton(type: .system)
+    private let countdownLabel: UILabel = {
+        let label = UILabel()
+        label.font = .systemFont(ofSize: 100, weight: .bold)
+        label.textColor = .white
+        label.textAlignment = .center
+        label.alpha = 0
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+
+    private let progressView: UIProgressView = {
+        let progress = UIProgressView(progressViewStyle: .bar)
+        progress.progress = 0.0
+        progress.trackTintColor = .lightGray
+        progress.progressTintColor = .red
+        progress.translatesAutoresizingMaskIntoConstraints = false
+        progress.clipsToBounds = true
+        progress.layer.cornerRadius = 4
+        return progress
+    }()
 
     private let cameraControlStackView: UIStackView = {
         let stack = UIStackView()
@@ -21,7 +44,7 @@ final class CameraViewController: UIViewController {
         stack.translatesAutoresizingMaskIntoConstraints = false
         return stack
     }()
-    
+
     private let cameraControlWrapperView: UIView = {
         let view = UIView()
         view.backgroundColor = UIColor.black.withAlphaComponent(0.4)
@@ -29,38 +52,43 @@ final class CameraViewController: UIViewController {
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
     }()
-    
-    private let countdownLabel: UILabel = {
-        let label = UILabel()
-        label.font = UIFont.systemFont(ofSize: 100, weight: .bold)
-        label.textColor = .white
-        label.textAlignment = .center
-        label.alpha = 0
-        label.translatesAutoresizingMaskIntoConstraints = false
-        return label
-    }()
-    
+
     override func viewDidLoad() {
         super.viewDidLoad()
+        recordButton.delegate = self
+        countdownManager.delegate = self
+        progressManager.delegate = self
+        recordingService.delegate = self
+
         requestCameraPermission()
         setupUI()
     }
 
     private func requestCameraPermission() {
-        AVCaptureDevice.requestAccess(for: .video) { granted in
-            DispatchQueue.main.async {
-                if granted {
-                    self.setupCamera()
-                } else {
-                    self.showPermissionAlert()
-                }
+        CameraPermissionService.requestCameraAndMicPermissions { [weak self] granted in
+            guard let self = self else { return }
+
+            if granted {
+                self.cameraService.configureSession()
+
+                let previewLayer = AVCaptureVideoPreviewLayer(session: self.cameraService.session)
+                previewLayer.videoGravity = .resizeAspectFill
+                self.attachPreview(previewLayer, to: self.view)
+            } else {
+                self.showPermissionAlert()
             }
         }
     }
 
+    private func attachPreview(_ previewLayer: AVCaptureVideoPreviewLayer, to view: UIView) {
+        previewLayer.frame = view.bounds
+        previewLayer.videoGravity = .resizeAspectFill
+        view.layer.insertSublayer(previewLayer, at: 0)
+    }
+
     private func showPermissionAlert() {
         let alert = UIAlertController(
-            title: "카메라 접근 불가",
+            title: "\u{1F6AB} 카메라 접근 불가",
             message: "설정 > 개인정보 보호에서 카메라 권한을 허용해주세요.",
             preferredStyle: .alert
         )
@@ -68,168 +96,140 @@ final class CameraViewController: UIViewController {
         present(alert, animated: true)
     }
 
-    // MARK: - 카메라 셋업
-    private func setupCamera() {
-        captureSession.beginConfiguration()
-        captureSession.sessionPreset = .high
-
-        // 카메라 생성
-        if let camera = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: currentCameraPosition),
-           let videoInput = try? AVCaptureDeviceInput(device: camera),
-           captureSession.canAddInput(videoInput) {
-            captureSession.addInput(videoInput)
-        }
-
-        if let microphone = AVCaptureDevice.default(for: .audio),
-           let micInput = try? AVCaptureDeviceInput(device: microphone),
-           captureSession.canAddInput(micInput) {
-            captureSession.addInput(micInput)
-        }
-        
-        // 카메라 아웃풋
-        if captureSession.canAddOutput(videoOutput) {
-            captureSession.addOutput(videoOutput)
-        }
-
-        captureSession.commitConfiguration()
-
-        previewLayer = AVCaptureVideoPreviewLayer(session: captureSession)
-        previewLayer.frame = view.bounds
-        previewLayer.videoGravity = .resizeAspectFill
-        view.layer.insertSublayer(previewLayer, at: 0)
-
-        captureSession.startRunning()
-    }
-
-    // MARK: - 레이아웃
     private func setupUI() {
         view.backgroundColor = .black
 
-        recordButton.translatesAutoresizingMaskIntoConstraints = false
-        recordButton.addTarget(self, action: #selector(onRecordPressed), for: .touchUpInside)
-    
-        flipCameraButton.setImage(UIImage(systemName: "arrow.triangle.2.circlepath.camera"), for: .normal)
-        flipCameraButton.tintColor = .white
-        flipCameraButton.addTarget(self, action: #selector(onCameraPositionChangedPressed), for: .touchUpInside)
-
-        timerCameraButton.setImage(UIImage(systemName: "gauge.with.needle"), for: .normal)
-        timerCameraButton.tintColor = .white
-        timerCameraButton.addTarget(self, action: #selector(onTimerButtonPressed), for: .touchUpInside)
-        
-        cameraControlStackView.addArrangedSubview(flipCameraButton)
-        cameraControlStackView.addArrangedSubview(timerCameraButton)
-        
+        [recordButton, countdownLabel, progressView, cameraControlWrapperView].forEach { view.addSubview($0) }
+        [flipCameraButton, timerCameraButton].forEach { cameraControlStackView.addArrangedSubview($0) }
         cameraControlWrapperView.addSubview(cameraControlStackView)
-        
-        view.addSubview(countdownLabel)
-        view.addSubview(recordButton)
-        view.addSubview(cameraControlWrapperView)
-        
+
+        configureFlipButton()
+        configureTimerButton()
+
+        recordButton.translatesAutoresizingMaskIntoConstraints = false
+
         NSLayoutConstraint.activate([
-            recordButton.widthAnchor.constraint(equalToConstant: 80),
-            recordButton.heightAnchor.constraint(equalToConstant: 80),
             recordButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             recordButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -40),
-            
+            recordButton.widthAnchor.constraint(equalToConstant: 80),
+            recordButton.heightAnchor.constraint(equalToConstant: 80),
+
             cameraControlWrapperView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
             cameraControlWrapperView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
-            
+
             cameraControlStackView.topAnchor.constraint(equalTo: cameraControlWrapperView.topAnchor, constant: 12),
             cameraControlStackView.bottomAnchor.constraint(equalTo: cameraControlWrapperView.bottomAnchor, constant: -12),
             cameraControlStackView.leadingAnchor.constraint(equalTo: cameraControlWrapperView.leadingAnchor, constant: 12),
             cameraControlStackView.trailingAnchor.constraint(equalTo: cameraControlWrapperView.trailingAnchor, constant: -12),
-            
+
             countdownLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            countdownLabel.centerYAnchor.constraint(equalTo: view.centerYAnchor)
+            countdownLabel.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+
+            progressView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 10),
+            progressView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            progressView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+            progressView.heightAnchor.constraint(equalToConstant: 10)
         ])
     }
 
-    @objc private func onRecordPressed() {
-        if videoOutput.isRecording {
-            videoOutput.stopRecording()
-        } else {
-            let filename = UUID().uuidString + ".mov"
-            let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(filename)
-            videoOutput.startRecording(to: tempURL, recordingDelegate: self)
-        }
+    private func configureFlipButton() {
+        flipCameraButton.setImage(UIImage(systemName: "arrow.triangle.2.circlepath.camera"), for: .normal)
+        flipCameraButton.tintColor = .white
+        flipCameraButton.addTarget(self, action: #selector(onCameraPositionChangedPressed), for: .touchUpInside)
+    }
 
-        recordButton.toggleRecording()
+    private func configureTimerButton() {
+        timerCameraButton.setImage(UIImage(systemName: "gauge.with.needle"), for: .normal)
+        timerCameraButton.tintColor = .white
+        timerCameraButton.addTarget(self, action: #selector(onTimerButtonPressed), for: .touchUpInside)
     }
 
     @objc private func onCameraPositionChangedPressed() {
-        captureSession.beginConfiguration()
-
-        // 기존 카메라 입력 제거
-        if let currentInput = captureSession.inputs.first(where: {
-            ($0 as? AVCaptureDeviceInput)?.device.hasMediaType(.video) == true
-        }) {
-            captureSession.removeInput(currentInput)
-        }
-
-        currentCameraPosition = currentCameraPosition == .back ? .front : .back
-
-        // 다시 세션 삽입
-        if let newCamera = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: currentCameraPosition),
-           let newInput = try? AVCaptureDeviceInput(device: newCamera),
-           captureSession.canAddInput(newInput) {
-            captureSession.addInput(newInput)
-        }
-        
-        captureSession.commitConfiguration()
+        cameraService.switchCamera()
     }
-    
+
     @objc private func onTimerButtonPressed() {
         let timerView = TimerSelectView()
-        
         let bottomSheet = BaseBottomSheetViewController(
             title: "타이머 설정",
             contentView: timerView,
-            onDismiss: {
-                print("닫힘")
-            }
+            onDismiss: {}
         )
-        
+
         timerView.onStart = { [weak self] selected in
             guard let self = self else { return }
             bottomSheet.dismiss(animated: true) {
-                self.startCountdown(seconds: selected) {
-                    self.onRecordPressed()
-                }
+                self.countdownManager.start(seconds: selected)
             }
         }
-        
+
         present(bottomSheet, animated: true)
     }
-    
-    private func startCountdown(seconds: Int, completion: @escaping () -> Void) {
-        var remaining = seconds
+
+    private func startRecording() {
+        let fileURL = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString + ".mov")
+        recordingService.startRecording(to: fileURL)
+        recordButton.setState(.recording)
+        progressManager.start()
+    }
+
+    private func stopRecording() {
+        recordingService.stopRecording()
+        progressManager.stop()
+        progressView.setProgress(0.0, animated: false)
+        recordButton.setState(.ready)
         
-        countdownLabel.alpha = 1
-        countdownLabel.text = "\(remaining)"
-        
-        Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] timer in
-            guard let self = self else { return }
-            remaining -= 1
-            
-            if remaining > 0 {
-                UIView.transition(with: self.countdownLabel, duration: 0.3, options: .transitionCrossDissolve, animations: {
-                    self.countdownLabel.text = "\(remaining)"
-                })
-            } else {
-                timer.invalidate()
-                UIView.animate(withDuration: 0.3) {
-                    self.countdownLabel.alpha = 0
-                }
-                completion()
-            }
-        }
     }
 
 }
 
-// MARK: - CameraDelegate
-extension CameraViewController: AVCaptureFileOutputRecordingDelegate {
-    func fileOutput(_ output: AVCaptureFileOutput, didFinishRecordingTo outputFileURL: URL, from connections: [AVCaptureConnection], error: Error?) {
-        print("📹 영상 저장 위치: \(outputFileURL)")
+// MARK: - Delegate
+
+extension CameraViewController: RecordButtonDelegate {
+    func recordButtonDidTapStart(_ button: RecordButton) {
+        startRecording()
+    }
+
+    func recordButtonDidTapStop(_ button: RecordButton) {
+        stopRecording()
+    }
+
+    func recordButtonDidTapCancelDuringCountdown(_ button: RecordButton) {
+        countdownManager.cancel()
+        countdownLabel.alpha = 0
+        countdownLabel.text = ""
+        stopRecording()
+    }
+}
+
+extension CameraViewController: CountdownManagerDelegate {
+    func countdownDidStart() {
+        countdownLabel.alpha = 1
+        recordButton.setState(.countdown)
+    }
+
+    func countdownDidUpdate(remaining: Int) {
+        countdownLabel.text = "\(remaining)"
+    }
+
+    func countdownDidFinish() {
+        countdownLabel.alpha = 0
+        startRecording()
+    }
+}
+
+extension CameraViewController: RecordingProgressManagerDelegate {
+    func progressDidUpdate(_ progress: Float) {
+        progressView.setProgress(progress, animated: false)
+    }
+
+    func progressDidFinish() {
+        stopRecording()
+    }
+}
+
+extension CameraViewController: RecordingManagerDelegate {
+    func recordingDidFinish(url: URL) {
+        print("Saved to: \(url)")
     }
 }
