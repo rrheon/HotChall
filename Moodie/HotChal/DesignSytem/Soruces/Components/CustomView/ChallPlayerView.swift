@@ -12,6 +12,7 @@ import UIKit
 protocol ChallengePlayerViewDelegate: AnyObject {
   func navToLearnChallenge(with data: ChallengeVideo)
   func navToShowChallenge(with data: ChallengeVideo)
+  func navToTakeChallenge(with data: ChallengeVideo)
   func saveChallenge(with data: ChallengeVideo)
   func closePlayerUI()
 }
@@ -30,15 +31,18 @@ final class ChallPlayerView: UIView {
   var challengeData: ChallengeVideo?
   
   /// 챌린지 배우기 버튼
-  private lazy var learnChallengeButton: UIButton = makeChallengeButton(title: "챌린지 배우기",
+  private lazy var learnChallengeButton: UIButton = makeChallengeButton(title: "배우기",
                                                                         imageName: "figure.dance")
   
   /// 챌린지 저장하기 버튼
   lazy var saveChallengeButton: UIButton = makeChallengeButton(title: "저장하기",
                                                                imageName: "square.and.arrow.down")
   
+  /// 챌린지 촬영하기하기 버튼
+  lazy var takeChallengeButton: UIButton = makeChallengeButton(title: "찍어보기",
+                                                               imageName: "square.and.arrow.down")
   /// 챌린지 보기 버튼
-  private lazy var showChallengeButton: UIButton = makeChallengeButton(title: "챌린지 보기",
+  private lazy var showChallengeButton: UIButton = makeChallengeButton(title: "보기",
                                                                        imageName: "play.rectangle")
   
   
@@ -71,7 +75,7 @@ final class ChallPlayerView: UIView {
   private func setupLayout(){
     
     let buttonStackView: UIStackView = UIStackView(
-      arrangedSubviews: [learnChallengeButton, saveChallengeButton, showChallengeButton, closePlayerButton]
+      arrangedSubviews: [learnChallengeButton, saveChallengeButton,takeChallengeButton, showChallengeButton, closePlayerButton]
     )
     
     buttonStackView.axis = .horizontal
@@ -106,6 +110,11 @@ final class ChallPlayerView: UIView {
       self.delegate?.saveChallenge(with: self.challengeData ?? mockupData)
     }, for: .touchUpInside)
 
+    takeChallengeButton.addAction(UIAction { [weak self] _ in
+        guard let self = self else { return }
+        self.delegate?.navToTakeChallenge(with: self.challengeData ?? mockupData)
+    }, for: .touchUpInside)
+    
     showChallengeButton.addAction(UIAction { [weak self] _ in
       guard let self = self else { return }
       self.delegate?.navToShowChallenge(with: self.challengeData ?? mockupData)
@@ -122,6 +131,7 @@ final class ChallPlayerView: UIView {
   private func makeChallengeButton(title: String, imageName: String) -> UIButton {
     let button = UIButton(configuration: .plain())
     button.setTitle(title, for: .normal)
+    button.titleLabel?.font = .systemFont(ofSize: 14)
     button.setTitleColor(.black, for: .normal)
     button.setImage(UIImage(systemName: imageName), for: .normal)
     button.configuration?.imagePlacement = .top

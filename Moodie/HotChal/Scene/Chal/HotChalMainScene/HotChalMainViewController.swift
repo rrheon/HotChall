@@ -98,9 +98,9 @@ extension HotChalMainViewController: UICollectionViewDataSource {
       guard let cell = collectionView.dequeueReusableCell(
         withReuseIdentifier: HotChallTopCell.reuseIdentifier,
         for: indexPath
-      ) as? HotChallTopCell else {
-        return UICollectionViewCell()
-      }
+      ) as? HotChallTopCell else { return UICollectionViewCell() }
+      cell.challengeData = (MockupDataManager.shared.challengeVideos[indexPath.item], indexPath.item)
+      
       return cell
       
     // Top3 카테고리에 대한 챌린지 Cell
@@ -108,10 +108,9 @@ extension HotChalMainViewController: UICollectionViewDataSource {
       guard let cell = collectionView.dequeueReusableCell(
         withReuseIdentifier: ChallengeCell.reuseIdentifier,
         for: indexPath
-      ) as? ChallengeCell else {
-        return UICollectionViewCell()
-      }
+      ) as? ChallengeCell else { return UICollectionViewCell() }
       cell.challengeData = MockupDataManager.shared.challengeVideos[indexPath.item]
+      
       return cell
     }
   }
@@ -145,9 +144,13 @@ extension HotChalMainViewController: UICollectionViewDelegateFlowLayout{
 // MARK: Challenge Player Delegate
 
 extension HotChalMainViewController: ChallengePlayerViewDelegate {
+  func navToTakeChallenge(with data: ChallengeVideo) {
+    delegate?.navToTakeChallengeViewController()
+  }
+  
   func navToLearnChallenge(with data: ChallengeVideo) {
     print(#fileID, #function, #line, "- 챌린지 배우기 화면으로 이동")
-    
+    delegate?.navToLearnChallengeViewController()
   }
   
   func navToShowChallenge(with data: ChallengeVideo) {

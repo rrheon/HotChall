@@ -11,6 +11,8 @@ import UIKit
 /// HotChall - front - HotChallTop100ViewController
 /// 핫챌 Top100 화면
 final class HotChallTop100ViewController: UIViewController {
+  weak var delegate: ChalCoordinator?
+  
   var challengeName: String = "핫챌 Top100"
   
   private let sampleData: [String] = Array(repeating: "챌린지 제목", count: 100) // 임시
@@ -26,7 +28,6 @@ final class HotChallTop100ViewController: UIViewController {
     view.backgroundColor = .systemBackground
     self.navigationItem.title = challengeName
     
-
     setupBackButton()
     registerCell()
 
@@ -105,3 +106,32 @@ extension HotChallTop100ViewController: UICollectionViewDelegateFlowLayout{
   }
 }
 
+// MARK: Challenge Player Delegate
+
+extension HotChallTop100ViewController: ChallengePlayerViewDelegate {
+  func navToTakeChallenge(with data: ChallengeVideo) {
+    delegate?.navToTakeChallengeViewController()
+  }
+  
+  func navToLearnChallenge(with data: ChallengeVideo) {
+    print(#fileID, #function, #line, "- 챌린지 배우기 화면으로 이동")
+    delegate?.navToLearnChallengeViewController()
+  }
+  
+  func navToShowChallenge(with data: ChallengeVideo) {
+    print(#fileID, #function, #line, "- 챌린지 띄우기")
+    guard let challenge = data.videoFilename else { return }
+    ChallengePlayerManager.shared.playLocalVideo(named: challenge, from: self)
+  }
+  
+  func saveChallenge(with data: ChallengeVideo) {
+    CoreDataManager.shared.saveChallenge(with: data) { result in
+      print(#fileID, #function, #line, "- 챌린지 저장")
+      ChallengePlayerUIManager.shared.closeChallPlayer()
+      let comment = result ? "챌린지가 저장되었습니다." : "이미 저장된 챌린지입니다."
+      
+      
+      ToastPopupManager.shared.showToast(message: comment)
+    }
+  }
+}
