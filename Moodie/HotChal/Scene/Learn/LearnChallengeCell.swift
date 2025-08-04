@@ -61,8 +61,8 @@ class LearnChallengeCell: UICollectionViewCell {
         fatalError("init(coder:) has not been implemented")
     }
 
-    func configure(with item: ChallengeItem) {
-        thumbnailImageView.image = item.thumbnailImage
+  func configure(with item: ChallengeVideo) {
+    thumbnailImageView.image = UIImage(named: "item.thumbnailImage")
         titleLabel.text = item.title
         uploaderLabel.text = item.uploader
     }
