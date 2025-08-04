@@ -7,17 +7,6 @@
 
 import UIKit
 
-protocol ReuseIdentifiable {
-  static var reuseIdentifier: String { get }
-}
-
-extension ReuseIdentifiable {
-  static var reuseIdentifier: String {
-    get {
-      return String(describing: Self.self)
-    }
-  }
-}
 
 protocol DeleteSavedChallengeProtocol: AnyObject {
   func showDeletePopup()

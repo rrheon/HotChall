@@ -8,84 +8,14 @@ import UIKit
 import AVFoundation
 import AVKit
 
-struct ChallengeVideo {
-  let thumbnailImage: UIImage?
-  let title: String
-  let uploader: String
-  let videoFilename: String
-  let category: String
-}
-
 
 
 /// HotChall - front - SavedHotChallViewController
 /// 저장된 챌린지 화면
 final class FavoriteViewController: UIViewController {
-  let challengeVideos: [ChallengeVideo] = [
-    ChallengeVideo(thumbnailImage: UIImage(named: "Golden1"),
-                   title: "Golden 배우기 1",
-                   uploader: "춤선생 SIMBA",
-                   videoFilename: "golden1.mp4",
-                   category: "Golden"),
-    
-    ChallengeVideo(thumbnailImage: UIImage(named: "Golden2"),
-                   title: "Golden 배우기 2",
-                   uploader: "춤추는 당근 Dancing Carrot",
-                   videoFilename: "golden2.mp4",
-                   category: "Golden"),
-    
-    ChallengeVideo(thumbnailImage: UIImage(named: "Pokemon1"),
-                   title: "Pokedance 배우기 1",
-                   uploader: "몸치탈출연구소 (Fast dance)",
-                   videoFilename: "pokemon1.mp4",
-                   category: "Pokedance"),
-    
-    ChallengeVideo(thumbnailImage: UIImage(named: "Pokemon2"),
-                   title: "Pokedance 배우기 2",
-                   uploader: "춤선생 SIMBA",
-                   videoFilename: "pokemon2.mp4",
-                   category: "Pokedance"),
-    
-    ChallengeVideo(thumbnailImage: UIImage(named: "SodaPop1"),
-                   title: "SodaPop 배우기",
-                   uploader: "춤선생 SIMBA",
-                   videoFilename: "sodaPop1.mp4",
-                   category: "SodaPop"),
-    
-    ChallengeVideo(thumbnailImage: UIImage(named: "SodaPop2"),
-                   title: "SodaPop 배우기 2",
-                   uploader: "댄싱꽥꽥 Dancing Duck",
-                   videoFilename: "sodaPop2.mp4",
-                   category: "SodaPop"),
-    
-    ChallengeVideo(thumbnailImage: UIImage(named: "SodaPop3"),
-                   title: "SodaPop 배우기 3",
-                   uploader: "joohee kim",
-                   videoFilename: "sodaPop3.mp4",
-                   category: "SodaPop"),
-    
-    ChallengeVideo(thumbnailImage: UIImage(named: "SodaPop4"),
-                   title: "SodaPop 배우기 4",
-                   uploader: "춤선생 SIMBA",
-                   videoFilename: "sodaPop4.mp4",
-                   category: "SodaPop"),
-    
-    ChallengeVideo(thumbnailImage: UIImage(named: "Toca1"),
-                   title: "TocaToca 배우기 1",
-                   uploader: "PREMIUM DANCE STUDIO",
-                   videoFilename: "toca1.mp4",
-                   category: "TocaToca"),
-    
-    ChallengeVideo(thumbnailImage: UIImage(named: "Toca2"),
-                   title: "TocaToca 배우기 2",
-                   uploader: "몸치탈출연구소 (Fast dance)",
-                   videoFilename: "toca2.mp4",
-                   category: "TocaToca")
-  ]
-  
   
   private lazy var divideWithCategory: [String: [ChallengeVideo]] = {
-    Dictionary(grouping: challengeVideos) { $0.category }
+    Dictionary(grouping: MockupDataManager.shared.challengeVideos) { $0.category ?? "" }
   }()
   
   private lazy var categories: [String] = Array(divideWithCategory.keys).sorted()
@@ -218,7 +148,7 @@ extension FavoriteViewController: UICollectionViewDataSource {
     let category = categories[indexPath.section]
     guard let data = divideWithCategory[category]?[indexPath.item] else { return UICollectionViewCell() }
     
-    cell.challengeImageView.image = data.thumbnailImage
+    cell.challengeImageView.image = UIImage(named: data.thumbnailImage ?? "")
     cell.challengeNameLabel.text = data.title
     cell.delegate = self
     
@@ -268,7 +198,7 @@ extension FavoriteViewController: UICollectionViewDelegateFlowLayout{
     let category = categories[indexPath.section]
     guard let data = divideWithCategory[category]?[indexPath.item] else { return }
     
-    playLocalVideo(named: data.videoFilename)
+    playLocalVideo(named: data.videoFilename ?? "")
     
   }
 }
