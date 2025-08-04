@@ -47,7 +47,7 @@ class PlayerViewController: UIViewController {
         return view
     }()
     
-    // 챌린지 제목
+    // 챌린지 타이틀
     private let titleLabel: UILabel = {
         let label = UILabel()
         label.textColor = .white
@@ -55,32 +55,37 @@ class PlayerViewController: UIViewController {
         label.textAlignment = .left
         label.numberOfLines = 1
         label.shadowColor = .darkGray
+        label.shadowOffset = CGSize(width: 2, height: 2)
         return label
     }()
     
-    // 업로더 이름
+    // 업로더
     private let uploaderLabel: UILabel = {
         let label = UILabel()
-        label.textColor = .darkGray
+        label.textColor = .lightGray
         label.font = .systemFont(ofSize: 14, weight: .medium)
         label.textAlignment = .left
         label.numberOfLines = 1
+        label.shadowColor = .darkGray
+        label.shadowOffset = CGSize(width: 1, height: 1)
         return label
     }()
     
-    // 재생 시간
+    // 재생 시간 | 남은 시간
     private let timeLabel: UILabel = {
         let label = UILabel()
         label.textColor = .white
         label.font = .monospacedDigitSystemFont(ofSize: 11.5, weight: .regular)
         label.textAlignment = .right
-        label.text = "00:00 / 00:00"
+        label.text = "00"
+        label.shadowColor = .darkGray
+        label.shadowOffset = CGSize(width: 1, height: 1)
         return label
     }()
     
     private let volumeIcon: UIImageView = {
         let imageView = UIImageView(image: UIImage(systemName: "speaker.fill"))
-        imageView.tintColor = .systemGreen
+        imageView.tintColor = .appPink
         imageView.contentMode = .scaleAspectFit
         imageView.isUserInteractionEnabled = true
         return imageView
@@ -142,7 +147,7 @@ class PlayerViewController: UIViewController {
         progressSlider.frame = CGRect(
             x: margin,
             y: progressSliderY,
-            width: maxWidth - 75,
+            width: maxWidth - 60,
             height: sliderHeight
         )
         
@@ -199,7 +204,7 @@ class PlayerViewController: UIViewController {
             player.play()
         
         // 콜백이 호출되는 주기(0.5초 마다)
-        let interval = CMTime(seconds: 0.1, preferredTimescale: 600)
+        let interval = CMTime(seconds: 0.1, preferredTimescale: 60)
         timeObserverToken = player.addPeriodicTimeObserver(forInterval: interval, queue: .main) { [weak self] time in
             guard let self = self else { return }
             let duration = self.player.currentItem?.duration.seconds ?? 1
@@ -245,12 +250,12 @@ class PlayerViewController: UIViewController {
         }
         view.addSubview(speedStackView)
         
-        progressSlider.minimumTrackTintColor = .systemBlue
+        progressSlider.minimumTrackTintColor = .white
         progressSlider.maximumTrackTintColor = UIColor.white.withAlphaComponent(0.3)
-        progressSlider.thumbTintColor = .white
+        progressSlider.thumbTintColor = .appPink
         progressSlider.addTarget(self, action: #selector(progressSliderChanged), for: .valueChanged)
         
-        volumeSlider.minimumTrackTintColor = .systemGreen
+        volumeSlider.minimumTrackTintColor = .appPink
         volumeSlider.maximumTrackTintColor = UIColor.white.withAlphaComponent(0.3)
         volumeSlider.thumbTintColor = .white
         volumeSlider.value = 1.0
@@ -280,23 +285,23 @@ class PlayerViewController: UIViewController {
                 view.addSubview($0)
             }
 
-            startTimeField.placeholder = "시작 시간 (초)"
-            endTimeField.placeholder = "종료 시간 (초)"
+            startTimeField.placeholder = "시작(초)"
+            endTimeField.placeholder = "종료(초)"
 
             NSLayoutConstraint.activate([
                 startTimeField.bottomAnchor.constraint(equalTo: volumeSlider.topAnchor, constant: -16),
-                startTimeField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 270),
-                startTimeField.widthAnchor.constraint(equalToConstant: 50),
+                startTimeField.leadingAnchor.constraint(equalTo: view.trailingAnchor, constant: -150),
+                startTimeField.widthAnchor.constraint(equalToConstant: 60),
 
                 endTimeField.centerYAnchor.constraint(equalTo: startTimeField.centerYAnchor),
                 endTimeField.leadingAnchor.constraint(equalTo: startTimeField.trailingAnchor, constant: 12),
-                endTimeField.widthAnchor.constraint(equalToConstant: 50)
+                endTimeField.widthAnchor.constraint(equalToConstant: 60)
             ])
         }
     // MARK: - 타임 옵저버 (A-B 반복 기능)
 
         private func addPeriodicTimeObserver() {
-            let interval = CMTime(seconds: 1, preferredTimescale: 1000)
+            let interval = CMTime(seconds: 1, preferredTimescale: 60)
             timeObserverToken = player.addPeriodicTimeObserver(forInterval: interval, queue: .main) { [weak self] time in
                 guard let self = self else { return }
 
@@ -310,7 +315,7 @@ class PlayerViewController: UIViewController {
                 
                 let currentSeconds = time.seconds
                 if currentSeconds >= end {
-                    let seekTime = CMTime(seconds: start, preferredTimescale: 600)
+                    let seekTime = CMTime(seconds: start, preferredTimescale: 60)
                     self.player.seek(to: seekTime) { _ in
                         if self.isPlaying {
                             self.player.playImmediately(atRate: self.selectedSpeed)
@@ -381,17 +386,15 @@ class PlayerViewController: UIViewController {
     }
     
     private func updateTimeLabel(currentTime: Double, duration: Double) {
-        func format(_ sec: Double) -> String {
-            let s = Int(sec)
-            return String(format: "%02d:%02d", s / 60, s % 60)
-        }
-        timeLabel.text = "\(format(currentTime)) / \(format(duration))"
+        let current = Int(currentTime.rounded())
+        let total = Int(duration.rounded())
+        timeLabel.text = "\(current)초 | \(total)초"
     }
     
     private func updateSpeedButtons() {
         for case let button as UIButton in speedStackView.arrangedSubviews {
             let speed = Float(button.tag) / 10.0
-            button.backgroundColor = (speed == selectedSpeed) ? .systemGreen : UIColor.white.withAlphaComponent(0.2)
+            button.backgroundColor = (speed == selectedSpeed) ? .appPink : UIColor.white.withAlphaComponent(0.2)
         }
     }
     
@@ -403,12 +406,5 @@ class PlayerViewController: UIViewController {
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         tabBarController?.tabBar.isHidden = false
-    }
-    
-    deinit {
-        if let token = timeObserverToken {
-            player.removeTimeObserver(token)
-        }
-        NotificationCenter.default.removeObserver(self)
     }
 }
