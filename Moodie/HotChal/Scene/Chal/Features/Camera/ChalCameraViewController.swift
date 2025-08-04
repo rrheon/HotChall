@@ -230,6 +230,6 @@ extension CameraViewController: RecordingProgressManagerDelegate {
 
 extension CameraViewController: RecordingManagerDelegate {
     func recordingDidFinish(url: URL) {
-        print("Saved to: \(url)")
+        print("저장: \(url)")
     }
 }
