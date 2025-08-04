@@ -36,6 +36,10 @@ final class HotChallLearnViewController: UIViewController {
     setupLayout()
   }
   
+  override func viewWillDisappear(_ animated: Bool) {
+    ChallengPlayerUIManager.shared.closeChallPlayer()
+  }
+  
   // collectionView 설정
   private func setupCollectionView() {
     collectionView.dataSource = self
@@ -104,5 +108,25 @@ extension HotChallLearnViewController: UICollectionViewDelegateFlowLayout{
 extension HotChallLearnViewController {
   enum Event {
     case learnViewControllerTwo
+  }
+}
+
+// MARK: Challenge Player Delegate
+
+extension HotChallLearnViewController: PlayerButtonsDelegate {
+  func navToLearnChallenge(with data: ChallengeVideo) {
+    print(#fileID, #function, #line, "- 챌린지 배우기 화면으로 이동")
+    
+  }
+  
+  func navToShowChallenge(with data: ChallengeVideo) {
+    print(#fileID, #function, #line, "- 챌린지 띄우기")
+    guard let challenge = data.videoFilename else { return }
+    ChallengePlayerManager.shared.playLocalVideo(named: challenge, from: self)
+  }
+  
+  func saveChallenge(with data: ChallengeVideo) {
+    print(#fileID, #function, #line, "- 챌린지 저장")
+
   }
 }

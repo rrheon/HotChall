@@ -13,6 +13,13 @@ protocol PlayerButtonsDelegate: AnyObject {
   func navToLearnChallenge(with data: ChallengeVideo)
   func navToShowChallenge(with data: ChallengeVideo)
   func saveChallenge(with data: ChallengeVideo)
+  func closePlayerUI()
+}
+
+extension PlayerButtonsDelegate {
+  func closePlayerUI(){
+    ChallengPlayerUIManager.shared.closeChallPlayer()
+  }
 }
 
 /// 챌린지 영상 플레이어 UIView
@@ -104,6 +111,10 @@ final class ChallPlayerView: UIView {
       self.delegate?.navToShowChallenge(with: self.challengeData ?? mockupData)
     }, for: .touchUpInside)
 
+    closePlayerButton.addAction(UIAction { [weak self] _ in
+      guard let self = self else { return }
+      self.delegate?.closePlayerUI()
+    }, for: .touchUpInside)
   }
   
   
