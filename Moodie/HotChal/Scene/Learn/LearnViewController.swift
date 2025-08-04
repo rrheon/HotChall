@@ -40,7 +40,7 @@ class LearnViewController: UIViewController, UICollectionViewDataSource, UIColle
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .systemBackground
-        title = "챌린지 배우기"
+        title = "핫한 챌린지 배우기"
         setupCollectionView()
     }
     
