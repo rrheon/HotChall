@@ -104,3 +104,4 @@ extension HotChallTop100ViewController: UICollectionViewDelegateFlowLayout{
     return CGSize(width: width, height: height)
   }
 }
+
