@@ -37,7 +37,7 @@ final class HotChallTop100ViewController: UIViewController {
   }
   
   override func viewWillDisappear(_ animated: Bool) {
-    ChallengPlayerUIManager.shared.closeChallPlayer()
+    ChallengePlayerUIManager.shared.closeChallPlayer()
   }
 
   
@@ -89,7 +89,7 @@ extension HotChallTop100ViewController: UICollectionViewDelegateFlowLayout{
   ) {
     let challengeData: ChallengeVideo = MockupDataManager.shared.challengeVideos[indexPath.item]
 
-    ChallengPlayerUIManager.shared.showChallPlayer(from: self, data: challengeData)
+    ChallengePlayerUIManager.shared.showChallPlayer(from: self, data: challengeData)
 
   }
   

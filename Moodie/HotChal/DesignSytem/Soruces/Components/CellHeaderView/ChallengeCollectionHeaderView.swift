@@ -7,14 +7,14 @@
 
 import UIKit
 
-protocol ShowAllContentProtocol: AnyObject {
-  func showAllContent()
+protocol ChallengeHeaderViewActionDelegate: AnyObject {
+  func didTapShowAllContent(category: String)
 }
 
 /// 챌린지 컬랙션 뷰의 헤더뷰
 final class ChallengeCollectionHeaderView: UICollectionReusableView, ReuseIdentifiable {
   
-  weak var delegate: ShowAllContentProtocol?
+  weak var delegate: ChallengeHeaderViewActionDelegate?
   
   /// 챌린지 카테고리 라벨
   let challengeCategoryLabel: UILabel = {
@@ -28,14 +28,17 @@ final class ChallengeCollectionHeaderView: UICollectionReusableView, ReuseIdenti
   
   /// 카테고리에 속한 챌린지 모두 보기 버튼
   private let showAllContentButton: UIButton = {
-    let button = UIButton ()
+    let button = UIButton(configuration: UIButton.Configuration.plain())
     button.setTitle("전체보기", for: .normal)
-    button.setImage(UIImage(named: "chevron.forward"), for: .normal)
+    button.setTitleColor(.white, for: .normal)
+    button.setImage(UIImage(systemName: "chevron.right"), for: .normal)
     button.semanticContentAttribute = .forceRightToLeft
     button.translatesAutoresizingMaskIntoConstraints = false
-    
+    button.configuration?.imagePadding = 10
+    button.tintColor = .white
     return button
   }()
+  
   
   override init(frame: CGRect) {
     super.init(frame: frame)
@@ -43,7 +46,7 @@ final class ChallengeCollectionHeaderView: UICollectionReusableView, ReuseIdenti
     makeUI()
     
     showAllContentButton.addAction(UIAction { [weak self] _ in
-      self?.delegate?.showAllContent()
+      self?.delegate?.didTapShowAllContent(category: self?.challengeCategoryLabel.text ?? "")
     }, for: .touchUpInside)
   }
   

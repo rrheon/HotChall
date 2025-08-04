@@ -7,9 +7,6 @@
 
 import UIKit
 
-protocol DeleteSavedChallengeProtocol: AnyObject {
-  func showDeletePopup()
-}
 
 /// 챌린지 셀
 final class ChallengeCell: UICollectionViewCell, ReuseIdentifiable {
@@ -85,7 +82,7 @@ final class ChallengeCell: UICollectionViewCell, ReuseIdentifiable {
       uploaderLabel.topAnchor.constraint(equalTo: thumbnailImageView.bottomAnchor, constant: 4),
       uploaderLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 8),
       uploaderLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -8),
-      uploaderLabel.bottomAnchor.constraint(lessThanOrEqualTo: contentView.bottomAnchor, constant: -8)
+      uploaderLabel.bottomAnchor.constraint(lessThanOrEqualTo: contentView.bottomAnchor, constant: 10)
     ])
   }
   
