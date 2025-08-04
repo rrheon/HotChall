@@ -30,6 +30,16 @@ final class CameraViewController: UIViewController {
         return view
     }()
     
+    private let countdownLabel: UILabel = {
+        let label = UILabel()
+        label.font = UIFont.systemFont(ofSize: 100, weight: .bold)
+        label.textColor = .white
+        label.textAlignment = .center
+        label.alpha = 0
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         requestCameraPermission()
@@ -110,6 +120,8 @@ final class CameraViewController: UIViewController {
         cameraControlStackView.addArrangedSubview(timerCameraButton)
         
         cameraControlWrapperView.addSubview(cameraControlStackView)
+        
+        view.addSubview(countdownLabel)
         view.addSubview(recordButton)
         view.addSubview(cameraControlWrapperView)
         
@@ -126,6 +138,9 @@ final class CameraViewController: UIViewController {
             cameraControlStackView.bottomAnchor.constraint(equalTo: cameraControlWrapperView.bottomAnchor, constant: -12),
             cameraControlStackView.leadingAnchor.constraint(equalTo: cameraControlWrapperView.leadingAnchor, constant: 12),
             cameraControlStackView.trailingAnchor.constraint(equalTo: cameraControlWrapperView.trailingAnchor, constant: -12),
+            
+            countdownLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            countdownLabel.centerYAnchor.constraint(equalTo: view.centerYAnchor)
         ])
     }
 
@@ -174,12 +189,40 @@ final class CameraViewController: UIViewController {
             }
         )
         
-        timerView.onStart = { selected in
-            print("선택된 타이머: \(selected)초")
-            bottomSheet.dismiss(animated: true)
+        timerView.onStart = { [weak self] selected in
+            guard let self = self else { return }
+            bottomSheet.dismiss(animated: true) {
+                self.startCountdown(seconds: selected) {
+                    self.onRecordPressed()
+                }
+            }
         }
         
         present(bottomSheet, animated: true)
+    }
+    
+    private func startCountdown(seconds: Int, completion: @escaping () -> Void) {
+        var remaining = seconds
+        
+        countdownLabel.alpha = 1
+        countdownLabel.text = "\(remaining)"
+        
+        Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] timer in
+            guard let self = self else { return }
+            remaining -= 1
+            
+            if remaining > 0 {
+                UIView.transition(with: self.countdownLabel, duration: 0.3, options: .transitionCrossDissolve, animations: {
+                    self.countdownLabel.text = "\(remaining)"
+                })
+            } else {
+                timer.invalidate()
+                UIView.animate(withDuration: 0.3) {
+                    self.countdownLabel.alpha = 0
+                }
+                completion()
+            }
+        }
     }
 
 }
@@ -190,90 +233,3 @@ extension CameraViewController: AVCaptureFileOutputRecordingDelegate {
         print("📹 영상 저장 위치: \(outputFileURL)")
     }
 }
-
-// MARK: - 커스텀 녹화 버튼
-private final class RecordButton: UIControl {
-
-    private let outerCircleLayer = CAShapeLayer()
-    private let innerShapeView = UIView()
-
-    private var isRecording: Bool = false {
-        didSet { animateInnerShape(animated: true) }
-    }
-
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-        setupLayers()
-    }
-
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-
-    // 버튼 크기에 맞춰서 레이아웃
-    override func layoutSubviews() {
-        super.layoutSubviews()
-
-        outerCircleLayer.frame = bounds
-        // 원 생성
-        outerCircleLayer.path = UIBezierPath(ovalIn: bounds).cgPath
-        applyInnerShapeLayout(animated: false)
-    }
-
-    func toggleRecording() {
-        isRecording.toggle()
-    }
-
-    private func setupLayers() {
-        outerCircleLayer.strokeColor = UIColor.white.cgColor
-        outerCircleLayer.fillColor = UIColor.clear.cgColor
-        outerCircleLayer.lineWidth = 4
-        layer.addSublayer(outerCircleLayer)
-
-        innerShapeView.backgroundColor = .red
-        innerShapeView.isUserInteractionEnabled = false
-        addSubview(innerShapeView)
-    }
-
-    private func animateInnerShape(animated: Bool) {
-        applyInnerShapeLayout(animated: animated)
-    }
-
-    private func applyInnerShapeLayout(animated: Bool) {
-        let targetFrame: CGRect
-        let targetCornerRadius: CGFloat
-
-        // 원형, 정사각형
-        if isRecording {
-            let side = bounds.width * 0.5
-            targetFrame = CGRect(
-                x: (bounds.width - side) / 2,
-                y: (bounds.height - side) / 2,
-                width: side,
-                height: side
-            )
-            targetCornerRadius = 4
-        } else {
-            let diameter = bounds.width * 0.85
-            targetFrame = CGRect(
-                x: (bounds.width - diameter) / 2,
-                y: (bounds.height - diameter) / 2,
-                width: diameter,
-                height: diameter
-            )
-            targetCornerRadius = diameter / 2
-        }
-
-        if animated {
-            UIView.animate(withDuration: 0.25, delay: 0, options: [.curveEaseInOut], animations: {
-                self.innerShapeView.frame = targetFrame
-                self.innerShapeView.layer.cornerRadius = targetCornerRadius
-            }, completion: nil)
-        } else {
-            self.innerShapeView.frame = targetFrame
-            self.innerShapeView.layer.cornerRadius = targetCornerRadius
-        }
-    }
-}
-
-
