@@ -16,7 +16,9 @@ final class SavedHotChallViewController: UIViewController {
   private lazy var categories: [String] = []
   
   weak var delegate: SavedChallengeCoordinator?
-
+  
+  var selectedChallengeUUID: UUID? = nil
+  
   // 챌린지 컬렉션뷰
   private lazy var challengeCollectionView: UICollectionView = {
     
@@ -40,8 +42,12 @@ final class SavedHotChallViewController: UIViewController {
     reloadData()
   }
   
+  override func viewWillAppear(_ animated: Bool) {
+    self.reloadData()
+  }
+  
   override func viewWillDisappear(_ animated: Bool) {
-    ChallengPlayerUIManager.shared.closeChallPlayer()
+    ChallengePlayerUIManager.shared.closeChallPlayer()
   }
   
   /// 화면 구성
@@ -179,7 +185,7 @@ extension SavedHotChallViewController: UICollectionViewDelegate {
     let category = categories[indexPath.section]
     guard let data: ChallengeVideo = divideWithCategory[category]?[indexPath.item] else { return }
 
-    ChallengPlayerUIManager.shared.showChallPlayer(from: self, data: data)
+    ChallengePlayerUIManager.shared.showChallPlayer(from: self, data: data)
 
     
   }
@@ -187,13 +193,14 @@ extension SavedHotChallViewController: UICollectionViewDelegate {
 
 // MARK: 삭제팝업 프로토콜
 
-//extension FavoriteViewController: DeleteSavedChallengeProtocol {
-//  func showDeletePopup() {
-//    let vc = PopupViewController()
-//    vc.modalPresentationStyle = .fullScreen
-//    self.present(vc, animated: true)
-//  }
-//}
+extension SavedHotChallViewController {
+  func showDeletePopup() {
+    let vc = PopupViewController()
+    vc.delegate = self
+    vc.modalPresentationStyle = .overFullScreen
+    self.present(vc, animated: true)
+  }
+}
 
 extension SavedHotChallViewController: ChallengeHeaderViewActionDelegate{
   func showAllContent(category: String) {
@@ -218,9 +225,21 @@ extension SavedHotChallViewController: ChallengePlayerViewDelegate {
   func saveChallenge(with data: ChallengeVideo) {
   
     guard let uuid = data.id else { return }
+    selectedChallengeUUID = uuid
+    showDeletePopup()
+
+  }
+}
+
+// MARK: 저장된 챌린지 삭제 Delegate
+
+extension SavedHotChallViewController: SavedChallengeDelegate {
+  func didTapDeleteButton() {
+    guard let uuid = selectedChallengeUUID else { return }
     CoreDataManager.shared.deleteSavedChallenge(with: uuid) {
       print(#fileID, #function, #line, "- 챌린지 삭제")
-      ChallengPlayerUIManager.shared.closeChallPlayer()
+      ChallengePlayerUIManager.shared.closeChallPlayer()
+      ToastPopupManager.shared.showToast(message: "챌린지가 삭제되었습니다.")
       self.reloadData()
     }
   }

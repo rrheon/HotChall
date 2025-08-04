@@ -8,8 +8,8 @@
 import UIKit
 
 /// 플레이어 매니저
-final class ChallengPlayerUIManager {
-  static let shared = ChallengPlayerUIManager()
+final class ChallengePlayerUIManager {
+  static let shared = ChallengePlayerUIManager()
   
   private init() {}
   

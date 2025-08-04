@@ -37,7 +37,7 @@ final class HotChallLearnViewController: UIViewController {
   }
   
   override func viewWillDisappear(_ animated: Bool) {
-    ChallengPlayerUIManager.shared.closeChallPlayer()
+    ChallengePlayerUIManager.shared.closeChallPlayer()
   }
   
   // collectionView 설정
@@ -91,7 +91,7 @@ extension HotChallLearnViewController: UICollectionViewDelegateFlowLayout{
   func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
     let challengeData: ChallengeVideo = MockupDataManager.shared.challengeVideos[indexPath.item]
 
-    ChallengPlayerUIManager.shared.showChallPlayer(from: self, data: challengeData)
+    ChallengePlayerUIManager.shared.showChallPlayer(from: self, data: challengeData)
 
   }
   
@@ -126,7 +126,13 @@ extension HotChallLearnViewController: ChallengePlayerViewDelegate {
   }
   
   func saveChallenge(with data: ChallengeVideo) {
-    print(#fileID, #function, #line, "- 챌린지 저장")
-
+    CoreDataManager.shared.saveChallenge(with: data) { result in
+      print(#fileID, #function, #line, "- 챌린지 저장")
+      ChallengePlayerUIManager.shared.closeChallPlayer()
+      let comment = result ? "챌린지가 저장되었습니다." : "이미 저장된 챌린지입니다."
+      
+      
+      ToastPopupManager.shared.showToast(message: comment)
+    }
   }
 }

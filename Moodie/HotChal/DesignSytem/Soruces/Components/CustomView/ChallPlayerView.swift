@@ -18,7 +18,7 @@ protocol ChallengePlayerViewDelegate: AnyObject {
 
 extension ChallengePlayerViewDelegate {
   func closePlayerUI(){
-    ChallengPlayerUIManager.shared.closeChallPlayer()
+    ChallengePlayerUIManager.shared.closeChallPlayer()
   }
 }
 
