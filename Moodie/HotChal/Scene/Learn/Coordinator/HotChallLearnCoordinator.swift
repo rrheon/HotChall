@@ -35,9 +35,12 @@ final class HotChallLearnCoordinator: Coordinator {
   }
   
   /// 챌린지 배우기 디테일 화면으로 이동
-  func navToLearnChallengeViewController(){
-    let vc = ChallCompareViewController()
-//    vc.setupPlayer()
+    func navToLearnChallengeViewController(filename: String, title: String, uploader: String){
+    let vc = PlayerViewController()
+    vc.videoFilename = filename
+    vc.videoTitle = title
+    vc.uploader = uploader
+    vc.hidesBottomBarWhenPushed = true
     self.navigationController.pushViewController(vc, animated: true)
   }
   

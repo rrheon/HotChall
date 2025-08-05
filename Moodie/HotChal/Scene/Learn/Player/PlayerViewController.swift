@@ -10,19 +10,27 @@ import AVFoundation
 import MediaPlayer
 
 class PlayerViewController: UIViewController {
+
+    private var player: AVPlayer?
+    private var playerLayer: AVPlayerLayer?
+    private var timeObserverToken: Any?
+    
+    // 전체 화면 배경 (영상용)
+    private let playerBackgroundView = UIView()
+        
+    // UI를 올릴 컨테이너
+    private let overlayContainerView = UIView()
     
     var videoFilename: String?
     var videoTitle: String?
     var uploader: String?
     
-    private var player: AVPlayer!
-    private var playerLayer: AVPlayerLayer!
-    private var timeObserverToken: Any?
     
     private var isPlaying = true {
         didSet {
-            isPlaying ? player.playImmediately(atRate: selectedSpeed) : player.pause()
-        }
+                    guard let player = player else { return }
+                    isPlaying ? player.playImmediately(atRate: selectedSpeed) : player.pause()
+                }
     }
     
     private let speeds: [Float] = [0.5, 1.0, 1.5, 2.0]
@@ -30,7 +38,7 @@ class PlayerViewController: UIViewController {
     private var selectedSpeed: Float = 1.0 {
         didSet {
             if isPlaying {
-                player.playImmediately(atRate: selectedSpeed)
+                player?.playImmediately(atRate: selectedSpeed)
             }
             updateSpeedButtons()
         }
@@ -103,9 +111,12 @@ class PlayerViewController: UIViewController {
     //MARK: - View Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .systemBackground
+        view.backgroundColor = .black
         self.additionalSafeAreaInsets.bottom = 0 // safeArea 하단 없애기
         self.edgesForExtendedLayout = [.bottom] // 전체 화면까지 확장
+        
+        titleLabel.text = videoTitle ?? "제목 없음"
+        uploaderLabel.text = uploader ?? "알 수 없음"
         
         setupPlayer()
         setupUI()
@@ -119,11 +130,8 @@ class PlayerViewController: UIViewController {
     //MARK: - View DidLayoutSubviews
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        playerLayer.frame = view.bounds
         
-        if let window = view.window {
-            playerLayer.frame = window.bounds
-        }
+        playerLayer?.frame = view.bounds
         
         //margin - 뷰끼리의 간격
         let margin: CGFloat = 20
@@ -195,33 +203,32 @@ class PlayerViewController: UIViewController {
     
     // MARK: - setupPlayer
    func setupPlayer() {
-            guard let filename = videoFilename,
-                  let url = Bundle.main.url(forResource: filename, withExtension: nil) else {
-                print("Invalid video filename.")
-                return
-            }
+       guard let filename = videoFilename,
+       let url = Bundle.main.url(forResource: filename, withExtension: nil) else {
+               print("❌ Invalid video filename: \(String(describing: videoFilename))")
+               return
+           }
 
             player = AVPlayer(url: url)
             playerLayer = AVPlayerLayer(player: player)
-            playerLayer.videoGravity = .resizeAspect
-            view.layer.insertSublayer(playerLayer, at: 0)
-            player.play()
+            playerLayer?.videoGravity = .resizeAspect
+               if let layer = playerLayer {
+                   view.layer.insertSublayer(layer, at: 0)
+               }
         
-        // 콜백이 호출되는 주기(0.5초 마다)
+        // 콜백이 호출되는 주기(0.1초 마다)
         let interval = CMTime(seconds: 0.1, preferredTimescale: 60)
-        timeObserverToken = player.addPeriodicTimeObserver(forInterval: interval, queue: .main) { [weak self] time in
+        timeObserverToken = player?.addPeriodicTimeObserver(forInterval: interval, queue: .main) { [weak self] time in
             guard let self = self else { return }
-            let duration = self.player.currentItem?.duration.seconds ?? 1
+            let duration = self.player?.currentItem?.duration.seconds ?? 1
             if duration.isFinite && duration > 0 {
                 let current = time.seconds
                 self.progressSlider.value = Float(current / duration)
                 self.updateTimeLabel(currentTime: current, duration: duration)
             }
         }
-        
-        titleLabel.text = videoTitle ?? "제목 없음"
-        uploaderLabel.text = uploader ?? "알 수 없음"
-        player.playImmediately(atRate: selectedSpeed)
+       
+        player?.playImmediately(atRate: selectedSpeed)
     }
     
     // MARK: - setupUI
@@ -277,6 +284,25 @@ class PlayerViewController: UIViewController {
             speedStackView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
         ])
     }
+    
+    // MARK: - 레이아웃 설정
+    private func setupLayout() {
+        view.addSubview(titleLabel)
+        view.addSubview(uploaderLabel)
+
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+        uploaderLabel.translatesAutoresizingMaskIntoConstraints = false
+
+        NSLayoutConstraint.activate([
+            titleLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 16),
+            titleLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            titleLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+
+            uploaderLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 8),
+            uploaderLabel.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
+            uploaderLabel.trailingAnchor.constraint(equalTo: titleLabel.trailingAnchor),
+        ])
+    }
     // MARK: - A-B 반복 입력 필드
 
         private func setupLoopInputFields() {
@@ -307,7 +333,7 @@ class PlayerViewController: UIViewController {
 
         private func addPeriodicTimeObserver() {
             let interval = CMTime(seconds: 1, preferredTimescale: 60)
-            timeObserverToken = player.addPeriodicTimeObserver(forInterval: interval, queue: .main) { [weak self] time in
+            timeObserverToken = player?.addPeriodicTimeObserver(forInterval: interval, queue: .main) { [weak self] time in
                 guard let self = self else { return }
 
                 guard let startText = self.startTimeField.text,
@@ -321,9 +347,9 @@ class PlayerViewController: UIViewController {
                 let currentSeconds = time.seconds
                 if currentSeconds >= end {
                     let seekTime = CMTime(seconds: start, preferredTimescale: 60)
-                    self.player.seek(to: seekTime) { _ in
+                    self.player?.seek(to: seekTime) { _ in
                         if self.isPlaying {
-                            self.player.playImmediately(atRate: self.selectedSpeed)
+                            self.player?.playImmediately(atRate: self.selectedSpeed)
                     }
                 }
             }
@@ -339,21 +365,19 @@ class PlayerViewController: UIViewController {
     }
     
     @objc private func playerDidFinishPlaying() {
-        player.seek(to: .zero)
+        player?.seek(to: .zero)
         isPlaying = false
     }
     
     @objc private func progressSliderChanged() {
-        guard let duration = player.currentItem?.duration.seconds, duration > 0 else { return }
-        let value = Double(progressSlider.value) * duration
-        
-        let rounded = round(value)
-        
-        player.seek(to: CMTime(seconds: rounded, preferredTimescale: 1000))
-    }
+            guard let duration = player?.currentItem?.duration.seconds, duration > 0 else { return }
+            let value = Double(progressSlider.value) * duration
+            let rounded = round(value)
+            player?.seek(to: CMTime(seconds: rounded, preferredTimescale: 1000))
+        }
     
     @objc private func volumeSliderChanged() {
-        player.volume = volumeSlider.value
+        player?.volume = volumeSlider.value
         if volumeSlider.value == 0 {
             isMuted = true
             volumeIcon.image = UIImage(systemName: "speaker.slash.fill")
@@ -365,6 +389,7 @@ class PlayerViewController: UIViewController {
     }
     
     @objc private func volumeIconTapped() {
+        guard let player = player else { return }
         if isMuted {
             isMuted = false
             player.volume = previousVolume
@@ -384,10 +409,13 @@ class PlayerViewController: UIViewController {
     }
     
     @objc private func togglePlayPause() {
-        if player.timeControlStatus == .paused && player.currentTime() >= player.currentItem!.duration {
-            player.seek(to: .zero)
-        }
-        isPlaying.toggle()
+        guard let player = player,
+                      let item = player.currentItem else { return }
+
+                if player.timeControlStatus == .paused && player.currentTime() >= item.duration {
+                    player.seek(to: .zero)
+                }
+                isPlaying.toggle()
     }
     
     private func updateTimeLabel(currentTime: Double, duration: Double) {
@@ -414,8 +442,8 @@ class PlayerViewController: UIViewController {
         tabBarController?.tabBar.isHidden = false
     }
 }
-//
-//@available(iOS 17.0, *)
-//#Preview {
-//    UINavigationController(rootViewController: ChallCompareViewController())
-//}
+
+@available(iOS 17.0, *)
+#Preview {
+    UINavigationController(rootViewController: PlayerViewController())
+}
