@@ -30,18 +30,21 @@ final class ChalCoordinator: Coordinator {
   }
   
   
-  /// 챌린지 배우기 디테일 화면으로 이동
-  func navToLearnChallengeViewController(){
-    let vc = ChallCompareViewController()
-//    vc.setupPlayer()
-    self.navigationController.pushViewController(vc, animated: true)
-  }
+    /// 챌린지 배우기 디테일 화면으로 이동
+    func navToLearnChallengeViewController(){
+        let vc = ChallCompareViewController()
+        //    vc.setupPlayer()
+        self.navigationController.pushViewController(vc, animated: true)
+    }
   
   // 챌린지 찍기 화면으로 이동
-  func navToTakeChallengeViewController(){
-    let vc = CameraViewController()
-    self.navigationController.pushViewController(vc, animated: true)
-  }
+    func navToTakeChallengeViewController() {
+        let vc = CameraViewController()
+        vc.modalPresentationStyle = .fullScreen
+        vc.modalTransitionStyle = .coverVertical
+        
+        self.navigationController.present(vc, animated: true, completion: nil)
+    }
 
 }
 

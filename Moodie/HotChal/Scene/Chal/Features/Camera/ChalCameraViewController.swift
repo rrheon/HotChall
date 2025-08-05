@@ -52,7 +52,23 @@ final class CameraViewController: UIViewController {
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
     }()
+    
+    private let closeButton: UIButton = {
+        let button = UIButton(type: .system)
+        let config = UIImage.SymbolConfiguration(pointSize: 24, weight: .bold)
+        let image = UIImage(systemName: "xmark.circle.fill", withConfiguration: config)
+        button.setImage(image, for: .normal)
+        button.tintColor = .white
 
+        button.translatesAutoresizingMaskIntoConstraints = false
+        return button
+    }()
+
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        self.navigationController?.setNavigationBarHidden(true, animated: animated)
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         recordButton.delegate = self
@@ -98,7 +114,9 @@ final class CameraViewController: UIViewController {
 
     private func setupUI() {
         view.backgroundColor = .black
-
+        view.addSubview(closeButton)
+        closeButton.addTarget(self, action: #selector(onCloseButtonTapped), for: .touchUpInside)
+        
         [recordButton, countdownLabel, progressView, cameraControlWrapperView].forEach { view.addSubview($0) }
         [flipCameraButton, timerCameraButton].forEach { cameraControlStackView.addArrangedSubview($0) }
         cameraControlWrapperView.addSubview(cameraControlStackView)
@@ -128,7 +146,12 @@ final class CameraViewController: UIViewController {
             progressView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 10),
             progressView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
             progressView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-            progressView.heightAnchor.constraint(equalToConstant: 10)
+            progressView.heightAnchor.constraint(equalToConstant: 10),
+            
+            closeButton.topAnchor.constraint(equalTo: progressView.bottomAnchor, constant: 10),
+            closeButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            closeButton.widthAnchor.constraint(equalToConstant: 40),
+            closeButton.heightAnchor.constraint(equalToConstant: 40)
         ])
     }
 
@@ -181,6 +204,13 @@ final class CameraViewController: UIViewController {
         
     }
 
+    @objc private func onCloseButtonTapped() {
+        if let navigationController = self.navigationController {
+            navigationController.popViewController(animated: true)
+        } else {
+            self.dismiss(animated: true)
+        }
+    }
 }
 
 // MARK: - Delegate
