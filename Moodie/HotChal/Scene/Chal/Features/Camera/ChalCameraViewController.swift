@@ -35,7 +35,17 @@ final class CameraViewController: UIViewController {
         progress.layer.cornerRadius = 4
         return progress
     }()
-
+    private let recordingTimeLabel: UILabel = {
+        let label = UILabel()
+        label.font = .monospacedDigitSystemFont(ofSize: 16, weight: .medium)
+        label.textColor = .white
+        label.textAlignment = .center
+        label.text = "00:15"
+        label.isHidden = true
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+    
     private let cameraControlStackView: UIStackView = {
         let stack = UIStackView()
         stack.axis = .vertical
@@ -114,6 +124,7 @@ final class CameraViewController: UIViewController {
 
     private func setupUI() {
         view.backgroundColor = .black
+        view.addSubview(recordingTimeLabel)
         view.addSubview(closeButton)
         closeButton.addTarget(self, action: #selector(onCloseButtonTapped), for: .touchUpInside)
         
@@ -151,7 +162,10 @@ final class CameraViewController: UIViewController {
             closeButton.topAnchor.constraint(equalTo: progressView.bottomAnchor, constant: 10),
             closeButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
             closeButton.widthAnchor.constraint(equalToConstant: 40),
-            closeButton.heightAnchor.constraint(equalToConstant: 40)
+            closeButton.heightAnchor.constraint(equalToConstant: 40),
+            
+            recordingTimeLabel.topAnchor.constraint(equalTo: progressView.bottomAnchor, constant: 4),
+            recordingTimeLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor)
         ])
     }
 
@@ -194,6 +208,8 @@ final class CameraViewController: UIViewController {
         recordingService.startRecording(to: fileURL)
         recordButton.setState(.recording)
         progressManager.start()
+        
+        setUIForRecording(isRecording: true)
     }
 
     private func stopRecording() {
@@ -202,6 +218,8 @@ final class CameraViewController: UIViewController {
         progressView.setProgress(0.0, animated: false)
         recordButton.setState(.ready)
         
+        recordingTimeLabel.text = "15:00"
+        setUIForRecording(isRecording: false)
     }
 
     @objc private func onCloseButtonTapped() {
@@ -210,6 +228,12 @@ final class CameraViewController: UIViewController {
         } else {
             self.dismiss(animated: true)
         }
+    }
+    
+    private func setUIForRecording(isRecording: Bool) {
+        closeButton.isHidden = isRecording
+        recordingTimeLabel.isHidden = !isRecording
+        cameraControlWrapperView.isHidden = isRecording
     }
 }
 
@@ -252,6 +276,12 @@ extension CameraViewController: RecordingProgressManagerDelegate {
     func progressDidUpdate(_ progress: Float) {
         progressView.setProgress(progress, animated: false)
     }
+    
+    func timeRemainingDidUpdate(_ seconds: Int) {
+        let minutes = seconds / 60
+        let secs = seconds % 60
+        recordingTimeLabel.text = String(format: "%02d:%02d", minutes, secs)
+    }
 
     func progressDidFinish() {
         stopRecording()
@@ -260,6 +290,10 @@ extension CameraViewController: RecordingProgressManagerDelegate {
 
 extension CameraViewController: RecordingManagerDelegate {
     func recordingDidFinish(url: URL) {
-        print("저장: \(url)")
+        if progressManager.isCompleted {
+            print("이동")
+        } else {
+             print("녹화 시간 부족, 저장 화면 이동 안 함")
+         }
     }
 }
