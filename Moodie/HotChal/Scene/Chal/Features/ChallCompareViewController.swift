@@ -77,7 +77,7 @@ class ChallCompareViewController: UIViewController {
 
     private var mainVideoPlayer: LoopedVideoPlayer!
     private var subVideoPlayer: LoopedVideoPlayer!
-    private var challComparSubViewHeightConstraint: NSLayoutConstraint?
+    private var subViewSize: CGSize = .zero
     private var isPlaying: Bool = true
 
     private let challComparMainView = makeView(backgroundColor: .systemBackground)
@@ -101,33 +101,34 @@ class ChallCompareViewController: UIViewController {
 
         mainVideoPlayer.setupVideo(named: "nemonemo.mp4")
         subVideoPlayer.setupVideo(named: "nemonemo2.mp4") { aspectRatio in
-            self.challComparSubViewHeightConstraint?.isActive = false
-            self.challComparSubViewHeightConstraint = self.challComparSubView.heightAnchor.constraint(equalTo: self.challComparSubView.widthAnchor, multiplier: aspectRatio)
-            self.challComparSubViewHeightConstraint?.isActive = true
-            self.view.layoutIfNeeded()
+            let width: CGFloat = 150
+            let height = width * aspectRatio
+            self.subViewSize = CGSize(width: width, height: height)
+
+            let safeFrame = self.view.safeAreaLayoutGuide.layoutFrame
+            let x = safeFrame.maxX - width - 10
+            let y = safeFrame.minY + 10
+
+            self.challComparSubView.frame = CGRect(x: x, y: y,
+                                                   width: width,
+                                                   height: height)
         }
     }
 
     private func setupViews() {
-        [challComparMainView, challComparSubView, bottomBarView].forEach { view.addSubview($0) }
+        [challComparMainView, bottomBarView].forEach { view.addSubview($0) }
+        view.addSubview(challComparSubView)
         [pauseButton, deleteButton, shareButton].forEach { bottomBarView.addSubview($0) }
 
         challComparSubView.addGestureRecognizer(UIPanGestureRecognizer(target: self, action: #selector(handlePan(_:))))
     }
 
     private func setupConstraints() {
-        challComparSubViewHeightConstraint = challComparSubView.heightAnchor.constraint(equalToConstant: 100)
-        challComparSubViewHeightConstraint?.isActive = true
-
         NSLayoutConstraint.activate([
             challComparMainView.topAnchor.constraint(equalTo: view.topAnchor),
             challComparMainView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             challComparMainView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             challComparMainView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-
-            challComparSubView.widthAnchor.constraint(equalToConstant: 150),
-            challComparSubView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            challComparSubView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -10),
 
             bottomBarView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             bottomBarView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
@@ -233,13 +234,24 @@ class ChallCompareViewController: UIViewController {
         subVideoPlayer.updateFrame()
     }
 
+    // ✅ 수정된 부분: safe area 내부 우상단으로 서브뷰 위치 조정
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         mainVideoPlayer.updateFrame()
         subVideoPlayer.updateFrame()
+
+        if challComparSubView.frame == .zero {
+            let safeFrame = view.safeAreaLayoutGuide.layoutFrame
+            let x = safeFrame.maxX - subViewSize.width - 10
+            let y = safeFrame.minY + 10
+            challComparSubView.frame = CGRect(x: x, y: y,
+                                              width: subViewSize.width,
+                                              height: subViewSize.height)
+        }
     }
 }
 
+// MARK: - 공통 유틸
 private func makeView(backgroundColor: UIColor, cornerRadius: CGFloat = 0) -> UIView {
     let view = UIView()
     view.translatesAutoresizingMaskIntoConstraints = false
