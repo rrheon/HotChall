@@ -10,14 +10,21 @@ import AVFoundation
 import MediaPlayer
 
 class PlayerViewController: UIViewController {
+
+    private var player: AVPlayer?
+    private var playerLayer: AVPlayerLayer?
+    private var timeObserverToken: Any?
+    
+    // 전체 화면 배경 (영상용)
+    private let playerBackgroundView = UIView()
+        
+    // UI를 올릴 컨테이너
+    private let overlayContainerView = UIView()
     
     var videoFilename: String?
     var videoTitle: String?
     var uploader: String?
     
-    private var player: AVPlayer?
-    private var playerLayer: AVPlayerLayer?
-    private var timeObserverToken: Any?
     
     private var isPlaying = true {
         didSet {

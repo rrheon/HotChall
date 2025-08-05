@@ -40,6 +40,7 @@ final class HotChallLearnCoordinator: Coordinator {
     vc.videoFilename = filename
     vc.videoTitle = title
     vc.uploader = uploader
+    vc.hidesBottomBarWhenPushed = true
     self.navigationController.pushViewController(vc, animated: true)
   }
   
