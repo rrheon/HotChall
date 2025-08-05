@@ -21,7 +21,7 @@ final class ChallengeCell: UICollectionViewCell, ReuseIdentifiable {
   private let thumbnailImageView: UIImageView = {
     let image = UIImageView()
     image.contentMode = .scaleAspectFit
-    
+    image.backgroundColor = .cellBackground
     return image
   }()
   
@@ -29,7 +29,7 @@ final class ChallengeCell: UICollectionViewCell, ReuseIdentifiable {
   private let titleLabel: UILabel = {
     let label = UILabel()
     label.font = UIFont.boldSystemFont(ofSize: 15)
-    label.textColor = .white
+    label.textColor = .black
     label.numberOfLines = 1
     label.backgroundColor = UIColor.black.withAlphaComponent(0.2)
     
@@ -40,7 +40,7 @@ final class ChallengeCell: UICollectionViewCell, ReuseIdentifiable {
   private let uploaderLabel: UILabel = {
     let label = UILabel()
     label.font = UIFont.systemFont(ofSize: 10)
-    label.textColor = .white
+    label.textColor = .black
     
     return label
   }()

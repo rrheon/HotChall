@@ -35,12 +35,11 @@ final class ChallPlayerView: UIView {
                                                                         imageName: "figure.dance")
   
   /// 챌린지 저장하기 버튼
-  lazy var saveChallengeButton: UIButton = makeChallengeButton(title: "저장하기",
-                                                               imageName: "square.and.arrow.down")
-  
+  lazy var saveChallengeButton: UIButton = makeChallengeButton(title: "즐겨찾기",
+                                                               imageName: "star")
   /// 챌린지 촬영하기하기 버튼
   lazy var takeChallengeButton: UIButton = makeChallengeButton(title: "찍어보기",
-                                                               imageName: "square.and.arrow.down")
+                                                               imageName: "camera.shutter.button")
   /// 챌린지 보기 버튼
   private lazy var showChallengeButton: UIButton = makeChallengeButton(title: "보기",
                                                                        imageName: "play.rectangle")
@@ -50,9 +49,8 @@ final class ChallPlayerView: UIView {
   private let closePlayerButton: UIButton = {
     let button = UIButton(configuration: UIButton.Configuration.plain())
     button.setTitleColor(.black, for: .normal)
-    button.setImage(UIImage(systemName: "chevron.down"), for: .normal)
-    
-    button.tintColor = .white
+    button.setImage(UIImage(systemName: "xmark"), for: .normal)
+    button.tintColor = .black
     
     return button
   }()
@@ -73,16 +71,19 @@ final class ChallPlayerView: UIView {
   
   /// UI 설정
   private func setupLayout(){
+    let views: [UIView] = [
+      learnChallengeButton,
+      saveChallengeButton,
+      takeChallengeButton,
+      showChallengeButton,
+      closePlayerButton
+    ]
     
-    let buttonStackView: UIStackView = UIStackView(
-      arrangedSubviews: [learnChallengeButton, saveChallengeButton,takeChallengeButton, showChallengeButton, closePlayerButton]
-    )
+    let buttonStackView: UIStackView = UIStackView(arrangedSubviews: views)
     
     buttonStackView.axis = .horizontal
-    buttonStackView.distribution = .fill
+    buttonStackView.distribution = .fillProportionally
     buttonStackView.alignment = .fill
-    buttonStackView.spacing = 10
-    buttonStackView.layoutMargins = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 10)
     
     self.addSubview(buttonStackView)
     buttonStackView.translatesAutoresizingMaskIntoConstraints = false
@@ -104,22 +105,22 @@ final class ChallPlayerView: UIView {
       guard let self = self else { return }
       self.delegate?.navToLearnChallenge(with: self.challengeData ?? mockupData)
     }, for: .touchUpInside)
-
+    
     saveChallengeButton.addAction(UIAction { [weak self] _ in
       guard let self = self else { return }
       self.delegate?.saveChallenge(with: self.challengeData ?? mockupData)
     }, for: .touchUpInside)
-
+    
     takeChallengeButton.addAction(UIAction { [weak self] _ in
-        guard let self = self else { return }
-        self.delegate?.navToTakeChallenge(with: self.challengeData ?? mockupData)
+      guard let self = self else { return }
+      self.delegate?.navToTakeChallenge(with: self.challengeData ?? mockupData)
     }, for: .touchUpInside)
     
     showChallengeButton.addAction(UIAction { [weak self] _ in
       guard let self = self else { return }
       self.delegate?.navToShowChallenge(with: self.challengeData ?? mockupData)
     }, for: .touchUpInside)
-
+    
     closePlayerButton.addAction(UIAction { [weak self] _ in
       guard let self = self else { return }
       self.delegate?.closePlayerUI()
@@ -129,15 +130,38 @@ final class ChallPlayerView: UIView {
   
   /// 플레이어 버튼 만들기
   private func makeChallengeButton(title: String, imageName: String) -> UIButton {
-    let button = UIButton(configuration: .plain())
-    button.setTitle(title, for: .normal)
-    button.titleLabel?.font = .systemFont(ofSize: 14)
-    button.setTitleColor(.black, for: .normal)
-    button.setImage(UIImage(systemName: imageName), for: .normal)
+    var config = UIButton.Configuration.plain()
+    config.image = UIImage(systemName: imageName)
+    config.imagePadding = 10
+    config.baseForegroundColor = .black
+    
+    // 이미지 크기 줄이기
+    let imageSize = UIImage.SymbolConfiguration(pointSize: 14, weight: .regular)
+    config.preferredSymbolConfigurationForImage = imageSize
+    
+    // 텍스트 크기 줄이기
+    let font = UIFont.systemFont(ofSize: 14)
+    let attributes: [NSAttributedString.Key: Any] = [ .font: font ]
+    config.attributedTitle = AttributedString(NSAttributedString(string: title, attributes: attributes))
+    
+    let button = UIButton(configuration: config)
+    button.semanticContentAttribute = .forceRightToLeft
     button.configuration?.imagePlacement = .top
     button.configuration?.imagePadding = 10
     button.tintColor = .white
+    
     return button
   }
+  
+  
+  /// 버튼 타이틀 변경  - 저장하기 / 삭제하기
+  /// - Parameter title: 변경할 타이틀
+  func changeButtonTitle(title: String){
+    let font = UIFont.systemFont(ofSize: 14)
+    let attributes: [NSAttributedString.Key: Any] = [.font: font]
+    let newTitle = NSAttributedString(string: title, attributes: attributes)
+    saveChallengeButton.configuration?.attributedTitle = AttributedString(newTitle)
 
+  }
+  
 }
