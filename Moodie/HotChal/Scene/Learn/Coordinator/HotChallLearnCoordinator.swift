@@ -36,7 +36,7 @@ final class HotChallLearnCoordinator: Coordinator {
   
   /// 챌린지 배우기 디테일 화면으로 이동
   func navToLearnChallengeViewController(){
-    let vc = ChallCompareViewController()
+    let vc = PlayerViewController()
 //    vc.setupPlayer()
     self.navigationController.pushViewController(vc, animated: true)
   }
