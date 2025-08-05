@@ -15,14 +15,15 @@ class PlayerViewController: UIViewController {
     var videoTitle: String?
     var uploader: String?
     
-    private var player: AVPlayer!
-    private var playerLayer: AVPlayerLayer!
+    private var player: AVPlayer?
+    private var playerLayer: AVPlayerLayer?
     private var timeObserverToken: Any?
     
     private var isPlaying = true {
         didSet {
-            isPlaying ? player.playImmediately(atRate: selectedSpeed) : player.pause()
-        }
+                    guard let player = player else { return }
+                    isPlaying ? player.playImmediately(atRate: selectedSpeed) : player.pause()
+                }
     }
     
     private let speeds: [Float] = [0.5, 1.0, 1.5, 2.0]
@@ -30,7 +31,7 @@ class PlayerViewController: UIViewController {
     private var selectedSpeed: Float = 1.0 {
         didSet {
             if isPlaying {
-                player.playImmediately(atRate: selectedSpeed)
+                player?.playImmediately(atRate: selectedSpeed)
             }
             updateSpeedButtons()
         }
@@ -119,11 +120,10 @@ class PlayerViewController: UIViewController {
     //MARK: - View DidLayoutSubviews
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        playerLayer.frame = view.bounds
         
-        if let window = view.window {
-            playerLayer.frame = window.bounds
-        }
+//        if let playerLayer = playerLayer {
+            playerLayer?.frame = view.bounds
+//        }
         
         //margin - 뷰끼리의 간격
         let margin: CGFloat = 20
@@ -195,33 +195,34 @@ class PlayerViewController: UIViewController {
     
     // MARK: - setupPlayer
    func setupPlayer() {
-            guard let filename = videoFilename,
-                  let url = Bundle.main.url(forResource: filename, withExtension: nil) else {
-                print("Invalid video filename.")
-                return
-            }
+       guard let filename = videoFilename,
+                 let url = Bundle.main.url(forResource: filename, withExtension: nil) else {
+               print("❌ Invalid video filename: \(String(describing: videoFilename))")
+               return
+           }
 
             player = AVPlayer(url: url)
             playerLayer = AVPlayerLayer(player: player)
-            playerLayer.videoGravity = .resizeAspect
-            view.layer.insertSublayer(playerLayer, at: 0)
-            player.play()
+            playerLayer?.videoGravity = .resizeAspect
+               if let layer = playerLayer {
+                   view.layer.insertSublayer(layer, at: 0)
+               }
         
         // 콜백이 호출되는 주기(0.5초 마다)
-        let interval = CMTime(seconds: 0.1, preferredTimescale: 60)
-        timeObserverToken = player.addPeriodicTimeObserver(forInterval: interval, queue: .main) { [weak self] time in
-            guard let self = self else { return }
-            let duration = self.player.currentItem?.duration.seconds ?? 1
-            if duration.isFinite && duration > 0 {
-                let current = time.seconds
-                self.progressSlider.value = Float(current / duration)
-                self.updateTimeLabel(currentTime: current, duration: duration)
-            }
-        }
-        
+//        let interval = CMTime(seconds: 0.1, preferredTimescale: 60)
+//        timeObserverToken = player.addPeriodicTimeObserver(forInterval: interval, queue: .main) { [weak self] time in
+//            guard let self = self else { return }
+//            let duration = self.player.currentItem?.duration.seconds ?? 1
+//            if duration.isFinite && duration > 0 {
+//                let current = time.seconds
+//                self.progressSlider.value = Float(current / duration)
+//                self.updateTimeLabel(currentTime: current, duration: duration)
+//            }
+//        }
+//
         titleLabel.text = videoTitle ?? "제목 없음"
         uploaderLabel.text = uploader ?? "알 수 없음"
-        player.playImmediately(atRate: selectedSpeed)
+        player?.playImmediately(atRate: selectedSpeed)
     }
     
     // MARK: - setupUI
@@ -307,7 +308,7 @@ class PlayerViewController: UIViewController {
 
         private func addPeriodicTimeObserver() {
             let interval = CMTime(seconds: 1, preferredTimescale: 60)
-            timeObserverToken = player.addPeriodicTimeObserver(forInterval: interval, queue: .main) { [weak self] time in
+            timeObserverToken = player?.addPeriodicTimeObserver(forInterval: interval, queue: .main) { [weak self] time in
                 guard let self = self else { return }
 
                 guard let startText = self.startTimeField.text,
@@ -321,9 +322,9 @@ class PlayerViewController: UIViewController {
                 let currentSeconds = time.seconds
                 if currentSeconds >= end {
                     let seekTime = CMTime(seconds: start, preferredTimescale: 60)
-                    self.player.seek(to: seekTime) { _ in
+                    self.player?.seek(to: seekTime) { _ in
                         if self.isPlaying {
-                            self.player.playImmediately(atRate: self.selectedSpeed)
+                            self.player?.playImmediately(atRate: self.selectedSpeed)
                     }
                 }
             }
@@ -339,21 +340,19 @@ class PlayerViewController: UIViewController {
     }
     
     @objc private func playerDidFinishPlaying() {
-        player.seek(to: .zero)
+        player?.seek(to: .zero)
         isPlaying = false
     }
     
     @objc private func progressSliderChanged() {
-        guard let duration = player.currentItem?.duration.seconds, duration > 0 else { return }
-        let value = Double(progressSlider.value) * duration
-        
-        let rounded = round(value)
-        
-        player.seek(to: CMTime(seconds: rounded, preferredTimescale: 1000))
-    }
+            guard let duration = player?.currentItem?.duration.seconds, duration > 0 else { return }
+            let value = Double(progressSlider.value) * duration
+            let rounded = round(value)
+            player?.seek(to: CMTime(seconds: rounded, preferredTimescale: 1000))
+        }
     
     @objc private func volumeSliderChanged() {
-        player.volume = volumeSlider.value
+        player?.volume = volumeSlider.value
         if volumeSlider.value == 0 {
             isMuted = true
             volumeIcon.image = UIImage(systemName: "speaker.slash.fill")
@@ -365,6 +364,7 @@ class PlayerViewController: UIViewController {
     }
     
     @objc private func volumeIconTapped() {
+        guard let player = player else { return }
         if isMuted {
             isMuted = false
             player.volume = previousVolume
@@ -384,10 +384,13 @@ class PlayerViewController: UIViewController {
     }
     
     @objc private func togglePlayPause() {
-        if player.timeControlStatus == .paused && player.currentTime() >= player.currentItem!.duration {
-            player.seek(to: .zero)
-        }
-        isPlaying.toggle()
+        guard let player = player,
+                      let item = player.currentItem else { return }
+
+                if player.timeControlStatus == .paused && player.currentTime() >= item.duration {
+                    player.seek(to: .zero)
+                }
+                isPlaying.toggle()
     }
     
     private func updateTimeLabel(currentTime: Double, duration: Double) {
@@ -414,8 +417,8 @@ class PlayerViewController: UIViewController {
         tabBarController?.tabBar.isHidden = false
     }
 }
-//
-//@available(iOS 17.0, *)
-//#Preview {
-//    UINavigationController(rootViewController: ChallCompareViewController())
-//}
+
+@available(iOS 17.0, *)
+#Preview {
+    UINavigationController(rootViewController: PlayerViewController())
+}
