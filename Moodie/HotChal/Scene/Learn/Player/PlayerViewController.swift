@@ -124,9 +124,7 @@ class PlayerViewController: UIViewController {
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         
-//        if let playerLayer = playerLayer {
-            playerLayer?.frame = view.bounds
-//        }
+        playerLayer?.frame = view.bounds
         
         //margin - 뷰끼리의 간격
         let margin: CGFloat = 20
