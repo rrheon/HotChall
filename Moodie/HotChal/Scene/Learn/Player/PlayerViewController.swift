@@ -98,7 +98,8 @@ class PlayerViewController: UIViewController {
     // A-B 반복용 텍스트 필드
     private let startTimeField = UITextField()
     private let endTimeField = UITextField()
-    
+  
+  
     //MARK: - View Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -193,7 +194,7 @@ class PlayerViewController: UIViewController {
     }
     
     // MARK: - setupPlayer
-    private func setupPlayer() {
+   func setupPlayer() {
             guard let filename = videoFilename,
                   let url = Bundle.main.url(forResource: filename, withExtension: nil) else {
                 print("Invalid video filename.")
@@ -413,3 +414,8 @@ class PlayerViewController: UIViewController {
         tabBarController?.tabBar.isHidden = false
     }
 }
+//
+//@available(iOS 17.0, *)
+//#Preview {
+//    UINavigationController(rootViewController: ChallCompareViewController())
+//}

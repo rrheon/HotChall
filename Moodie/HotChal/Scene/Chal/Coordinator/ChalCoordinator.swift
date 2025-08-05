@@ -25,6 +25,21 @@ final class ChalCoordinator: Coordinator {
   func navToHotChallTop100ViewController(with challengeName: String){
     let vc = HotChallTop100ViewController()
     vc.challengeName = challengeName
+    vc.delegate = self
+    self.navigationController.pushViewController(vc, animated: true)
+  }
+  
+  
+  /// 챌린지 배우기 디테일 화면으로 이동
+  func navToLearnChallengeViewController(){
+    let vc = ChallCompareViewController()
+//    vc.setupPlayer()
+    self.navigationController.pushViewController(vc, animated: true)
+  }
+  
+  // 챌린지 찍기 화면으로 이동
+  func navToTakeChallengeViewController(){
+    let vc = CameraViewController()
     self.navigationController.pushViewController(vc, animated: true)
   }
 

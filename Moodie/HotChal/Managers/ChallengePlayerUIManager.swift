@@ -8,8 +8,8 @@
 import UIKit
 
 /// 플레이어 매니저
-final class ChallengPlayerUIManager {
-  static let shared = ChallengPlayerUIManager()
+final class ChallengePlayerUIManager {
+  static let shared = ChallengePlayerUIManager()
   
   private init() {}
   
@@ -20,6 +20,10 @@ final class ChallengPlayerUIManager {
   func showChallPlayer(from viewController: UIViewController, data: ChallengeVideo){
     guard let keyWindow = UIApplication.shared.windows.first(where: { $0.isKeyWindow }) else { return }
   
+    let buttonTitle =  viewController is SavedHotChallViewController ? "삭제하기" : "저장하기"
+    playerView.saveChallengeButton.setTitle(buttonTitle, for: .normal)
+    
+    
     keyWindow.addSubview(playerView)
     playerView.challengeData = data
     playerView.translatesAutoresizingMaskIntoConstraints = false
@@ -41,7 +45,7 @@ final class ChallengPlayerUIManager {
         self.playerView.transform = .identity
     }
     
-    playerView.delegate = viewController as? PlayerButtonsDelegate
+    playerView.delegate = viewController as? ChallengePlayerViewDelegate
     playerView.challengeData = data
   }
   

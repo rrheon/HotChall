@@ -7,14 +7,21 @@
 
 import UIKit
 
+
+/// 저장된 챌린지 삭제
+protocol SavedChallengeDelegate: AnyObject {
+  func didTapDeleteButton()
+}
+
 /// 팝업 VC
 final class PopupViewController: UIViewController {
+  weak var delegate: SavedChallengeDelegate?
   
   private let popupView: UIView = {
     let view = UIView()
     view.layer.cornerRadius = 7
     view.clipsToBounds = true
-    view.backgroundColor = .systemBackground
+    view.backgroundColor = .backgroundColor
     
     return view
   }()
@@ -23,6 +30,7 @@ final class PopupViewController: UIViewController {
   private let deletePopupLabel: UILabel = {
     let label = UILabel()
     label.text = "챌린지를 삭제할까요?"
+    label.textColor = .white
     
     return label
   }()
@@ -31,7 +39,9 @@ final class PopupViewController: UIViewController {
   private let cancelButton: UIButton = {
     let button = UIButton(configuration: UIButton.Configuration.filled())
     button.setTitle("취소", for: .normal)
-    button.setTitleColor(.appCream, for: .normal)
+    button.setTitleColor(.white, for: .normal)
+    button.tintColor = .lightGray
+
     return button
   }()
 
@@ -39,17 +49,23 @@ final class PopupViewController: UIViewController {
   private let deleteButton: UIButton = {
     let button = UIButton(configuration: UIButton.Configuration.filled())
     button.setTitle("삭제", for: .normal)
-    button.setTitleColor(.appPink, for: .normal)
+    button.setTitleColor(.white, for: .normal)
+    button.tintColor = .appPink
+
     return button
   }()
 
   override func viewDidLoad() {
-    view.backgroundColor = .lightGray.withAlphaComponent(0.8)
-    
+    view.backgroundColor = UIColor.black.withAlphaComponent(0.8)
+
     self.setupConstraints()
     
     cancelButton.addTarget(self, action: #selector(dismissPopup), for: .touchUpInside)
-    deleteButton.addTarget(self, action: #selector(dismissPopup), for: .touchUpInside)
+    deleteButton.addAction(UIAction { _ in
+      self.delegate?.didTapDeleteButton()
+      self.dismiss(animated: true)
+
+    }, for: .touchUpInside)
 
   }// viewDidLoad
   

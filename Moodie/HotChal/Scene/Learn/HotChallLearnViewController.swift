@@ -10,7 +10,7 @@ import UIKit
 /// 챌린지 배우기 화면
 final class HotChallLearnViewController: UIViewController {
   
-  var didSendEventClosure: ((HotChallLearnViewController.Event) -> Void)?
+  weak var delegate: HotChallLearnCoordinator?
 
   private var collectionView: UICollectionView = {
     let layout = UICollectionViewFlowLayout()
@@ -30,14 +30,14 @@ final class HotChallLearnViewController: UIViewController {
     super.viewDidLoad()
     self.title = "챌린지 배우기"
   
-    view.backgroundColor = .backgroundColor
+    self.view.backgroundColor = .backgroundColor
     
     setupCollectionView()
     setupLayout()
   }
   
   override func viewWillDisappear(_ animated: Bool) {
-    ChallengPlayerUIManager.shared.closeChallPlayer()
+    ChallengePlayerUIManager.shared.closeChallPlayer()
   }
   
   // collectionView 설정
@@ -91,7 +91,7 @@ extension HotChallLearnViewController: UICollectionViewDelegateFlowLayout{
   func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
     let challengeData: ChallengeVideo = MockupDataManager.shared.challengeVideos[indexPath.item]
 
-    ChallengPlayerUIManager.shared.showChallPlayer(from: self, data: challengeData)
+    ChallengePlayerUIManager.shared.showChallPlayer(from: self, data: challengeData)
 
   }
   
@@ -113,9 +113,14 @@ extension HotChallLearnViewController {
 
 // MARK: Challenge Player Delegate
 
-extension HotChallLearnViewController: PlayerButtonsDelegate {
+extension HotChallLearnViewController: ChallengePlayerViewDelegate {
+  func navToTakeChallenge(with data: ChallengeVideo) {
+    delegate?.navToTakeChallengeViewController()
+  }
+  
   func navToLearnChallenge(with data: ChallengeVideo) {
     print(#fileID, #function, #line, "- 챌린지 배우기 화면으로 이동")
+    delegate?.navToLearnChallengeViewController()
     
   }
   
@@ -126,7 +131,13 @@ extension HotChallLearnViewController: PlayerButtonsDelegate {
   }
   
   func saveChallenge(with data: ChallengeVideo) {
-    print(#fileID, #function, #line, "- 챌린지 저장")
-
+    CoreDataManager.shared.saveChallenge(with: data) { result in
+      print(#fileID, #function, #line, "- 챌린지 저장")
+      ChallengePlayerUIManager.shared.closeChallPlayer()
+      let comment = result ? "챌린지가 저장되었습니다." : "이미 저장된 챌린지입니다."
+      
+      
+      ToastPopupManager.shared.showToast(message: comment)
+    }
   }
 }

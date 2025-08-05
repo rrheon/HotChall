@@ -10,13 +10,19 @@ import UIKit
 
 /// 핫챌 Top3 셀
 final class HotChallTopCell: UICollectionViewCell, ReuseIdentifiable {
-  
+  var challengeData: (ChallengeVideo?, Int?) {
+    didSet{
+      guard let data = challengeData.0,
+            let rank = challengeData.1 else { return }
+      configure(with: data, rank: rank)
+    }
+  }
   /// 챌린지 썸네일 이미지뷰
    var challengeImageView: UIImageView = {
     let imageView = UIImageView()
-    imageView.contentMode = .scaleAspectFit
+     imageView.contentMode = .scaleAspectFit
     imageView.translatesAutoresizingMaskIntoConstraints = false
-    imageView.backgroundColor = .blue
+     imageView.backgroundColor = .appPink
     return imageView
   }()
   
@@ -35,7 +41,8 @@ final class HotChallTopCell: UICollectionViewCell, ReuseIdentifiable {
    var challengeNameLabel: UILabel = {
     let label = UILabel()
     label.text = "챌린지 제목"
-    label.textColor = .white
+     label.textColor = .white
+     label.font = .boldSystemFont(ofSize: 24)
     label.translatesAutoresizingMaskIntoConstraints = false
     
     return label
@@ -45,8 +52,9 @@ final class HotChallTopCell: UICollectionViewCell, ReuseIdentifiable {
   private let challengePlayButton: UIButton = {
     let button = UIButton()
     button.setImage(UIImage(systemName: "play.circle"), for: .normal)
+    button.tintColor = .white
     button.translatesAutoresizingMaskIntoConstraints = false
-
+    
     return button
   }()
   
@@ -57,10 +65,6 @@ final class HotChallTopCell: UICollectionViewCell, ReuseIdentifiable {
     self.backgroundColor = .appPink
     makeUI()
     
-    challengePlayButton.addAction(UIAction { _ in
-      print(#fileID, #function, #line, "- 챌린지 재생버튼 탭")
-
-    }, for: .touchUpInside)
   }
   
   
@@ -94,5 +98,12 @@ final class HotChallTopCell: UICollectionViewCell, ReuseIdentifiable {
       challengePlayButton.bottomAnchor.constraint(equalTo: challengeImageView.bottomAnchor, constant: -20),
     ])
     
+  }
+  
+  /// 데이터 설정
+  private func configure(with item: ChallengeVideo, rank: Int) {
+    challengeImageView.image = UIImage(named: item.thumbnailImage ?? "")
+    challengeNameLabel.text = item.title
+    challengeRankLabel.text = "\(rank + 1)"
   }
 }
