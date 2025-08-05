@@ -260,6 +260,10 @@ class PlayerViewController: UIViewController {
             speedStackView.addArrangedSubview(button)
         }
         view.addSubview(speedStackView)
+        view.addSubview(backButton)
+        
+        backButton.translatesAutoresizingMaskIntoConstraints = false
+        backButton.addTarget(self, action: #selector(backButtonTapped), for: .touchUpInside)
         
         progressSlider.minimumTrackTintColor = .white
         progressSlider.maximumTrackTintColor = UIColor.white.withAlphaComponent(0.3)
@@ -276,12 +280,16 @@ class PlayerViewController: UIViewController {
         updateSpeedButtons()
 
         
-        // 속도 조절 버튼 오토 레이아웃
+        // 속도 조절 버튼, 뒤로가기 버튼 레이아웃
         NSLayoutConstraint.activate([
             speedStackView.heightAnchor.constraint(equalToConstant: 36),
             speedStackView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
             speedStackView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
             speedStackView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            backButton.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 20),
+            backButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 12),
+            backButton.widthAnchor.constraint(equalToConstant: 32),
+            backButton.heightAnchor.constraint(equalToConstant: 32)
         ])
     }
     
@@ -372,7 +380,7 @@ class PlayerViewController: UIViewController {
     @objc private func progressSliderChanged() {
             guard let duration = player?.currentItem?.duration.seconds, duration > 0 else { return }
             let value = Double(progressSlider.value) * duration
-            let rounded = round(value)
+            let rounded = value
             player?.seek(to: CMTime(seconds: rounded, preferredTimescale: 1000))
         }
     
@@ -431,15 +439,36 @@ class PlayerViewController: UIViewController {
         }
     }
     
+    private let backButton: UIButton = {
+        let button = UIButton(type: .system)
+        let image = UIImage(systemName: "chevron.left") // SF Symbol 아이콘
+        button.setImage(image, for: .normal)
+        button.tintColor = .appPink // 필요에 따라 색상 조절
+        button.backgroundColor = UIColor.black.withAlphaComponent(0.5) // 가시성 높이기 위해 배경 추가
+        button.layer.cornerRadius = 16
+        button.clipsToBounds = true
+        return button
+    }()
+    
+    @objc private func backButtonTapped() {
+        if let nav = navigationController {
+            nav.popViewController(animated: true)
+        } else {
+            dismiss(animated: true)
+        }
+    }
+    
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         tabBarController?.tabBar.isHidden = true
         additionalSafeAreaInsets.bottom = 0
+        navigationController?.setNavigationBarHidden(true, animated: false)
     }
 
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         tabBarController?.tabBar.isHidden = false
+        navigationController?.setNavigationBarHidden(false, animated: false)
     }
 }
 
