@@ -196,7 +196,7 @@ class PlayerViewController: UIViewController {
     // MARK: - setupPlayer
    func setupPlayer() {
        guard let filename = videoFilename,
-                 let url = Bundle.main.url(forResource: filename, withExtension: nil) else {
+       let url = Bundle.main.url(forResource: filename, withExtension: nil) else {
                print("❌ Invalid video filename: \(String(describing: videoFilename))")
                return
            }
@@ -208,18 +208,18 @@ class PlayerViewController: UIViewController {
                    view.layer.insertSublayer(layer, at: 0)
                }
         
-        // 콜백이 호출되는 주기(0.5초 마다)
-//        let interval = CMTime(seconds: 0.1, preferredTimescale: 60)
-//        timeObserverToken = player.addPeriodicTimeObserver(forInterval: interval, queue: .main) { [weak self] time in
-//            guard let self = self else { return }
-//            let duration = self.player.currentItem?.duration.seconds ?? 1
-//            if duration.isFinite && duration > 0 {
-//                let current = time.seconds
-//                self.progressSlider.value = Float(current / duration)
-//                self.updateTimeLabel(currentTime: current, duration: duration)
-//            }
-//        }
-//
+        // 콜백이 호출되는 주기(0.1초 마다)
+        let interval = CMTime(seconds: 0.1, preferredTimescale: 60)
+        timeObserverToken = player?.addPeriodicTimeObserver(forInterval: interval, queue: .main) { [weak self] time in
+            guard let self = self else { return }
+            let duration = self.player?.currentItem?.duration.seconds ?? 1
+            if duration.isFinite && duration > 0 {
+                let current = time.seconds
+                self.progressSlider.value = Float(current / duration)
+                self.updateTimeLabel(currentTime: current, duration: duration)
+            }
+        }
+
         titleLabel.text = videoTitle ?? "제목 없음"
         uploaderLabel.text = uploader ?? "알 수 없음"
         player?.playImmediately(atRate: selectedSpeed)
