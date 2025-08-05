@@ -57,7 +57,7 @@ extension HotChallTop100ViewController: UICollectionViewDataSource {
     _ collectionView: UICollectionView,
     numberOfItemsInSection section: Int
   ) -> Int {
-    return sampleData.count
+    return MockupDataManager.shared.challengeVideos.count
   }
   
   func collectionView(
@@ -70,9 +70,12 @@ extension HotChallTop100ViewController: UICollectionViewDataSource {
     ) as? ChallegneTop100Cell else { return UICollectionViewCell() }
     
     let number = indexPath.item + 1
+    let data = MockupDataManager.shared.challengeVideos[indexPath.item]
+    
     cell.challengeRankLabel.text = "\(number)"
-    cell.challengeTitleLabel.text = sampleData[indexPath.item]
-    cell.challengeArtistLabel.text = sampleData2[indexPath.item]
+    cell.challengeTitleLabel.text = data.title
+    cell.challengeArtistLabel.text = data.uploader
+    cell.challengeThumbnailView.image = UIImage(named: data.thumbnailImage ?? "")
     
     return cell
   }

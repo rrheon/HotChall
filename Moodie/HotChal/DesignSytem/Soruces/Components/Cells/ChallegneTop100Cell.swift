@@ -23,7 +23,7 @@ final class ChallegneTop100Cell: UICollectionViewCell, ReuseIdentifiable {
    let challengeThumbnailView: UIImageView = {
     let imageView = UIImageView()
     imageView.image = UIImage(named: "SodaPop4")
-    imageView.contentMode = .scaleAspectFill
+     imageView.contentMode = .scaleAspectFill
     imageView.clipsToBounds = true
     imageView.backgroundColor = .yellow
     
