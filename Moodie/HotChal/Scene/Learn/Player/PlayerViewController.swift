@@ -104,9 +104,12 @@ class PlayerViewController: UIViewController {
     //MARK: - View Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .appCharcoal
+        view.backgroundColor = .black
         self.additionalSafeAreaInsets.bottom = 0 // safeArea 하단 없애기
         self.edgesForExtendedLayout = [.bottom] // 전체 화면까지 확장
+        
+        titleLabel.text = videoTitle ?? "제목 없음"
+        uploaderLabel.text = uploader ?? "알 수 없음"
         
         setupPlayer()
         setupUI()
@@ -219,9 +222,7 @@ class PlayerViewController: UIViewController {
                 self.updateTimeLabel(currentTime: current, duration: duration)
             }
         }
-
-        titleLabel.text = videoTitle ?? "제목 없음"
-        uploaderLabel.text = uploader ?? "알 수 없음"
+       
         player?.playImmediately(atRate: selectedSpeed)
     }
     
@@ -276,6 +277,25 @@ class PlayerViewController: UIViewController {
             speedStackView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
             speedStackView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
             speedStackView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+        ])
+    }
+    
+    // MARK: - 레이아웃 설정
+    private func setupLayout() {
+        view.addSubview(titleLabel)
+        view.addSubview(uploaderLabel)
+
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+        uploaderLabel.translatesAutoresizingMaskIntoConstraints = false
+
+        NSLayoutConstraint.activate([
+            titleLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 16),
+            titleLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            titleLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+
+            uploaderLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 8),
+            uploaderLabel.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
+            uploaderLabel.trailingAnchor.constraint(equalTo: titleLabel.trailingAnchor),
         ])
     }
     // MARK: - A-B 반복 입력 필드
