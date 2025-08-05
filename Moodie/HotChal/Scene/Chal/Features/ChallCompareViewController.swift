@@ -8,6 +8,7 @@
 import UIKit
 import AVFoundation
 
+// MARK: - 영상 루프 재생 플레이어 클래스
 class LoopedVideoPlayer {
     var queuePlayer: AVQueuePlayer?
     var looper: AVPlayerLooper?
@@ -83,9 +84,9 @@ class ChallCompareViewController: UIViewController {
     private let challComparSubView = makeView(backgroundColor: .systemBackground, cornerRadius: 15)
     private let bottomBarView = makeView(backgroundColor: UIColor(red: 255/255, green: 199/255, blue: 194/255, alpha: 0.8))
 
-    private let pauseButton = makeBottomButton(icon: "pause.circle", title: "일시정지", color: .systemBlue)
-    private let deleteButton = makeBottomButton(icon: "trash.circle", title: "삭제", color: .systemRed)
-    private let shareButton = makeBottomButton(icon: "square.and.arrow.up.circle", title: "공유하기", color: .systemBlue)
+    private let pauseButton = makeButton(icon: "pause.circle", title: "일시정지", color: .systemBlue)
+    private let deleteButton = makeButton(icon: "trash.circle", title: "삭제", color: .systemRed)
+    private let shareButton = makeButton(icon: "square.and.arrow.up.circle", title: "공유하기", color: .systemBlue)
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -110,6 +111,8 @@ class ChallCompareViewController: UIViewController {
     private func setupViews() {
         [challComparMainView, challComparSubView, bottomBarView].forEach { view.addSubview($0) }
         [pauseButton, deleteButton, shareButton].forEach { bottomBarView.addSubview($0) }
+
+        challComparSubView.addGestureRecognizer(UIPanGestureRecognizer(target: self, action: #selector(handlePan(_:))))
     }
 
     private func setupConstraints() {
@@ -122,9 +125,9 @@ class ChallCompareViewController: UIViewController {
             challComparMainView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             challComparMainView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
 
-            challComparSubView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            challComparSubView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -20),
             challComparSubView.widthAnchor.constraint(equalToConstant: 150),
+            challComparSubView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            challComparSubView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -10),
 
             bottomBarView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             bottomBarView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
@@ -147,6 +150,40 @@ class ChallCompareViewController: UIViewController {
 
         challComparMainView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(swapVideoLayers)))
         challComparSubView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(swapVideoLayers)))
+    }
+
+    @objc private func handlePan(_ gesture: UIPanGestureRecognizer) {
+        guard let draggedView = gesture.view else { return }
+        let translation = gesture.translation(in: view)
+        draggedView.center = CGPoint(x: draggedView.center.x + translation.x, y: draggedView.center.y + translation.y)
+        gesture.setTranslation(.zero, in: view)
+
+        if gesture.state == .ended {
+            snapToCorner(view: draggedView)
+        }
+    }
+
+    private func snapToCorner(view draggedView: UIView) {
+        let safeFrame = view.safeAreaLayoutGuide.layoutFrame
+        let size = draggedView.frame.size
+
+        let corners: [CGPoint] = [
+            CGPoint(x: safeFrame.minX + 10, y: safeFrame.minY),
+            CGPoint(x: safeFrame.maxX - size.width - 10, y: safeFrame.minY),
+            CGPoint(x: safeFrame.minX + 10, y: safeFrame.maxY - size.height - 50),
+            CGPoint(x: safeFrame.maxX - size.width - 10, y: safeFrame.maxY - size.height - 50)
+        ]
+
+        let origin = draggedView.frame.origin
+        let nearest = corners.min { distance($0, origin) < distance($1, origin) } ?? corners[0]
+
+        UIView.animate(withDuration: 0.25) {
+            draggedView.frame.origin = nearest
+        }
+    }
+
+    private func distance(_ a: CGPoint, _ b: CGPoint) -> CGFloat {
+        return hypot(a.x - b.x, a.y - b.y)
     }
 
     @objc private func togglePlayPause() {
@@ -180,6 +217,7 @@ class ChallCompareViewController: UIViewController {
     @objc private func swapVideoLayers() {
         mainVideoPlayer.playerLayer?.removeFromSuperlayer()
         subVideoPlayer.playerLayer?.removeFromSuperlayer()
+
         challComparMainView.layer.addSublayer(subVideoPlayer.playerLayer!)
         challComparSubView.layer.addSublayer(mainVideoPlayer.playerLayer!)
 
@@ -187,6 +225,7 @@ class ChallCompareViewController: UIViewController {
         subVideoPlayer.isMain = true
         swap(&mainVideoPlayer.containerView, &subVideoPlayer.containerView)
         swap(&mainVideoPlayer, &subVideoPlayer)
+
         mainVideoPlayer.setMuted(false)
         subVideoPlayer.setMuted(true)
 
@@ -212,7 +251,7 @@ private func makeView(backgroundColor: UIColor, cornerRadius: CGFloat = 0) -> UI
     return view
 }
 
-private func makeBottomButton(icon: String, title: String, color: UIColor) -> UIButton {
+private func makeButton(icon: String, title: String, color: UIColor) -> UIButton {
     let config = makeButtonConfig(icon: icon, title: title, color: color)
     let button = UIButton(configuration: config)
     button.translatesAutoresizingMaskIntoConstraints = false
