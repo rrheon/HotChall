@@ -104,7 +104,7 @@ class PlayerViewController: UIViewController {
     //MARK: - View Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .systemBackground
+        view.backgroundColor = .appCharcoal
         self.additionalSafeAreaInsets.bottom = 0 // safeArea 하단 없애기
         self.edgesForExtendedLayout = [.bottom] // 전체 화면까지 확장
         
