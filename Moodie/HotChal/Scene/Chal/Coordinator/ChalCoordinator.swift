@@ -37,10 +37,10 @@ final class ChalCoordinator: BaseCoordinator {
     
     // 챌린지 찍기 화면에서 -> 비교하기로으로 이동
     func navToCompareViewController(url: URL) {
-        let compareVC = ChallCompareViewController()
-        compareVC.videoURL = url
-        compareVC.coordinator = self
-        navigationController.pushViewController(compareVC, animated: true)
+        let vc = ChallCompareViewController()
+        vc.videoURL = url
+        vc.coordinator = self
+        navigationController.pushViewController(vc, animated: true)
     }
       
   /// 챌린지 보기 화면으로 이동
