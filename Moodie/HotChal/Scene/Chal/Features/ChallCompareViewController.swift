@@ -13,8 +13,11 @@ class ChallCompareViewController: UIViewController {
     private var mainVideoPlayer: ChallCompareLoopedVideoPlayer!
     private var isPlaying = true
 
-    private let challComparMainView = makeView(backgroundColor: .systemBackground)
-    private let challComparSubView = ChallComparSubView()
+    private var videoURL: URL?
+    public var incomingVideoFilename: String?
+
+    private let challCompareMainView = makeView(backgroundColor: .systemBackground)
+    private let challCompareSubView = ChallComparSubView()
     private let bottomBarView = makeView(backgroundColor: UIColor(red: 255/255, green: 199/255, blue: 194/255, alpha: 0.8))
 
     private let pauseButton = makeButton(icon: "pause.circle", title: "일시정지", color: .systemBlue)
@@ -29,31 +32,38 @@ class ChallCompareViewController: UIViewController {
         setupConstraints()
         setupActions()
 
-        mainVideoPlayer = ChallCompareLoopedVideoPlayer(containerView: challComparMainView, isMuted: false, isMain: true)
-        mainVideoPlayer.setupVideo(named: "karina1.mp4")
+        mainVideoPlayer = ChallCompareLoopedVideoPlayer(containerView: challCompareMainView, isMuted: false, isMain: true)
 
-        challComparSubView.setupVideo(named: "asepa1.mp4") { [weak self] aspectRatio in
+        if let url = videoURL {
+            mainVideoPlayer.setupVideo(url) { [weak self] aspectRatio in
+                guard let self = self else { return }
+            }
+        } else {
+            playCameraResultVideo(url: nil)
+        }
+
+        challCompareSubView.setupVideo(named: "asepa1.mp4") { [weak self] aspectRatio in
             guard let self = self else { return }
             let width: CGFloat = 140
             let height = width * aspectRatio
             let safeFrame = self.view.safeAreaLayoutGuide.layoutFrame
-            self.challComparSubView.frame = CGRect(x: safeFrame.maxX - width - 10, y: safeFrame.minY + 10, width: width, height: height)
+            self.challCompareSubView.frame = CGRect(x: safeFrame.maxX - width - 10, y: safeFrame.minY + 10, width: width, height: height)
         }
     }
 
     private func setupViews() {
-        view.addSubview(challComparMainView)
-        view.addSubview(challComparSubView)
+        view.addSubview(challCompareMainView)
+        view.addSubview(challCompareSubView)
         view.addSubview(bottomBarView)
         [pauseButton, deleteButton, shareButton].forEach { bottomBarView.addSubview($0) }
     }
 
     private func setupConstraints() {
         NSLayoutConstraint.activate([
-            challComparMainView.topAnchor.constraint(equalTo: view.topAnchor),
-            challComparMainView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            challComparMainView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            challComparMainView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            challCompareMainView.topAnchor.constraint(equalTo: view.topAnchor),
+            challCompareMainView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            challCompareMainView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            challCompareMainView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
 
             bottomBarView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             bottomBarView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
@@ -74,13 +84,13 @@ class ChallCompareViewController: UIViewController {
         deleteButton.addTarget(self, action: #selector(deleteButtonTapped), for: .touchUpInside)
         shareButton.addTarget(self, action: #selector(shareButtonTapped), for: .touchUpInside)
 
-        challComparMainView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(swapVideoLayers)))
-        challComparSubView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(swapVideoLayers)))
+        challCompareMainView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(swapVideoLayers)))
+        challCompareSubView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(swapVideoLayers)))
     }
 
     @objc private func togglePlayPause() {
         mainVideoPlayer.togglePlayPause()
-        challComparSubView.videoPlayer.togglePlayPause()
+        challCompareSubView.videoPlayer.togglePlayPause()
         isPlaying.toggle()
 
         let icon = isPlaying ? "pause.circle" : "play.circle"
@@ -96,44 +106,77 @@ class ChallCompareViewController: UIViewController {
     }
 
     @objc private func shareButtonTapped() {
-        guard let path = Bundle.main.path(forResource: "nemonemo", ofType: "mp4") else { return }
-        let videoURL = URL(fileURLWithPath: path)
+        guard let videoURL = videoURL else { return }
         let activityVC = UIActivityViewController(activityItems: [videoURL], applicationActivities: nil)
-
         activityVC.popoverPresentationController?.sourceView = shareButton
         present(activityVC, animated: true)
     }
 
     @objc private func swapVideoLayers() {
         let tempMain = mainVideoPlayer!
-        let tempSub = challComparSubView.videoPlayer
+        let tempSub = challCompareSubView.videoPlayer
 
-        tempMain.playerLayer?.removeFromSuperlayer()
-        tempSub.playerLayer?.removeFromSuperlayer()
+        DispatchQueue.main.async {
+            tempMain.playerLayer?.removeFromSuperlayer()
+            tempSub.playerLayer?.removeFromSuperlayer()
 
-        tempMain.setMuted(true)
-        tempSub.setMuted(false)
+            tempSub.containerView = self.challCompareMainView
+            tempMain.containerView = self.challCompareSubView
 
-        tempMain.isMain = false
-        tempSub.isMain = true
+            tempMain.setMuted(true)
+            tempSub.setMuted(false)
+            tempMain.isMain = false
+            tempSub.isMain = true
 
-        tempSub.containerView = challComparMainView
-        tempMain.containerView = challComparSubView
+            if let subLayer = tempSub.playerLayer {
+                self.challCompareMainView.layer.addSublayer(subLayer)
+            }
 
-        challComparMainView.layer.addSublayer(tempSub.playerLayer!)
-        challComparSubView.layer.addSublayer(tempMain.playerLayer!)
+            if let mainLayer = tempMain.playerLayer {
+                self.challCompareSubView.layer.addSublayer(mainLayer)
+            }
 
-        tempMain.updateFrame()
-        tempSub.updateFrame()
+            tempMain.updateFrame()
+            tempSub.updateFrame()
 
-        mainVideoPlayer = tempSub
-        challComparSubView.videoPlayer = tempMain
+            // 참조 교체
+            self.mainVideoPlayer = tempSub
+            self.challCompareSubView.videoPlayer = tempMain
+        }
     }
 
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         mainVideoPlayer.updateFrame()
-        challComparSubView.videoPlayer.updateFrame()
+        challCompareSubView.videoPlayer.updateFrame()
+    }
+
+    func playCameraResultVideo(url: URL?) {
+        mainVideoPlayer.playerLayer?.removeFromSuperlayer()
+        challCompareMainView.subviews.forEach { $0.removeFromSuperview() }
+
+        if let url = url {
+            self.videoURL = url
+            mainVideoPlayer.setupVideo(url)
+        } else {
+            challCompareMainView.backgroundColor = .black
+
+            let label = UILabel()
+            label.text = "파일을 불러 올 수 없습니다"
+            label.textAlignment = .center
+            label.textColor = .white
+            label.font = .systemFont(ofSize: 18, weight: .medium)
+            label.translatesAutoresizingMaskIntoConstraints = false
+
+            challCompareMainView.addSubview(label)
+
+            NSLayoutConstraint.activate([
+                label.centerXAnchor.constraint(equalTo: challCompareMainView.centerXAnchor),
+                label.centerYAnchor.constraint(equalTo: challCompareMainView.centerYAnchor)
+            ])
+
+            challCompareMainView.layoutIfNeeded()
+        }
     }
 }
 

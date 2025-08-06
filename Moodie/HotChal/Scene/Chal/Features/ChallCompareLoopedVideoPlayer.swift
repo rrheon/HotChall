@@ -1,9 +1,7 @@
-//
 //  ChallCompareLoopedVideoPlayer.swift
 //  HotChal
 //
 //  Created by 이지훈 on 8/6/25.
-//
 
 import UIKit
 import AVFoundation
@@ -25,6 +23,10 @@ final class ChallCompareLoopedVideoPlayer {
     func setupVideo(named fileName: String, completion: ((CGFloat) -> Void)? = nil) {
         guard let path = Bundle.main.path(forResource: fileName, ofType: nil) else { return }
         let url = URL(fileURLWithPath: path)
+        setupVideo(url, completion: completion)
+    }
+
+    func setupVideo(_ url: URL, completion: ((CGFloat) -> Void)? = nil) {
         let item = AVPlayerItem(url: url)
         let player = AVQueuePlayer(playerItem: item)
         let looper = AVPlayerLooper(player: player, templateItem: item)
