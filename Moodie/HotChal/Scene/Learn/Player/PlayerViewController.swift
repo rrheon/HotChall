@@ -416,6 +416,7 @@ class PlayerViewController: UIViewController {
         }
     }
     
+    // 재생 속도 선택 버튼
     @objc private func speedSelected(_ sender: UIButton) {
         selectedSpeed = Float(sender.tag) / 10.0
     }
