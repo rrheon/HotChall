@@ -117,8 +117,8 @@ class PlayerViewController: UIViewController {
         self.additionalSafeAreaInsets.bottom = 0 // safeArea 하단 없애기
         self.edgesForExtendedLayout = [.bottom] // 전체 화면까지 확장
         
-        titleLabel.text = videoTitle ?? "제목 없음"
-        uploaderLabel.text = uploader ?? "알 수 없음"
+        titleLabel.text = videoTitle ?? "None Title"
+        uploaderLabel.text = uploader ?? "Unknown Uploader"
         
         setupPlayer()
         setupUI()
