@@ -18,6 +18,7 @@ class ChallCompareViewController: UIViewController {
 
     private let challCompareMainView = makeView(backgroundColor: .systemBackground)
     private let challCompareSubView = ChallComparSubView()
+
     private let bottomBarView = makeView(backgroundColor: UIColor(red: 255/255, green: 199/255, blue: 194/255, alpha: 0.8))
 
     private let pauseButton = makeButton(icon: "pause.circle", title: "일시정지", color: .systemBlue)
