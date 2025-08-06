@@ -342,6 +342,7 @@ class PlayerViewController: UIViewController {
             timeObserverToken = player?.addPeriodicTimeObserver(forInterval: interval, queue: .main) { [weak self] time in
                 guard let self = self else { return }
 
+                // A-B 반복 로직
                 guard let startText = self.startTimeField.text,
                       let endText = self.endTimeField.text,
                       let start = Double(startText),
@@ -460,7 +461,7 @@ class PlayerViewController: UIViewController {
         tabBarController?.tabBar.isHidden = false
         self.navigationController?.navigationBar.prefersLargeTitles = true
     }
-    // 메모리 누수 문제로 추가
+    // 메모리 누수 문제로 추가(디버깅까지)
     deinit {
         if let token = timeObserverToken {
             player?.removeTimeObserver(token)
