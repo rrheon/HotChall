@@ -21,6 +21,14 @@ class PlayerViewController: UIViewController {
     // UI를 올릴 컨테이너
     private let overlayContainerView = UIView()
     
+    private let progressSlider = UISlider()
+    private let volumeSlider = UISlider()
+    private let speedStackView = UIStackView()
+    
+    // A-B 반복용 텍스트 필드
+    private let startTimeField = UITextField()
+    private let endTimeField = UITextField()
+    
     var videoFilename: String?
     var videoTitle: String?
     var uploader: String?
@@ -55,6 +63,7 @@ class PlayerViewController: UIViewController {
         return view
     }()
     
+    //MARK: - 라벨 설정
     // 챌린지 타이틀
     private let titleLabel: UILabel = {
         let label = UILabel()
@@ -99,15 +108,6 @@ class PlayerViewController: UIViewController {
         return imageView
     }()
     
-    private let progressSlider = UISlider()
-    private let volumeSlider = UISlider()
-    private let speedStackView = UIStackView()
-    
-    // A-B 반복용 텍스트 필드
-    private let startTimeField = UITextField()
-    private let endTimeField = UITextField()
-  
-  
     //MARK: - View Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
