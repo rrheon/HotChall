@@ -241,26 +241,28 @@ class PlayerViewController: UIViewController {
         view.addSubview(timeLabel)
         view.addSubview(volumeIcon)
         view.addSubview(volumeSlider)
-        
-        
+        view.addSubview(speedStackView)
+
+        // 재생 바 슬라이더
         progressSlider.minimumTrackTintColor = .white
         progressSlider.maximumTrackTintColor = UIColor.white.withAlphaComponent(0.3)
         progressSlider.thumbTintColor = .appPink
         progressSlider.addTarget(self, action: #selector(progressSliderChanged), for: .valueChanged)
         
+        // 볼륨 바 슬라이더
         volumeSlider.minimumTrackTintColor = .appPink
         volumeSlider.maximumTrackTintColor = UIColor.white.withAlphaComponent(0.3)
         volumeSlider.thumbTintColor = .white
         volumeSlider.value = 1.0
         volumeSlider.addTarget(self, action: #selector(volumeSliderChanged), for: .valueChanged)
         
-        // 속도 조절 버튼 위치 조정
+        // 속도 조절 뷰 위치 조정
         speedStackView.axis = .horizontal
         speedStackView.spacing = 8
         speedStackView.distribution = .fillEqually
         speedStackView.translatesAutoresizingMaskIntoConstraints = false
         
-        // 속도 조절 버튼 UI
+        // 속도 조절 뷰 UI
         for speed in speeds {
             let button = UIButton(type: .system)
             button.setTitle("\(speed)x", for: .normal)
@@ -272,11 +274,10 @@ class PlayerViewController: UIViewController {
             button.addTarget(self, action: #selector(speedSelected(_:)), for: .touchUpInside)
             speedStackView.addArrangedSubview(button)
         }
-        view.addSubview(speedStackView)
         selectedSpeed = 1.0
         updateSpeedButtons()
         
-        // 속도 조절 버튼 레이아웃
+        // 속도 조절 뷰 레이아웃
         NSLayoutConstraint.activate([
             speedStackView.heightAnchor.constraint(equalToConstant: 36),
             speedStackView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
@@ -285,14 +286,15 @@ class PlayerViewController: UIViewController {
         ])
     }
     
-    // MARK: - 레이아웃 설정
+    // MARK: - 라벨 레이아웃 설정
     private func setupLayout() {
         view.addSubview(titleLabel)
         view.addSubview(uploaderLabel)
 
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         uploaderLabel.translatesAutoresizingMaskIntoConstraints = false
-
+        
+        // 타이틀, 업로더 라벨 레이아웃
         NSLayoutConstraint.activate([
             titleLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 16),
             titleLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
