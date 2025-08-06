@@ -11,6 +11,7 @@ import AVFoundation
 class ChallCompareViewController: UIViewController {
 
     var subVideoFilename: String?
+    var coordinator: ChalCoordinator?
     
     private var mainVideoPlayer: ChallCompareLoopedVideoPlayer!
     private var isPlaying = true
@@ -35,27 +36,30 @@ class ChallCompareViewController: UIViewController {
 
         mainVideoPlayer = ChallCompareLoopedVideoPlayer(containerView: challCompareMainView, isMuted: false, isMain: true)
 
-        if let url = videoURL {
-            mainVideoPlayer.setupVideo(url) { [weak self] aspectRatio in
-                guard let self = self else { return }
-            }
-        } else {
-            playCameraResultVideo(url: nil)
-        }
+         // ✅ 녹화된 영상 재생
+         if let url = videoURL {
+             mainVideoPlayer.setupVideo(url) { [weak self] aspectRatio in
+                 guard let self = self else { return }
+                 // 비율 조정 등 추가 작업 가능
+             }
+         } else {
+             playCameraResultVideo(url: nil)  // 영상 없을 경우 처리
+         }
 
-        if let filename = subVideoFilename {
-            challCompareSubView.setupVideo(named: filename) { [weak self] aspectRatio in
-                guard let self = self else { return }
-                let width: CGFloat = 140
-                let height = width * aspectRatio
-                let safeFrame = self.view.safeAreaLayoutGuide.layoutFrame
-                self.challCompareSubView.frame = CGRect(x: safeFrame.maxX - width - 10,
-                                                        y: safeFrame.minY + 10,
-                                                        width: width,
-                                                        height: height)
-            }
-        }
-    }
+         // 서브 영상 세팅
+         if let filename = subVideoFilename {
+             challCompareSubView.setupVideo(named: filename) { [weak self] aspectRatio in
+                 guard let self = self else { return }
+                 let width: CGFloat = 140
+                 let height = width * aspectRatio
+                 let safeFrame = self.view.safeAreaLayoutGuide.layoutFrame
+                 self.challCompareSubView.frame = CGRect(x: safeFrame.maxX - width - 10,
+                                                         y: safeFrame.minY + 10,
+                                                         width: width,
+                                                         height: height)
+             }
+         }
+     }
     
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
@@ -126,21 +130,16 @@ class ChallCompareViewController: UIViewController {
     @objc private func deleteButtonTapped() {
         let alert = UIAlertController(title: "다시 촬영하시겠습니까?", message: nil, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "취소", style: .cancel))
-        
+
         alert.addAction(UIAlertAction(title: "재촬영", style: .destructive) { [weak self] _ in
             guard let self = self else { return }
-            
-            let cameraVC = CameraViewController()
-            cameraVC.hidesBottomBarWhenPushed = true
 
-            if let nav = self.navigationController {
-                var vcs = nav.viewControllers
-                vcs.removeAll { $0 === self }
-                vcs.append(cameraVC)
-                nav.setViewControllers(vcs, animated: true)
+            print("재촬영 버튼 클릭됨")
+            if self.coordinator == nil {
+                print("⚠️ coordinator가 nil입니다.")
             } else {
-                cameraVC.modalPresentationStyle = .fullScreen
-                self.present(cameraVC, animated: true)
+                print("✅ coordinator 있음, 카메라 열기 시도")
+                self.coordinator?.navToTakeChallengeViewController()
             }
         })
 
@@ -188,8 +187,10 @@ class ChallCompareViewController: UIViewController {
     
     func playCameraResultVideo(url: URL?) {
         mainVideoPlayer.playerLayer?.removeFromSuperlayer()
-        challCompareMainView.subviews.forEach { $0.removeFromSuperview() }
-        
+        challCompareMainView.subviews
+            .filter { $0 is UILabel }
+            .forEach { $0.removeFromSuperview() }
+
         if let url = url {
             self.videoURL = url
             mainVideoPlayer.setupVideo(url)
