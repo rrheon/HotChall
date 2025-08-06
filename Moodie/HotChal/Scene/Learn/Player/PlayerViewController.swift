@@ -337,31 +337,48 @@ class PlayerViewController: UIViewController {
         }
     // MARK: - 타임 옵저버 (A-B 반복 기능)
 
-        private func addPeriodicTimeObserver() {
-            let interval = CMTime(seconds: 1, preferredTimescale: 60)
-            timeObserverToken = player?.addPeriodicTimeObserver(forInterval: interval, queue: .main) { [weak self] time in
-                guard let self = self else { return }
+    private func addPeriodicTimeObserver() {
+        // 기존 옵저버 제거
+        if let token = timeObserverToken {
+            player?.removeTimeObserver(token)
+            timeObserverToken = nil
+            print("🧹 기존 토큰 제거")
+        }
 
-                // A-B 반복 로직
-                guard let startText = self.startTimeField.text,
-                      let endText = self.endTimeField.text,
-                      let start = Double(startText),
-                      let end = Double(endText),
-                      end > start else {
-                    return
-                }
+        let interval = CMTime(seconds: 0.1, preferredTimescale: 60)
+        timeObserverToken = player?.addPeriodicTimeObserver(forInterval: interval, queue: .main) { [weak self] time in
+            guard let self = self else { return }
+
+            let currentSeconds = time.seconds
+            let duration = self.player?.currentItem?.duration.seconds ?? 0
+
+            // ✅ 1. 재생 바 & 시간 라벨 업데이트
+            if duration.isFinite && duration > 0 {
+                self.progressSlider.value = Float(currentSeconds / duration)
+                self.updateTimeLabel(currentTime: currentSeconds, duration: duration)
+            }
+
+            // ✅ 2. A-B 반복 처리
+            if let startText = self.startTimeField.text,
+               let endText = self.endTimeField.text,
+               let start = Double(startText),
+               let end = Double(endText),
+               end > start {
                 
-                let currentSeconds = time.seconds
                 if currentSeconds >= end {
                     let seekTime = CMTime(seconds: start, preferredTimescale: 60)
                     self.player?.seek(to: seekTime) { _ in
                         if self.isPlaying {
                             self.player?.playImmediately(atRate: self.selectedSpeed)
+                        }
                     }
                 }
             }
         }
+
+        print("✅ 새로운 타임 옵저버 생성")
     }
+
     
     // 탭해서 재생, 일시정지
     private func setupGestureRecognizers() {
@@ -422,7 +439,7 @@ class PlayerViewController: UIViewController {
         selectedSpeed = Float(sender.tag) / 10.0
     }
     
-    // 탭하면 재생|일시정지 설정
+    // 탭해서 재생, 일시정지 설정
     @objc private func togglePlayPause() {
         guard let player = player,
                       let item = player.currentItem else { return }
