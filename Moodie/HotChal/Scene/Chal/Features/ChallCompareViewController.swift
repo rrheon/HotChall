@@ -10,12 +10,15 @@ import AVFoundation
 
 class ChallCompareViewController: UIViewController {
 
+    // 🔸 외부에서 전달되는 서브 비디오 파일 이름
+    var subVideoFilename: String?
+
+    // MARK: - Properties
     private var mainVideoPlayer: ChallCompareLoopedVideoPlayer!
     private var isPlaying = true
-
     private var videoURL: URL?
-    public var incomingVideoFilename: String?
 
+    // MARK: - Views
     private let challCompareMainView = makeView(backgroundColor: .systemBackground)
     private let challCompareSubView = ChallComparSubView()
     private let bottomBarView = makeView(backgroundColor: UIColor(red: 255/255, green: 199/255, blue: 194/255, alpha: 0.8))
@@ -24,6 +27,7 @@ class ChallCompareViewController: UIViewController {
     private let deleteButton = makeButton(icon: "trash.circle", title: "삭제", color: .systemRed)
     private let shareButton = makeButton(icon: "square.and.arrow.up.circle", title: "공유하기", color: .systemBlue)
 
+    // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .systemBackground
@@ -32,25 +36,38 @@ class ChallCompareViewController: UIViewController {
         setupConstraints()
         setupActions()
 
+        // 🔸 메인 비디오 루프 재생 플레이어 세팅
         mainVideoPlayer = ChallCompareLoopedVideoPlayer(containerView: challCompareMainView, isMuted: false, isMain: true)
 
+        // 🔹 메인 비디오 URL이 없으면 에러 메시지
         if let url = videoURL {
-            mainVideoPlayer.setupVideo(url) { [weak self] aspectRatio in
-                guard let self = self else { return }
-            }
+            mainVideoPlayer.setupVideo(url)
         } else {
             playCameraResultVideo(url: nil)
         }
 
-        challCompareSubView.setupVideo(named: "asepa1.mp4") { [weak self] aspectRatio in
-            guard let self = self else { return }
-            let width: CGFloat = 140
-            let height = width * aspectRatio
-            let safeFrame = self.view.safeAreaLayoutGuide.layoutFrame
-            self.challCompareSubView.frame = CGRect(x: safeFrame.maxX - width - 10, y: safeFrame.minY + 10, width: width, height: height)
+        // 🔹 subVideoFilename이 전달되면 재생
+        if let filename = subVideoFilename {
+            challCompareSubView.setupVideo(named: filename) { [weak self] aspectRatio in
+                guard let self = self else { return }
+                let width: CGFloat = 140
+                let height = width * aspectRatio
+                let safeFrame = self.view.safeAreaLayoutGuide.layoutFrame
+                self.challCompareSubView.frame = CGRect(x: safeFrame.maxX - width - 10,
+                                                        y: safeFrame.minY + 10,
+                                                        width: width,
+                                                        height: height)
+            }
         }
     }
 
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        mainVideoPlayer.updateFrame()
+        challCompareSubView.videoPlayer.updateFrame()
+    }
+
+    // MARK: - Setup UI
     private func setupViews() {
         view.addSubview(challCompareMainView)
         view.addSubview(challCompareSubView)
@@ -88,6 +105,7 @@ class ChallCompareViewController: UIViewController {
         challCompareSubView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(swapVideoLayers)))
     }
 
+    // MARK: - Actions
     @objc private func togglePlayPause() {
         mainVideoPlayer.togglePlayPause()
         challCompareSubView.videoPlayer.togglePlayPause()
@@ -112,6 +130,7 @@ class ChallCompareViewController: UIViewController {
         present(activityVC, animated: true)
     }
 
+    // 🔁 메인/서브 영상 위치 스왑
     @objc private func swapVideoLayers() {
         let tempMain = mainVideoPlayer!
         let tempSub = challCompareSubView.videoPlayer
@@ -139,18 +158,12 @@ class ChallCompareViewController: UIViewController {
             tempMain.updateFrame()
             tempSub.updateFrame()
 
-            // 참조 교체
             self.mainVideoPlayer = tempSub
             self.challCompareSubView.videoPlayer = tempMain
         }
     }
 
-    override func viewDidLayoutSubviews() {
-        super.viewDidLayoutSubviews()
-        mainVideoPlayer.updateFrame()
-        challCompareSubView.videoPlayer.updateFrame()
-    }
-
+    // MARK: - 에러 상황 대응
     func playCameraResultVideo(url: URL?) {
         mainVideoPlayer.playerLayer?.removeFromSuperlayer()
         challCompareMainView.subviews.forEach { $0.removeFromSuperview() }
@@ -174,11 +187,11 @@ class ChallCompareViewController: UIViewController {
                 label.centerXAnchor.constraint(equalTo: challCompareMainView.centerXAnchor),
                 label.centerYAnchor.constraint(equalTo: challCompareMainView.centerYAnchor)
             ])
-
-            challCompareMainView.layoutIfNeeded()
         }
     }
 }
+
+// MARK: - Factory Methods
 
 private func makeView(backgroundColor: UIColor, cornerRadius: CGFloat = 0) -> UIView {
     let view = UIView()
