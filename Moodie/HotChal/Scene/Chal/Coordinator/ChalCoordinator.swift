@@ -43,6 +43,10 @@ final class ChalCoordinator: Coordinator {
     self.navigationController.pushViewController(vc, animated: true)
   }
 
+  func navToShwoChallengeViewController(){
+    let vc = ShowChallengeViewController()
+    self.navigationController.pushViewController(vc, animated: true)
+  }
 }
 
 
