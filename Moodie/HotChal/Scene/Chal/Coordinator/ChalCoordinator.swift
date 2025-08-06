@@ -19,8 +19,9 @@ final class ChalCoordinator: BaseCoordinator {
     }
     
     /// 챌린지 배우기 디테일 화면으로 이동
-    func navToLearnChallengeViewController(){
+    func navToLearnChallengeViewController(with data: ChallengeVideo){
         let vc = ChallCompareViewController()
+        vc.subVideoFilename = data.videoFilename
         self.navigationController.pushViewController(vc, animated: true)
     }
     
