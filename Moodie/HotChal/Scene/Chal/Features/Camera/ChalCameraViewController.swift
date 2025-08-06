@@ -3,8 +3,15 @@
 import UIKit
 import AVFoundation
 
+protocol CameraViewControllerDelegate: AnyObject {
+    func cameraViewControllerDidFinish()
+    func cameraViewControllerNavigateToResult(url: URL)
+}
+
 final class CameraViewController: UIViewController {
 
+    weak var delegate: CameraViewControllerDelegate?
+    
     // MARK: - Services & Managers
     private let cameraService = CameraService()
     private lazy var recordingService = RecordingService(session: cameraService.session)
@@ -12,6 +19,7 @@ final class CameraViewController: UIViewController {
     private let progressManager = RecordingProgressManager(maxDuration: 15)
 
     // MARK: - UI Components
+    private var resultView: ChallCameraResultView?
     private let recordButton = RecordButton()
     private let flipCameraButton = UIButton(type: .system)
     private let timerCameraButton = UIButton(type: .system)
@@ -35,7 +43,18 @@ final class CameraViewController: UIViewController {
         progress.layer.cornerRadius = 4
         return progress
     }()
-
+    
+    private let recordingTimeLabel: UILabel = {
+        let label = UILabel()
+        label.font = .monospacedDigitSystemFont(ofSize: 16, weight: .medium)
+        label.textColor = .white
+        label.textAlignment = .center
+        label.text = "00:15"
+        label.isHidden = true
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+    
     private let cameraControlStackView: UIStackView = {
         let stack = UIStackView()
         stack.axis = .vertical
@@ -52,7 +71,23 @@ final class CameraViewController: UIViewController {
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
     }()
+    
+    private let closeButton: UIButton = {
+        let button = UIButton(type: .system)
+        let config = UIImage.SymbolConfiguration(pointSize: 24, weight: .bold)
+        let image = UIImage(systemName: "xmark.circle.fill", withConfiguration: config)
+        button.setImage(image, for: .normal)
+        button.tintColor = .white
 
+        button.translatesAutoresizingMaskIntoConstraints = false
+        return button
+    }()
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        navigationController?.setNavigationBarHidden(true, animated: animated)
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         recordButton.delegate = self
@@ -62,6 +97,11 @@ final class CameraViewController: UIViewController {
 
         requestCameraPermission()
         setupUI()
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        navigationController?.setNavigationBarHidden(false, animated: animated)
     }
 
     private func requestCameraPermission() {
@@ -98,7 +138,10 @@ final class CameraViewController: UIViewController {
 
     private func setupUI() {
         view.backgroundColor = .black
-
+        view.addSubview(recordingTimeLabel)
+        view.addSubview(closeButton)
+        closeButton.addTarget(self, action: #selector(onCloseButtonTapped), for: .touchUpInside)
+        
         [recordButton, countdownLabel, progressView, cameraControlWrapperView].forEach { view.addSubview($0) }
         [flipCameraButton, timerCameraButton].forEach { cameraControlStackView.addArrangedSubview($0) }
         cameraControlWrapperView.addSubview(cameraControlStackView)
@@ -128,7 +171,15 @@ final class CameraViewController: UIViewController {
             progressView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 10),
             progressView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
             progressView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-            progressView.heightAnchor.constraint(equalToConstant: 10)
+            progressView.heightAnchor.constraint(equalToConstant: 10),
+            
+            closeButton.topAnchor.constraint(equalTo: progressView.bottomAnchor, constant: 10),
+            closeButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            closeButton.widthAnchor.constraint(equalToConstant: 40),
+            closeButton.heightAnchor.constraint(equalToConstant: 40),
+            
+            recordingTimeLabel.topAnchor.constraint(equalTo: progressView.bottomAnchor, constant: 4),
+            recordingTimeLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor)
         ])
     }
 
@@ -143,7 +194,23 @@ final class CameraViewController: UIViewController {
         timerCameraButton.tintColor = .white
         timerCameraButton.addTarget(self, action: #selector(onTimerButtonPressed), for: .touchUpInside)
     }
+    
+    private func showResultView(url: URL) {
+        let resultView = ChallCameraResultView(videoURL: url)
+        resultView.delegate = self
+        resultView.translatesAutoresizingMaskIntoConstraints = false
 
+
+        view.addSubview(resultView)
+        NSLayoutConstraint.activate([
+            resultView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            resultView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            resultView.topAnchor.constraint(equalTo: view.topAnchor),
+            resultView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+        ])
+        self.resultView = resultView
+    }
+    
     @objc private func onCameraPositionChangedPressed() {
         cameraService.switchCamera()
     }
@@ -171,6 +238,8 @@ final class CameraViewController: UIViewController {
         recordingService.startRecording(to: fileURL)
         recordButton.setState(.recording)
         progressManager.start()
+        
+        setUIForRecording(isRecording: true)
     }
 
     private func stopRecording() {
@@ -179,20 +248,20 @@ final class CameraViewController: UIViewController {
         progressView.setProgress(0.0, animated: false)
         recordButton.setState(.ready)
         
+        recordingTimeLabel.text = "15:00"
+        setUIForRecording(isRecording: false)
     }
 
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        tabBarController?.tabBar.isHidden = true
-        additionalSafeAreaInsets.bottom = 0
-        self.navigationController?.navigationBar.prefersLargeTitles = false
+    @objc private func onCloseButtonTapped() {
+        delegate?.cameraViewControllerDidFinish()
     }
     
-    override func viewWillDisappear(_ animated: Bool) {
-        super.viewWillDisappear(animated)
-        tabBarController?.tabBar.isHidden = false
-        self.navigationController?.navigationBar.prefersLargeTitles = true
+    private func setUIForRecording(isRecording: Bool) {
+        closeButton.isHidden = isRecording
+        recordingTimeLabel.isHidden = !isRecording
+        cameraControlWrapperView.isHidden = isRecording
     }
+    
 }
 
 // MARK: - Delegate
@@ -234,6 +303,12 @@ extension CameraViewController: RecordingProgressManagerDelegate {
     func progressDidUpdate(_ progress: Float) {
         progressView.setProgress(progress, animated: false)
     }
+    
+    func timeRemainingDidUpdate(_ seconds: Int) {
+        let minutes = seconds / 60
+        let secs = seconds % 60
+        recordingTimeLabel.text = String(format: "%02d:%02d", minutes, secs)
+    }
 
     func progressDidFinish() {
         stopRecording()
@@ -242,6 +317,20 @@ extension CameraViewController: RecordingProgressManagerDelegate {
 
 extension CameraViewController: RecordingManagerDelegate {
     func recordingDidFinish(url: URL) {
-        print("저장: \(url)")
+        if progressManager.isCompleted {
+            showResultView(url: url)
+        }
     }
 }
+
+extension CameraViewController: ChallCameraResultViewDelegate {
+    func cameraResultViewClose(_ view: ChallCameraResultView) {
+        view.removeFromSuperview()
+        resultView = nil
+    }
+
+    func cameraResultViewSave(_ view: ChallCameraResultView, didTapSaveWith videoURL: URL) {
+        delegate?.cameraViewControllerNavigateToResult(url: videoURL)
+    }
+}
+

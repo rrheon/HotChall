@@ -12,6 +12,11 @@ protocol Coordinator: AnyObject {
     init(_ navigationController: UINavigationController)
 }
 
+// MARK: - CoordinatorOutput
+protocol CoordinatorFinishDelegate: AnyObject {
+    func coordinatorDidFinish(childCoordinator: Coordinator)
+}
+
 extension Coordinator {
     func finish() {
         childCoordinators.removeAll()
@@ -19,14 +24,10 @@ extension Coordinator {
     }
 }
 
-// MARK: - CoordinatorOutput
-protocol CoordinatorFinishDelegate: AnyObject {
-    func coordinatorDidFinish(childCoordinator: Coordinator)
-}
-
 // MARK: - Coordinator Type
 enum CoordinatorType {
     case app
+    case base
     // tabBar
     case tab
     case favorite
