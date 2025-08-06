@@ -322,8 +322,8 @@ class PlayerViewController: UIViewController {
                 view.addSubview($0)
             }
 
-            startTimeField.placeholder = "시작(초)"
-            endTimeField.placeholder = "종료(초)"
+            startTimeField.placeholder = "start(s)"
+            endTimeField.placeholder = "fin(s)"
 
             NSLayoutConstraint.activate([
                 startTimeField.bottomAnchor.constraint(equalTo: volumeSlider.topAnchor, constant: -16),
@@ -342,7 +342,7 @@ class PlayerViewController: UIViewController {
         if let token = timeObserverToken {
             player?.removeTimeObserver(token)
             timeObserverToken = nil
-            print("🧹 기존 토큰 제거")
+            print("🧹 Remove existing time observer")
         }
 
         let interval = CMTime(seconds: 0.1, preferredTimescale: 60)
@@ -352,13 +352,13 @@ class PlayerViewController: UIViewController {
             let currentSeconds = time.seconds
             let duration = self.player?.currentItem?.duration.seconds ?? 0
 
-            // ✅ 1. 재생 바 & 시간 라벨 업데이트
+            // 재생 바 & 시간 라벨 업데이트
             if duration.isFinite && duration > 0 {
                 self.progressSlider.value = Float(currentSeconds / duration)
                 self.updateTimeLabel(currentTime: currentSeconds, duration: duration)
             }
 
-            // ✅ 2. A-B 반복 처리
+            // A-B 반복 처리
             if let startText = self.startTimeField.text,
                let endText = self.endTimeField.text,
                let start = Double(startText),
@@ -376,7 +376,7 @@ class PlayerViewController: UIViewController {
             }
         }
 
-        print("✅ 새로운 타임 옵저버 생성")
+        print("✅ New Time observer added")
     }
 
     
@@ -454,7 +454,7 @@ class PlayerViewController: UIViewController {
     private func updateTimeLabel(currentTime: Double, duration: Double) {
         let current = Int(currentTime.rounded())
         let total = Int(duration.rounded())
-        timeLabel.text = "\(current)초 | \(total)초"
+        timeLabel.text = "\(current)s | \(total)s"
     }
     
     // 속도 버튼 업데이트
@@ -483,7 +483,7 @@ class PlayerViewController: UIViewController {
         if let token = timeObserverToken {
             player?.removeTimeObserver(token)
             timeObserverToken = nil
-            print("🧹 타임 옵저버 제거 완료")
+            print("🗑️ Time observer removed")
         }
     }
 }
