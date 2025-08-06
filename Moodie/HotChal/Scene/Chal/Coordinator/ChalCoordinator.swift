@@ -22,6 +22,8 @@ final class ChalCoordinator: BaseCoordinator {
     func navToLearnChallengeViewController(with data: ChallengeVideo){
         let vc = ChallCompareViewController()
         vc.subVideoFilename = data.videoFilename
+        vc.coordinator = self
+        vc.hidesBottomBarWhenPushed = true
         self.navigationController.pushViewController(vc, animated: true)
     }
     
@@ -36,6 +38,8 @@ final class ChalCoordinator: BaseCoordinator {
     // 챌린지 찍기 화면에서 -> 비교하기로으로 이동
     func navToCompareViewController(url: URL) {
         let compareVC = ChallCompareViewController()
+        compareVC.videoURL = url
+        compareVC.coordinator = self
         navigationController.pushViewController(compareVC, animated: true)
     }
       
