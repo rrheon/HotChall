@@ -32,7 +32,7 @@ final class SavedHotChallViewController: UIViewController {
   override func viewDidLoad() {
     super.viewDidLoad()
     
-    self.title = "저장된 챌린지"
+    self.title = "즐겨찾기"
     
     view.backgroundColor = .backgroundColor
     
@@ -49,6 +49,11 @@ final class SavedHotChallViewController: UIViewController {
   override func viewWillDisappear(_ animated: Bool) {
     ChallengePlayerUIManager.shared.closeChallPlayer()
   }
+  
+  func scrollViewDidScroll(_ scrollView: UIScrollView) {
+    ChallengePlayerUIManager.shared.closeChallPlayer()
+  }
+  
   
   /// 화면 구성
   private func makeUI(){

@@ -11,7 +11,7 @@ import UIKit
 /// HotChall - front - HotChallMainViewController
 /// UIView
 final class HotChalMainView: UIView {
-  private let scrollView = UIScrollView()
+  let scrollView = UIScrollView()
   private let contentView = UIView()
   
   /// 핫챌차트 전체보기 버튼
@@ -35,7 +35,7 @@ final class HotChalMainView: UIView {
     layout.minimumLineSpacing = 12
     
     let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
-    collectionView.backgroundColor = .clear
+    collectionView.backgroundColor = .white
     collectionView.showsHorizontalScrollIndicator = false
     collectionView.isPagingEnabled = true
 

@@ -15,11 +15,19 @@ class PlayerViewController: UIViewController {
     private var playerLayer: AVPlayerLayer?
     private var timeObserverToken: Any?
     
-    // 전체 화면 배경 (영상용)
+    // 전체 화면 배경(영상용)
     private let playerBackgroundView = UIView()
         
     // UI를 올릴 컨테이너
     private let overlayContainerView = UIView()
+    
+    private let progressSlider = UISlider()
+    private let volumeSlider = UISlider()
+    private let speedStackView = UIStackView()
+    
+    // A-B 반복용 텍스트 필드
+    private let startTimeField = UITextField()
+    private let endTimeField = UITextField()
     
     var videoFilename: String?
     var videoTitle: String?
@@ -28,13 +36,25 @@ class PlayerViewController: UIViewController {
     
     private var isPlaying = true {
         didSet {
-                    guard let player = player else { return }
-                    isPlaying ? player.playImmediately(atRate: selectedSpeed) : player.pause()
-                }
+            guard let player = player else { return }
+            isPlaying ? player.playImmediately(atRate: selectedSpeed) : player.pause()
+        }
     }
     
     private let speeds: [Float] = [0.5, 1.0, 1.5, 2.0]
-    // MARK: - 속도 조절 버튼 업데이트
+    private var isMuted = false
+    private var previousVolume: Float = 0.5
+    
+    // 타이틀 + 업로더 라벨 배경 설정
+    private let infoBackgroundView: UIVisualEffectView = {
+        let view = UIVisualEffectView(effect: .none)
+        view.layer.cornerRadius = 10
+        view.clipsToBounds = true
+        view.sizeToFit()
+        return view
+    }()
+    
+    // 속도 조절 버튼 업데이트
     private var selectedSpeed: Float = 1.0 {
         didSet {
             if isPlaying {
@@ -44,16 +64,7 @@ class PlayerViewController: UIViewController {
         }
     }
     
-    private var isMuted = false
-    private var previousVolume: Float = 0.5
-    
-    private let infoBackgroundView: UIVisualEffectView = {
-        let view = UIVisualEffectView(effect: .none)
-        view.layer.cornerRadius = 10
-        view.clipsToBounds = true
-        view.sizeToFit()
-        return view
-    }()
+    //MARK: - 라벨 설정
     
     // 챌린지 타이틀
     private let titleLabel: UILabel = {
@@ -99,24 +110,15 @@ class PlayerViewController: UIViewController {
         return imageView
     }()
     
-    private let progressSlider = UISlider()
-    private let volumeSlider = UISlider()
-    private let speedStackView = UIStackView()
-    
-    // A-B 반복용 텍스트 필드
-    private let startTimeField = UITextField()
-    private let endTimeField = UITextField()
-  
-  
-    //MARK: - View Lifecycle
+    //MARK: - viewDidLoad
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .black
         self.additionalSafeAreaInsets.bottom = 0 // safeArea 하단 없애기
         self.edgesForExtendedLayout = [.bottom] // 전체 화면까지 확장
         
-        titleLabel.text = videoTitle ?? "제목 없음"
-        uploaderLabel.text = uploader ?? "알 수 없음"
+        titleLabel.text = videoTitle ?? "None Title"
+        uploaderLabel.text = uploader ?? "Unknown Uploader"
         
         setupPlayer()
         setupUI()
@@ -127,7 +129,7 @@ class PlayerViewController: UIViewController {
     }
 
     
-    //MARK: - View DidLayoutSubviews
+    //MARK: - viewDidLayoutSubviews
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         
@@ -140,13 +142,14 @@ class PlayerViewController: UIViewController {
         let maxWidth = view.bounds.width - margin * 2
         let safeAreaBottom = view.safeAreaInsets.bottom
         
-        let titleSize = titleLabel.sizeThatFits(CGSize(width: maxWidth - 12, height: .greatestFiniteMagnitude))
-        let uploaderSize = uploaderLabel.sizeThatFits(CGSize(width: maxWidth - 12, height: .greatestFiniteMagnitude))
+        let titleSize = titleLabel.sizeThatFits(CGSize(width: maxWidth - 14, height: .greatestFiniteMagnitude))
+        let uploaderSize = uploaderLabel.sizeThatFits(CGSize(width: maxWidth - 13, height: .greatestFiniteMagnitude))
         let infoHeight = titleSize.height + uploaderSize.height + spacing
         let infoWidth = titleSize.width + uploaderSize.width + spacing
         
         let speedStackHeight: CGFloat = 40
         let speedStackY = view.bounds.height - safeAreaBottom - speedStackHeight
+        let progressSliderY = speedStackY - sliderHeight - spacing
         
         speedStackView.frame = CGRect(
             x: margin,
@@ -155,7 +158,6 @@ class PlayerViewController: UIViewController {
             height: speedStackHeight
         )
         
-        let progressSliderY = speedStackY - sliderHeight - spacing
         progressSlider.frame = CGRect(
             x: margin,
             y: progressSliderY,
@@ -190,6 +192,7 @@ class PlayerViewController: UIViewController {
             width: infoWidth,
             height: infoHeight
         )
+        
         titleLabel.frame = CGRect(x: 12, y: 6, width: maxWidth - 24, height: titleSize.height)
         uploaderLabel.frame = CGRect(x: 12, y: titleLabel.frame.maxY + 2, width: maxWidth - 24, height: uploaderSize.height)
         
@@ -208,7 +211,6 @@ class PlayerViewController: UIViewController {
                print("❌ Invalid video filename: \(String(describing: videoFilename))")
                return
            }
-
             player = AVPlayer(url: url)
             playerLayer = AVPlayerLayer(player: player)
             playerLayer?.videoGravity = .resizeAspect
@@ -216,7 +218,8 @@ class PlayerViewController: UIViewController {
                    view.layer.insertSublayer(layer, at: 0)
                }
         
-        // 콜백이 호출되는 주기(0.1초 마다)
+       // 0.1초 마다 슬라이더 업데이트 주기 설정
+       // interval - 콜백이 호출되는 주기(n초 마다)
         let interval = CMTime(seconds: 0.1, preferredTimescale: 60)
         timeObserverToken = player?.addPeriodicTimeObserver(forInterval: interval, queue: .main) { [weak self] time in
             guard let self = self else { return }
@@ -227,7 +230,7 @@ class PlayerViewController: UIViewController {
                 self.updateTimeLabel(currentTime: current, duration: duration)
             }
         }
-       
+       // 선택된 속도로 영상 재생
         player?.playImmediately(atRate: selectedSpeed)
     }
     
@@ -241,13 +244,28 @@ class PlayerViewController: UIViewController {
         view.addSubview(timeLabel)
         view.addSubview(volumeIcon)
         view.addSubview(volumeSlider)
+        view.addSubview(speedStackView)
+
+        // 재생 바 슬라이더
+        progressSlider.minimumTrackTintColor = .white
+        progressSlider.maximumTrackTintColor = UIColor.white.withAlphaComponent(0.3)
+        progressSlider.thumbTintColor = .appPink
+        progressSlider.addTarget(self, action: #selector(progressSliderChanged), for: .valueChanged)
         
-        // 속도 조절 버튼 위치 조정
+        // 볼륨 바 슬라이더
+        volumeSlider.minimumTrackTintColor = .appPink
+        volumeSlider.maximumTrackTintColor = UIColor.white.withAlphaComponent(0.3)
+        volumeSlider.thumbTintColor = .white
+        volumeSlider.value = 1.0
+        volumeSlider.addTarget(self, action: #selector(volumeSliderChanged), for: .valueChanged)
+        
+        // 속도 조절 뷰 위치 조정
         speedStackView.axis = .horizontal
         speedStackView.spacing = 8
         speedStackView.distribution = .fillEqually
         speedStackView.translatesAutoresizingMaskIntoConstraints = false
         
+        // 속도 조절 뷰 UI
         for speed in speeds {
             let button = UIButton(type: .system)
             button.setTitle("\(speed)x", for: .normal)
@@ -259,24 +277,11 @@ class PlayerViewController: UIViewController {
             button.addTarget(self, action: #selector(speedSelected(_:)), for: .touchUpInside)
             speedStackView.addArrangedSubview(button)
         }
-        view.addSubview(speedStackView)
-        
-        progressSlider.minimumTrackTintColor = .white
-        progressSlider.maximumTrackTintColor = UIColor.white.withAlphaComponent(0.3)
-        progressSlider.thumbTintColor = .appPink
-        progressSlider.addTarget(self, action: #selector(progressSliderChanged), for: .valueChanged)
-        
-        volumeSlider.minimumTrackTintColor = .appPink
-        volumeSlider.maximumTrackTintColor = UIColor.white.withAlphaComponent(0.3)
-        volumeSlider.thumbTintColor = .white
-        volumeSlider.value = 1.0
-        volumeSlider.addTarget(self, action: #selector(volumeSliderChanged), for: .valueChanged)
-        
+        // 기본 선택된 속도
         selectedSpeed = 1.0
         updateSpeedButtons()
-
         
-        // 속도 조절 버튼 오토 레이아웃
+        // 속도 조절 뷰 레이아웃
         NSLayoutConstraint.activate([
             speedStackView.heightAnchor.constraint(equalToConstant: 36),
             speedStackView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
@@ -285,14 +290,15 @@ class PlayerViewController: UIViewController {
         ])
     }
     
-    // MARK: - 레이아웃 설정
+    // MARK: - 라벨 레이아웃 설정
     private func setupLayout() {
         view.addSubview(titleLabel)
         view.addSubview(uploaderLabel)
 
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         uploaderLabel.translatesAutoresizingMaskIntoConstraints = false
-
+        
+        // 타이틀, 업로더 라벨 레이아웃
         NSLayoutConstraint.activate([
             titleLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 16),
             titleLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
@@ -316,8 +322,8 @@ class PlayerViewController: UIViewController {
                 view.addSubview($0)
             }
 
-            startTimeField.placeholder = "시작(초)"
-            endTimeField.placeholder = "종료(초)"
+            startTimeField.placeholder = "start(s)"
+            endTimeField.placeholder = "fin(s)"
 
             NSLayoutConstraint.activate([
                 startTimeField.bottomAnchor.constraint(equalTo: volumeSlider.topAnchor, constant: -16),
@@ -331,51 +337,74 @@ class PlayerViewController: UIViewController {
         }
     // MARK: - 타임 옵저버 (A-B 반복 기능)
 
-        private func addPeriodicTimeObserver() {
-            let interval = CMTime(seconds: 1, preferredTimescale: 60)
-            timeObserverToken = player?.addPeriodicTimeObserver(forInterval: interval, queue: .main) { [weak self] time in
-                guard let self = self else { return }
+    private func addPeriodicTimeObserver() {
+        // 기존 옵저버 제거
+        if let token = timeObserverToken {
+            player?.removeTimeObserver(token)
+            timeObserverToken = nil
+            print("🧹 Remove existing time observer")
+        }
 
-                guard let startText = self.startTimeField.text,
-                      let endText = self.endTimeField.text,
-                      let start = Double(startText),
-                      let end = Double(endText),
-                      end > start else {
-                    return
-                }
+        let interval = CMTime(seconds: 0.1, preferredTimescale: 60)
+        timeObserverToken = player?.addPeriodicTimeObserver(forInterval: interval, queue: .main) { [weak self] time in
+            guard let self = self else { return }
+
+            let currentSeconds = time.seconds
+            let duration = self.player?.currentItem?.duration.seconds ?? 0
+
+            // 재생 바 & 시간 라벨 업데이트
+            if duration.isFinite && duration > 0 {
+                self.progressSlider.value = Float(currentSeconds / duration)
+                self.updateTimeLabel(currentTime: currentSeconds, duration: duration)
+            }
+
+            // A-B 반복 처리
+            if let startText = self.startTimeField.text,
+               let endText = self.endTimeField.text,
+               let start = Double(startText),
+               let end = Double(endText),
+               end > start {
                 
-                let currentSeconds = time.seconds
                 if currentSeconds >= end {
                     let seekTime = CMTime(seconds: start, preferredTimescale: 60)
                     self.player?.seek(to: seekTime) { _ in
                         if self.isPlaying {
                             self.player?.playImmediately(atRate: self.selectedSpeed)
+                        }
                     }
                 }
             }
         }
+
+        print("✅ New Time observer added")
     }
+
     
+    // 탭해서 재생, 일시정지
     private func setupGestureRecognizers() {
         view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(togglePlayPause)))
     }
     
+    // 볼륨 버튼 탭(뮤트)
     private func setupVolumeIconTap() {
         volumeIcon.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(volumeIconTapped)))
     }
     
+    // 영상 재생 종료 후
     @objc private func playerDidFinishPlaying() {
         player?.seek(to: .zero)
         isPlaying = false
     }
     
+    // 재생 슬라이더 변화 감지
     @objc private func progressSliderChanged() {
             guard let duration = player?.currentItem?.duration.seconds, duration > 0 else { return }
             let value = Double(progressSlider.value) * duration
-            let rounded = round(value)
+            let rounded = value
             player?.seek(to: CMTime(seconds: rounded, preferredTimescale: 1000))
         }
     
+    // 볼륨 슬라이더 변화 감지
     @objc private func volumeSliderChanged() {
         player?.volume = volumeSlider.value
         if volumeSlider.value == 0 {
@@ -388,6 +417,7 @@ class PlayerViewController: UIViewController {
         }
     }
     
+    // 볼륨 아이콘 눌렀을때(뮤트 설정)
     @objc private func volumeIconTapped() {
         guard let player = player else { return }
         if isMuted {
@@ -404,10 +434,12 @@ class PlayerViewController: UIViewController {
         }
     }
     
+    // 재생 속도 선택 버튼
     @objc private func speedSelected(_ sender: UIButton) {
         selectedSpeed = Float(sender.tag) / 10.0
     }
     
+    // 탭해서 재생, 일시정지 설정
     @objc private func togglePlayPause() {
         guard let player = player,
                       let item = player.currentItem else { return }
@@ -418,28 +450,41 @@ class PlayerViewController: UIViewController {
                 isPlaying.toggle()
     }
     
+    // 재생 시간 업데이트
     private func updateTimeLabel(currentTime: Double, duration: Double) {
         let current = Int(currentTime.rounded())
         let total = Int(duration.rounded())
-        timeLabel.text = "\(current)초 | \(total)초"
+        timeLabel.text = "\(current)s | \(total)s"
     }
     
+    // 속도 버튼 업데이트
     private func updateSpeedButtons() {
         for case let button as UIButton in speedStackView.arrangedSubviews {
             let speed = Float(button.tag) / 10.0
             button.backgroundColor = (speed == selectedSpeed) ? .appPink : UIColor.white.withAlphaComponent(0.2)
         }
     }
-    
+
+    //MARK: - 뷰 이동시 숨김/나타냄 처리
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         tabBarController?.tabBar.isHidden = true
         additionalSafeAreaInsets.bottom = 0
+        self.navigationController?.navigationBar.prefersLargeTitles = false
     }
-
+    
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         tabBarController?.tabBar.isHidden = false
+        self.navigationController?.navigationBar.prefersLargeTitles = true
+    }
+    // 메모리 누수 문제로 추가(디버깅까지)
+    deinit {
+        if let token = timeObserverToken {
+            player?.removeTimeObserver(token)
+            timeObserverToken = nil
+            print("🗑️ Time observer removed")
+        }
     }
 }
 
