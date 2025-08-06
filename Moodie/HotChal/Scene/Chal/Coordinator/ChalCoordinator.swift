@@ -43,6 +43,15 @@ final class ChalCoordinator: Coordinator {
     self.navigationController.pushViewController(vc, animated: true)
   }
 
+  
+  /// 챌린지 보기 화면으로 이동
+  func navToShwoChallengeViewController(){
+    let vc = ShowChallengePageViewController(
+      transitionStyle: .scroll,
+      navigationOrientation: .vertical
+    )
+    self.navigationController.pushViewController(vc, animated: true)
+  }
 }
 
 

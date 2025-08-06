@@ -104,6 +104,7 @@ final class ChallPlayerView: UIView {
     learnChallengeButton.addAction(UIAction { [weak self] _ in
       guard let self = self else { return }
       self.delegate?.navToLearnChallenge(with: self.challengeData ?? mockupData)
+      
     }, for: .touchUpInside)
     
     saveChallengeButton.addAction(UIAction { [weak self] _ in
