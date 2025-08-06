@@ -16,22 +16,35 @@ final class HotChallTop3CategoryView: UIView {
   /// 카테고리 라벨
   let titleLabel: UILabel = {
     let label = UILabel()
-    label.font = .boldSystemFont(ofSize: 18)
+    label.font = .boldSystemFont(ofSize: 20)
     label.textColor = .white
     return label
   }()
 
   /// 카테고리 제목으로 전체보기 버튼
   let moreButton: UIButton = {
-    let button = UIButton(configuration: .plain())
-    button.setTitle("전체보기", for: .normal)
-    button.setTitleColor(.white, for: .normal)
-    button.setImage(UIImage(systemName: "chevron.right"), for: .normal)
+    var config = UIButton.Configuration.plain()
+    config.image = UIImage(systemName: "chevron.right")
+    config.imagePadding = 10
+    config.baseForegroundColor = .white
+    
+    // 이미지 크기 줄이기
+    let imageSize = UIImage.SymbolConfiguration(pointSize: 10, weight: .regular)
+    config.preferredSymbolConfigurationForImage = imageSize
+    
+    // 텍스트 크기 줄이기
+    let title = "전체보기"
+    let font = UIFont.systemFont(ofSize: 12)
+    let attributes: [NSAttributedString.Key: Any] = [ .font: font ]
+    config.attributedTitle = AttributedString(NSAttributedString(string: title, attributes: attributes))
+    
+    let button = UIButton(configuration: config)
     button.semanticContentAttribute = .forceRightToLeft
-    button.configuration?.imagePadding = 10
-    button.tintColor = .white
+    
     return button
   }()
+
+
 
   let collectionView: UICollectionView = {
     let layout = UICollectionViewFlowLayout()

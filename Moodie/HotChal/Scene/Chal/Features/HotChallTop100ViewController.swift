@@ -41,6 +41,9 @@ final class HotChallTop100ViewController: UIViewController {
     ChallengePlayerUIManager.shared.closeChallPlayer()
   }
 
+  func scrollViewDidScroll(_ scrollView: UIScrollView) {
+    ChallengePlayerUIManager.shared.closeChallPlayer()
+  }
   
   /// 셀등록
   private func registerCell(){
@@ -103,8 +106,9 @@ extension HotChallTop100ViewController: UICollectionViewDelegateFlowLayout{
     sizeForItemAt indexPath: IndexPath
   ) -> CGSize {
     let width = collectionView.frame.width
-    let height = collectionView.frame.height / 10
-    
+    let count = collectionView.frame.height / 10 < 50.0 ? 7 : 10
+    let height = collectionView.frame.height / CGFloat(count)
+
     return CGSize(width: width, height: height)
   }
 }

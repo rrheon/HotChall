@@ -36,6 +36,11 @@ final class HotChallLearnViewController: UIViewController {
     setupLayout()
   }
   
+  func scrollViewDidScroll(_ scrollView: UIScrollView) {
+    ChallengePlayerUIManager.shared.closeChallPlayer()
+  }
+  
+  
   override func viewWillDisappear(_ animated: Bool) {
     ChallengePlayerUIManager.shared.closeChallPlayer()
   }
