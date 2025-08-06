@@ -181,6 +181,18 @@ final class CameraViewController: UIViewController {
         
     }
 
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        tabBarController?.tabBar.isHidden = true
+        additionalSafeAreaInsets.bottom = 0
+        self.navigationController?.navigationBar.prefersLargeTitles = false
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        tabBarController?.tabBar.isHidden = false
+        self.navigationController?.navigationBar.prefersLargeTitles = true
+    }
 }
 
 // MARK: - Delegate
