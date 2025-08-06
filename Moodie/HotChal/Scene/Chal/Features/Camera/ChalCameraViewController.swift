@@ -12,6 +12,7 @@ final class CameraViewController: UIViewController {
     private let progressManager = RecordingProgressManager(maxDuration: 15)
 
     // MARK: - UI Components
+    private var resultView: ChallCameraResultView?
     private let recordButton = RecordButton()
     private let flipCameraButton = UIButton(type: .system)
     private let timerCameraButton = UIButton(type: .system)
@@ -189,14 +190,15 @@ final class CameraViewController: UIViewController {
 
 
         view.addSubview(resultView)
-
         NSLayoutConstraint.activate([
             resultView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             resultView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             resultView.topAnchor.constraint(equalTo: view.topAnchor),
             resultView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
+        self.resultView = resultView
     }
+    
     @objc private func onCameraPositionChangedPressed() {
         cameraService.switchCamera()
     }
@@ -316,8 +318,8 @@ extension CameraViewController: RecordingManagerDelegate {
 
 extension CameraViewController: ChallCameraResultViewDelegate {
     func cameraResultViewClose(_ view: ChallCameraResultView) {
-        print("???")
         view.removeFromSuperview()
+        resultView = nil
     }
 
     func cameraResultViewSave(_ view: ChallCameraResultView, didTapSaveWith videoURL: URL) {
