@@ -3,8 +3,15 @@
 import UIKit
 import AVFoundation
 
+protocol CameraViewControllerDelegate: AnyObject {
+    func cameraViewControllerDidFinish()
+    func cameraViewControllerNavigateToResult(url: URL)
+}
+
 final class CameraViewController: UIViewController {
 
+    weak var delegate: CameraViewControllerDelegate?
+    
     // MARK: - Services & Managers
     private let cameraService = CameraService()
     private lazy var recordingService = RecordingService(session: cameraService.session)
@@ -75,10 +82,10 @@ final class CameraViewController: UIViewController {
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
-
+    
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        self.navigationController?.setNavigationBarHidden(true, animated: animated)
+        navigationController?.setNavigationBarHidden(true, animated: animated)
     }
     
     override func viewDidLoad() {
@@ -90,6 +97,11 @@ final class CameraViewController: UIViewController {
 
         requestCameraPermission()
         setupUI()
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        navigationController?.setNavigationBarHidden(false, animated: animated)
     }
 
     private func requestCameraPermission() {
@@ -241,11 +253,7 @@ final class CameraViewController: UIViewController {
     }
 
     @objc private func onCloseButtonTapped() {
-        if let navigationController = self.navigationController {
-            navigationController.popViewController(animated: true)
-        } else {
-            self.dismiss(animated: true)
-        }
+        delegate?.cameraViewControllerDidFinish()
     }
     
     private func setUIForRecording(isRecording: Bool) {
@@ -310,9 +318,7 @@ extension CameraViewController: RecordingManagerDelegate {
     func recordingDidFinish(url: URL) {
         if progressManager.isCompleted {
             showResultView(url: url)
-        } else {
-             print("녹화 시간 부족, 저장 화면 이동 안 함")
-         }
+        }
     }
 }
 
@@ -323,8 +329,7 @@ extension CameraViewController: ChallCameraResultViewDelegate {
     }
 
     func cameraResultViewSave(_ view: ChallCameraResultView, didTapSaveWith videoURL: URL) {
-        UISaveVideoAtPathToSavedPhotosAlbum(videoURL.path, nil, nil, nil)
-        print("저장 완료")
+        delegate?.cameraViewControllerNavigateToResult(url: videoURL)
     }
 }
 

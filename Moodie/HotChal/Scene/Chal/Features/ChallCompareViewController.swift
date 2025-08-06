@@ -78,7 +78,7 @@ class ChallCompareViewController: UIViewController {
     private var subVideoPlayer: LoopedVideoPlayer!
     private var challComparSubViewHeightConstraint: NSLayoutConstraint?
     private var isPlaying: Bool = true
-
+    
     private let challComparMainView = makeView(backgroundColor: .systemBackground)
     private let challComparSubView = makeView(backgroundColor: .systemBackground, cornerRadius: 15)
     private let bottomBarView = makeView(backgroundColor: UIColor(red: 255/255, green: 199/255, blue: 194/255, alpha: 0.8))
