@@ -35,6 +35,7 @@ final class CameraViewController: UIViewController {
         progress.layer.cornerRadius = 4
         return progress
     }()
+    
     private let recordingTimeLabel: UILabel = {
         let label = UILabel()
         label.font = .monospacedDigitSystemFont(ofSize: 16, weight: .medium)
@@ -180,7 +181,22 @@ final class CameraViewController: UIViewController {
         timerCameraButton.tintColor = .white
         timerCameraButton.addTarget(self, action: #selector(onTimerButtonPressed), for: .touchUpInside)
     }
+    
+    private func showResultView(url: URL) {
+        let resultView = ChallCameraResultView(videoURL: url)
+        resultView.delegate = self
+        resultView.translatesAutoresizingMaskIntoConstraints = false
 
+
+        view.addSubview(resultView)
+
+        NSLayoutConstraint.activate([
+            resultView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            resultView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            resultView.topAnchor.constraint(equalTo: view.topAnchor),
+            resultView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+        ])
+    }
     @objc private func onCameraPositionChangedPressed() {
         cameraService.switchCamera()
     }
@@ -291,9 +307,22 @@ extension CameraViewController: RecordingProgressManagerDelegate {
 extension CameraViewController: RecordingManagerDelegate {
     func recordingDidFinish(url: URL) {
         if progressManager.isCompleted {
-            print("이동")
+            showResultView(url: url)
         } else {
              print("녹화 시간 부족, 저장 화면 이동 안 함")
          }
     }
 }
+
+extension CameraViewController: ChallCameraResultViewDelegate {
+    func cameraResultViewClose(_ view: ChallCameraResultView) {
+        print("???")
+        view.removeFromSuperview()
+    }
+
+    func cameraResultViewSave(_ view: ChallCameraResultView, didTapSaveWith videoURL: URL) {
+        UISaveVideoAtPathToSavedPhotosAlbum(videoURL.path, nil, nil, nil)
+        print("저장 완료")
+    }
+}
+
