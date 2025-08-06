@@ -447,18 +447,26 @@ class PlayerViewController: UIViewController {
         }
     }
 
-    //MARK: - 영상 재생하는 뷰로 이동
+    //MARK: - 뷰 이동시 숨김/나타냄 처리
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         tabBarController?.tabBar.isHidden = true
         additionalSafeAreaInsets.bottom = 0
         self.navigationController?.navigationBar.prefersLargeTitles = false
     }
-    //MARK: - 영상 재생하는 뷰 밖으로 이동
+    
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         tabBarController?.tabBar.isHidden = false
         self.navigationController?.navigationBar.prefersLargeTitles = true
+    }
+    // 메모리 누수 문제로 추가
+    deinit {
+        if let token = timeObserverToken {
+            player?.removeTimeObserver(token)
+            timeObserverToken = nil
+            print("🧹 타임 옵저버 제거 완료")
+        }
     }
 }
 
