@@ -78,20 +78,20 @@ class ChallCompareViewController: UIViewController {
             bottomBarView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             bottomBarView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             bottomBarView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-            bottomBarView.heightAnchor.constraint(equalToConstant: 85),
+            bottomBarView.heightAnchor.constraint(equalToConstant: 70),
             
             deleteButton.centerYAnchor.constraint(equalTo: bottomBarView.centerYAnchor),
-                deleteButton.trailingAnchor.constraint(equalTo: savedButton.leadingAnchor, constant: -24),
+                deleteButton.trailingAnchor.constraint(equalTo: savedButton.leadingAnchor, constant: -22),
                 
                 savedButton.centerYAnchor.constraint(equalTo: bottomBarView.centerYAnchor),
-                savedButton.trailingAnchor.constraint(equalTo: view.centerXAnchor, constant: -12),
+                savedButton.trailingAnchor.constraint(equalTo: view.centerXAnchor, constant: -11),
                 
                 pauseButton.centerYAnchor.constraint(equalTo: bottomBarView.centerYAnchor),
-                pauseButton.leadingAnchor.constraint(equalTo: view.centerXAnchor, constant: 12),
-                pauseButton.widthAnchor.constraint(equalToConstant: 80),
+                pauseButton.leadingAnchor.constraint(equalTo: view.centerXAnchor, constant: 11),
+                pauseButton.widthAnchor.constraint(equalToConstant: 70),
                 
                 shareButton.centerYAnchor.constraint(equalTo: bottomBarView.centerYAnchor),
-                shareButton.leadingAnchor.constraint(equalTo: pauseButton.trailingAnchor, constant: 24)
+                shareButton.leadingAnchor.constraint(equalTo: pauseButton.trailingAnchor, constant: 22)
         ])
     }
     
@@ -113,9 +113,9 @@ class ChallCompareViewController: UIViewController {
         let title = isPlaying ? "일시정지" : "재생"
 
         if var config = pauseButton.configuration {
-            config.image = UIImage(systemName: iconName, withConfiguration: UIImage.SymbolConfiguration(pointSize: 25, weight: .regular))
+            config.image = UIImage(systemName: iconName, withConfiguration: UIImage.SymbolConfiguration(pointSize: 20, weight: .regular))
             var titleContainer = AttributeContainer()
-            titleContainer.font = UIFont.systemFont(ofSize: 15)
+            titleContainer.font = UIFont.systemFont(ofSize: 13)
             config.attributedTitle = AttributedString(title, attributes: titleContainer)
             pauseButton.configuration = config
         }
@@ -229,14 +229,14 @@ private func makeButton(icon: String, title: String, color: UIColor) -> UIButton
 
 private func makeButtonConfig(icon: String, title: String, color: UIColor) -> UIButton.Configuration {
     var config = UIButton.Configuration.plain()
-    config.image = UIImage(systemName: icon, withConfiguration: UIImage.SymbolConfiguration(pointSize: 25, weight: .regular))
+    config.image = UIImage(systemName: icon, withConfiguration: UIImage.SymbolConfiguration(pointSize: 20, weight: .regular))
     config.title = title
     config.imagePlacement = .top
     config.imagePadding = 5
     config.baseForegroundColor = color
     
     var container = AttributeContainer()
-    container.font = UIFont.systemFont(ofSize: 15)
+    container.font = UIFont.systemFont(ofSize: 13)
     config.attributedTitle = AttributedString(title, attributes: container)
     
     return config
