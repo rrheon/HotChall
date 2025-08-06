@@ -15,7 +15,7 @@ class PlayerViewController: UIViewController {
     private var playerLayer: AVPlayerLayer?
     private var timeObserverToken: Any?
     
-    // 전체 화면 배경 (영상용)
+    // 전체 화면 배경(영상용)
     private let playerBackgroundView = UIView()
         
     // UI를 올릴 컨테이너
