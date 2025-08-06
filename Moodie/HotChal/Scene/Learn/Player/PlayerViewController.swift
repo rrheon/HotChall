@@ -108,7 +108,7 @@ class PlayerViewController: UIViewController {
         return imageView
     }()
     
-    //MARK: - View Lifecycle
+    //MARK: - viewDidLoad
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .black
@@ -127,7 +127,7 @@ class PlayerViewController: UIViewController {
     }
 
     
-    //MARK: - View DidLayoutSubviews
+    //MARK: - viewDidLayoutSubviews
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         
@@ -242,24 +242,6 @@ class PlayerViewController: UIViewController {
         view.addSubview(volumeIcon)
         view.addSubview(volumeSlider)
         
-        // 속도 조절 버튼 위치 조정
-        speedStackView.axis = .horizontal
-        speedStackView.spacing = 8
-        speedStackView.distribution = .fillEqually
-        speedStackView.translatesAutoresizingMaskIntoConstraints = false
-        
-        for speed in speeds {
-            let button = UIButton(type: .system)
-            button.setTitle("\(speed)x", for: .normal)
-            button.setTitleColor(.white, for: .normal)
-            button.backgroundColor = UIColor.white.withAlphaComponent(0.2)
-            button.layer.cornerRadius = 8
-            button.titleLabel?.font = UIFont.systemFont(ofSize: 15, weight: .medium)
-            button.tag = Int(speed * 10)
-            button.addTarget(self, action: #selector(speedSelected(_:)), for: .touchUpInside)
-            speedStackView.addArrangedSubview(button)
-        }
-        view.addSubview(speedStackView)
         
         progressSlider.minimumTrackTintColor = .white
         progressSlider.maximumTrackTintColor = UIColor.white.withAlphaComponent(0.3)
@@ -272,9 +254,27 @@ class PlayerViewController: UIViewController {
         volumeSlider.value = 1.0
         volumeSlider.addTarget(self, action: #selector(volumeSliderChanged), for: .valueChanged)
         
+        // 속도 조절 버튼 위치 조정
+        speedStackView.axis = .horizontal
+        speedStackView.spacing = 8
+        speedStackView.distribution = .fillEqually
+        speedStackView.translatesAutoresizingMaskIntoConstraints = false
+        
+        // 속도 조절 버튼 UI
+        for speed in speeds {
+            let button = UIButton(type: .system)
+            button.setTitle("\(speed)x", for: .normal)
+            button.setTitleColor(.white, for: .normal)
+            button.backgroundColor = UIColor.white.withAlphaComponent(0.2)
+            button.layer.cornerRadius = 8
+            button.titleLabel?.font = UIFont.systemFont(ofSize: 15, weight: .medium)
+            button.tag = Int(speed * 10)
+            button.addTarget(self, action: #selector(speedSelected(_:)), for: .touchUpInside)
+            speedStackView.addArrangedSubview(button)
+        }
+        view.addSubview(speedStackView)
         selectedSpeed = 1.0
         updateSpeedButtons()
-
         
         // 속도 조절 버튼 레이아웃
         NSLayoutConstraint.activate([
