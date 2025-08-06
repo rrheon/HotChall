@@ -261,6 +261,7 @@ final class CameraViewController: UIViewController {
         recordingTimeLabel.isHidden = !isRecording
         cameraControlWrapperView.isHidden = isRecording
     }
+    
 }
 
 // MARK: - Delegate
