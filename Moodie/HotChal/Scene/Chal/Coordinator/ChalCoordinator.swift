@@ -45,7 +45,7 @@ final class ChalCoordinator: Coordinator {
 
   
   /// 챌린지 보기 화면으로 이동
-  func navToShwoChallengeViewController(){
+  func navToShowChallengeViewController(){
     let vc = ShowChallengePageViewController(
       transitionStyle: .scroll,
       navigationOrientation: .vertical

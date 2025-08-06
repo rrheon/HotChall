@@ -128,7 +128,7 @@ extension HotChallTop100ViewController: ChallengePlayerViewDelegate {
   func navToShowChallenge(with data: ChallengeVideo) {
     print(#fileID, #function, #line, "- 챌린지 띄우기")
     guard let challenge = data.videoFilename else { return }
-    ChallengePlayerManager.shared.playLocalVideo(named: challenge, from: self)
+    delegate?.navToShowChallengeViewController()
   }
   
   func saveChallenge(with data: ChallengeVideo) {
