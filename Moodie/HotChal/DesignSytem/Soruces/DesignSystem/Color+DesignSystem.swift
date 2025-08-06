@@ -18,6 +18,7 @@ public extension UIColor {
     static let orangeEmotion = UIColor(named: "AppOrange")
     static let pinkEmotion = UIColor(named: "AppPink")
     static let purpleEmotion = UIColor(named: "AppPurple")
+    static let cellBackground =  UIColor(red: 0.95, green: 0.96, blue: 0.97, alpha: 1.00)
 }
 
 
