@@ -34,6 +34,7 @@ final class ChalCoordinator: Coordinator {
     func navToLearnChallengeViewController(with data: ChallengeVideo) {
         let vc = ChallCompareViewController()
         vc.subVideoFilename = data.videoFilename
+        vc.hidesBottomBarWhenPushed = true
         self.navigationController.pushViewController(vc, animated: true)
     }
   
