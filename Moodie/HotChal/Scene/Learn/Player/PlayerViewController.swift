@@ -36,13 +36,25 @@ class PlayerViewController: UIViewController {
     
     private var isPlaying = true {
         didSet {
-                    guard let player = player else { return }
-                    isPlaying ? player.playImmediately(atRate: selectedSpeed) : player.pause()
-                }
+            guard let player = player else { return }
+            isPlaying ? player.playImmediately(atRate: selectedSpeed) : player.pause()
+        }
     }
     
     private let speeds: [Float] = [0.5, 1.0, 1.5, 2.0]
-    // MARK: - 속도 조절 버튼 업데이트
+    private var isMuted = false
+    private var previousVolume: Float = 0.5
+    
+    // 타이틀 + 업로더 라벨 배경 설정
+    private let infoBackgroundView: UIVisualEffectView = {
+        let view = UIVisualEffectView(effect: .none)
+        view.layer.cornerRadius = 10
+        view.clipsToBounds = true
+        view.sizeToFit()
+        return view
+    }()
+    
+    // 속도 조절 버튼 업데이트
     private var selectedSpeed: Float = 1.0 {
         didSet {
             if isPlaying {
@@ -52,18 +64,8 @@ class PlayerViewController: UIViewController {
         }
     }
     
-    private var isMuted = false
-    private var previousVolume: Float = 0.5
-    
-    private let infoBackgroundView: UIVisualEffectView = {
-        let view = UIVisualEffectView(effect: .none)
-        view.layer.cornerRadius = 10
-        view.clipsToBounds = true
-        view.sizeToFit()
-        return view
-    }()
-    
     //MARK: - 라벨 설정
+    
     // 챌린지 타이틀
     private let titleLabel: UILabel = {
         let label = UILabel()
@@ -140,13 +142,14 @@ class PlayerViewController: UIViewController {
         let maxWidth = view.bounds.width - margin * 2
         let safeAreaBottom = view.safeAreaInsets.bottom
         
-        let titleSize = titleLabel.sizeThatFits(CGSize(width: maxWidth - 12, height: .greatestFiniteMagnitude))
-        let uploaderSize = uploaderLabel.sizeThatFits(CGSize(width: maxWidth - 12, height: .greatestFiniteMagnitude))
+        let titleSize = titleLabel.sizeThatFits(CGSize(width: maxWidth - 14, height: .greatestFiniteMagnitude))
+        let uploaderSize = uploaderLabel.sizeThatFits(CGSize(width: maxWidth - 13, height: .greatestFiniteMagnitude))
         let infoHeight = titleSize.height + uploaderSize.height + spacing
         let infoWidth = titleSize.width + uploaderSize.width + spacing
         
         let speedStackHeight: CGFloat = 40
         let speedStackY = view.bounds.height - safeAreaBottom - speedStackHeight
+        let progressSliderY = speedStackY - sliderHeight - spacing
         
         speedStackView.frame = CGRect(
             x: margin,
@@ -155,7 +158,6 @@ class PlayerViewController: UIViewController {
             height: speedStackHeight
         )
         
-        let progressSliderY = speedStackY - sliderHeight - spacing
         progressSlider.frame = CGRect(
             x: margin,
             y: progressSliderY,
@@ -190,6 +192,7 @@ class PlayerViewController: UIViewController {
             width: infoWidth,
             height: infoHeight
         )
+        
         titleLabel.frame = CGRect(x: 12, y: 6, width: maxWidth - 24, height: titleSize.height)
         uploaderLabel.frame = CGRect(x: 12, y: titleLabel.frame.maxY + 2, width: maxWidth - 24, height: uploaderSize.height)
         
@@ -208,7 +211,6 @@ class PlayerViewController: UIViewController {
                print("❌ Invalid video filename: \(String(describing: videoFilename))")
                return
            }
-
             player = AVPlayer(url: url)
             playerLayer = AVPlayerLayer(player: player)
             playerLayer?.videoGravity = .resizeAspect
@@ -216,7 +218,8 @@ class PlayerViewController: UIViewController {
                    view.layer.insertSublayer(layer, at: 0)
                }
         
-        // 콜백이 호출되는 주기(0.1초 마다)
+       // 0.1초 마다 슬라이더 업데이트 주기 설정
+       // interval - 콜백이 호출되는 주기(n초 마다)
         let interval = CMTime(seconds: 0.1, preferredTimescale: 60)
         timeObserverToken = player?.addPeriodicTimeObserver(forInterval: interval, queue: .main) { [weak self] time in
             guard let self = self else { return }
@@ -227,7 +230,7 @@ class PlayerViewController: UIViewController {
                 self.updateTimeLabel(currentTime: current, duration: duration)
             }
         }
-       
+       // 선택된 속도로 영상 재생
         player?.playImmediately(atRate: selectedSpeed)
     }
     
@@ -274,6 +277,7 @@ class PlayerViewController: UIViewController {
             button.addTarget(self, action: #selector(speedSelected(_:)), for: .touchUpInside)
             speedStackView.addArrangedSubview(button)
         }
+        // 기본 선택된 속도
         selectedSpeed = 1.0
         updateSpeedButtons()
         
@@ -358,19 +362,23 @@ class PlayerViewController: UIViewController {
         }
     }
     
+    // 탭해서 재생, 일시정지
     private func setupGestureRecognizers() {
         view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(togglePlayPause)))
     }
     
+    // 볼륨 버튼 탭(뮤트)
     private func setupVolumeIconTap() {
         volumeIcon.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(volumeIconTapped)))
     }
     
+    // 영상 재생 종료 후
     @objc private func playerDidFinishPlaying() {
         player?.seek(to: .zero)
         isPlaying = false
     }
     
+    // 재생 슬라이더 변화 감지
     @objc private func progressSliderChanged() {
             guard let duration = player?.currentItem?.duration.seconds, duration > 0 else { return }
             let value = Double(progressSlider.value) * duration
@@ -378,6 +386,7 @@ class PlayerViewController: UIViewController {
             player?.seek(to: CMTime(seconds: rounded, preferredTimescale: 1000))
         }
     
+    // 볼륨 슬라이더 변화 감지
     @objc private func volumeSliderChanged() {
         player?.volume = volumeSlider.value
         if volumeSlider.value == 0 {
@@ -390,6 +399,7 @@ class PlayerViewController: UIViewController {
         }
     }
     
+    // 볼륨 아이콘 눌렀을때(뮤트 설정)
     @objc private func volumeIconTapped() {
         guard let player = player else { return }
         if isMuted {
@@ -410,6 +420,7 @@ class PlayerViewController: UIViewController {
         selectedSpeed = Float(sender.tag) / 10.0
     }
     
+    // 탭하면 재생|일시정지 설정
     @objc private func togglePlayPause() {
         guard let player = player,
                       let item = player.currentItem else { return }
@@ -420,12 +431,14 @@ class PlayerViewController: UIViewController {
                 isPlaying.toggle()
     }
     
+    // 재생 시간 업데이트
     private func updateTimeLabel(currentTime: Double, duration: Double) {
         let current = Int(currentTime.rounded())
         let total = Int(duration.rounded())
         timeLabel.text = "\(current)초 | \(total)초"
     }
     
+    // 속도 버튼 업데이트
     private func updateSpeedButtons() {
         for case let button as UIButton in speedStackView.arrangedSubviews {
             let speed = Float(button.tag) / 10.0
@@ -433,14 +446,14 @@ class PlayerViewController: UIViewController {
         }
     }
 
-    //MARK: - 영상 재생하는 뷰로 들어갔을 때
+    //MARK: - 영상 재생하는 뷰로 이동
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         tabBarController?.tabBar.isHidden = true
         additionalSafeAreaInsets.bottom = 0
         self.navigationController?.navigationBar.prefersLargeTitles = false
     }
-    //MARK: - 영상 재생하는 뷰에서 나왔을 때
+    //MARK: - 영상 재생하는 뷰 밖으로 이동
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         tabBarController?.tabBar.isHidden = false
