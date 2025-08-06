@@ -431,13 +431,14 @@ class PlayerViewController: UIViewController {
         }
     }
 
+    //MARK: - 영상 재생하는 뷰로 들어갔을 때
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         tabBarController?.tabBar.isHidden = true
         additionalSafeAreaInsets.bottom = 0
         self.navigationController?.navigationBar.prefersLargeTitles = false
     }
-
+    //MARK: - 영상 재생하는 뷰에서 나왔을 때
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         tabBarController?.tabBar.isHidden = false
