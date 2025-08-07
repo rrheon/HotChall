@@ -14,10 +14,9 @@ final class HotChallTop100View: UIView {
    let top100ListView: UICollectionView = {
     let layout = UICollectionViewFlowLayout()
     layout.scrollDirection = .vertical
-    layout.minimumLineSpacing = 5
+    layout.minimumLineSpacing = 15
     
-    let top100ListView = UICollectionView(frame: .zero,
-                                          collectionViewLayout: layout)
+    let top100ListView = UICollectionView(frame: .zero, collectionViewLayout: layout)
     top100ListView.translatesAutoresizingMaskIntoConstraints = false
     top100ListView.backgroundColor = .clear
     return top100ListView

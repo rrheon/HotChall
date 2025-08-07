@@ -29,9 +29,8 @@ final class ChallengeCell: UICollectionViewCell, ReuseIdentifiable {
   private let titleLabel: UILabel = {
     let label = UILabel()
     label.font = UIFont.boldSystemFont(ofSize: 15)
-    label.textColor = .black
+    label.textColor = .white
     label.numberOfLines = 1
-    label.backgroundColor = UIColor.black.withAlphaComponent(0.2)
     
     return label
   }()
@@ -40,7 +39,7 @@ final class ChallengeCell: UICollectionViewCell, ReuseIdentifiable {
   private let uploaderLabel: UILabel = {
     let label = UILabel()
     label.font = UIFont.systemFont(ofSize: 10)
-    label.textColor = .black
+    label.textColor = .lightGray
     
     return label
   }()
@@ -73,16 +72,15 @@ final class ChallengeCell: UICollectionViewCell, ReuseIdentifiable {
       thumbnailImageView.topAnchor.constraint(equalTo: contentView.topAnchor),
       thumbnailImageView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
       thumbnailImageView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
-      thumbnailImageView.heightAnchor.constraint(equalTo: contentView.heightAnchor, multiplier: 0.9),
+      thumbnailImageView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -40),
       
       titleLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 8),
       titleLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -8),
-      titleLabel.bottomAnchor.constraint(equalTo: thumbnailImageView.bottomAnchor, constant: -4),
+      titleLabel.bottomAnchor.constraint(equalTo: thumbnailImageView.bottomAnchor, constant: 20),
       
-      uploaderLabel.topAnchor.constraint(equalTo: thumbnailImageView.bottomAnchor, constant: 4),
+      uploaderLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 5),
       uploaderLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 8),
       uploaderLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -8),
-      uploaderLabel.bottomAnchor.constraint(lessThanOrEqualTo: contentView.bottomAnchor, constant: 10)
     ])
   }
   
