@@ -37,8 +37,11 @@ final class SavedChallengeCoordinator: Coordinator {
   
   // 챌린지 찍기 화면으로 이동
   func navToTakeChallengeViewController(){
-    let vc = CameraViewController()
-    self.navigationController.pushViewController(vc, animated: true)
+      let cameraCoordinator = CameraCoordinator(navigationController)
+      cameraCoordinator.delegate = self
+      cameraCoordinator.finishDelegate = self
+      childCoordinators.append(cameraCoordinator)
+      cameraCoordinator.start()
   }
   
   /// 챌린지 배우기 디테일 화면으로 이동
@@ -57,6 +60,19 @@ final class SavedChallengeCoordinator: Coordinator {
     self.navigationController.pushViewController(vc, animated: true)
   }
   
+
 }
 
+extension SavedChallengeCoordinator: CameraCoordinatorDelegate {
+    func cameraCoordinatorDidFinishWithVideo(url: URL) {
+        let compareVC = ChallCompareViewController()
+        navigationController.pushViewController(compareVC, animated: true)
+    }
+}
+
+extension SavedChallengeCoordinator: CoordinatorFinishDelegate {
+    func coordinatorDidFinish(childCoordinator: Coordinator) {
+        childCoordinators.removeAll { $0 === childCoordinator }
+    }
+}
 

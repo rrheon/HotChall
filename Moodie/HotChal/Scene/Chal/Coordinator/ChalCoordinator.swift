@@ -29,13 +29,14 @@ final class ChalCoordinator: BaseCoordinator {
     
     // 챌린지 찍기 화면으로 이동
     func navToTakeChallengeViewController() {
-        let vc = CameraViewController()
-        vc.delegate = self
-        vc.modalPresentationStyle = .fullScreen
-        navigationController.present(vc, animated: true)
+        let cameraCoordinator = CameraCoordinator(navigationController)
+        cameraCoordinator.delegate = self
+        cameraCoordinator.finishDelegate = self
+        childCoordinators.append(cameraCoordinator)
+        cameraCoordinator.start()
     }
     
-    // 챌린지 찍기 화면에서 -> 비교하기로으로 이동
+
     func navToCompareViewController(url: URL) {
         let vc = ChallCompareViewController()
         vc.videoURL = url
@@ -53,13 +54,14 @@ final class ChalCoordinator: BaseCoordinator {
   }
 }
 
-extension ChalCoordinator: CameraViewControllerDelegate {
-    func cameraViewControllerDidFinish() {
-        navigationController.dismiss(animated: true)
+extension ChalCoordinator: CameraCoordinatorDelegate {
+    func cameraCoordinatorDidFinishWithVideo(url: URL) {
+        navToCompareViewController(url: url)
     }
-    
-    func cameraViewControllerNavigateToResult(url: URL) {
-        self.navToCompareViewController(url: url)
-        navigationController.dismiss(animated: true)
+}
+
+extension ChalCoordinator: CoordinatorFinishDelegate {
+    func coordinatorDidFinish(childCoordinator: Coordinator) {
+        childCoordinators.removeAll { $0 === childCoordinator }
     }
 }
