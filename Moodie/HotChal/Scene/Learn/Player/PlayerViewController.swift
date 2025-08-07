@@ -127,6 +127,7 @@ class PlayerViewController: UIViewController {
         setupVolumeIconTap()
         setupNavigationButton()
         setupLoopSettingButton()
+        setupLayoutConstraints()
     }
     
     
@@ -136,73 +137,6 @@ class PlayerViewController: UIViewController {
         
         playerLayer?.frame = view.bounds
         
-        //margin - 뷰끼리의 간격
-        let margin: CGFloat = 20
-        let spacing: CGFloat = 8
-        let sliderHeight: CGFloat = 30
-        let maxWidth = view.bounds.width - margin * 2
-        let safeAreaBottom = view.safeAreaInsets.bottom
-        
-        let titleSize = titleLabel.sizeThatFits(CGSize(width: maxWidth - 14, height: .greatestFiniteMagnitude))
-        let uploaderSize = uploaderLabel.sizeThatFits(CGSize(width: maxWidth - 13, height: .greatestFiniteMagnitude))
-        let infoHeight = titleSize.height + uploaderSize.height + spacing
-        let infoWidth = titleSize.width + uploaderSize.width + spacing
-        
-        let speedStackHeight: CGFloat = 40
-        let speedStackY = view.bounds.height - safeAreaBottom - speedStackHeight
-        let progressSliderY = speedStackY - sliderHeight - spacing
-        
-        speedStackView.frame = CGRect(
-            x: margin,
-            y: speedStackY,
-            width: maxWidth,
-            height: speedStackHeight
-        )
-        
-        progressSlider.frame = CGRect(
-            x: margin,
-            y: progressSliderY,
-            width: maxWidth - 60,
-            height: sliderHeight
-        )
-        
-        timeLabel.frame = CGRect(
-            x: progressSlider.frame.maxX + 5,
-            y: progressSliderY,
-            width: 100,
-            height: sliderHeight
-        )
-        
-        volumeIcon.frame = CGRect(
-            x: margin,
-            y: progressSlider.frame.minY - sliderHeight - spacing,
-            width: sliderHeight,
-            height: sliderHeight
-        )
-        
-        volumeSlider.frame = CGRect(
-            x: volumeIcon.frame.maxX + 8,
-            y: volumeIcon.frame.minY,
-            width: maxWidth - volumeIcon.frame.width - 8,
-            height: sliderHeight
-        )
-        
-        infoBackgroundView.frame = CGRect(
-            x: margin,
-            y: volumeSlider.frame.minY - infoHeight - spacing,
-            width: infoWidth,
-            height: infoHeight
-        )
-        
-        titleLabel.frame = CGRect(x: 12, y: 6, width: maxWidth - 24, height: titleSize.height)
-        uploaderLabel.frame = CGRect(x: 12, y: titleLabel.frame.maxY + 2, width: maxWidth - 24, height: uploaderSize.height)
-        
-        timeLabel.frame = CGRect(
-            x: view.bounds.width - margin - 100,
-            y: progressSlider.frame.minY - -5,
-            width: 100,
-            height: 20
-        )
     }
     
     // MARK: - setupPlayer
@@ -290,28 +224,7 @@ class PlayerViewController: UIViewController {
             speedStackView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
         ])
     }
-    
-    // MARK: - 라벨 레이아웃 설정
-    private func setupLayout() {
-        view.addSubview(titleLabel)
-        view.addSubview(uploaderLabel)
-        
-        titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        uploaderLabel.translatesAutoresizingMaskIntoConstraints = false
-        
-        // 타이틀, 업로더 라벨 레이아웃
-        NSLayoutConstraint.activate([
-            titleLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 16),
-            titleLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            titleLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            
-            uploaderLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 8),
-            uploaderLabel.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
-            uploaderLabel.trailingAnchor.constraint(equalTo: titleLabel.trailingAnchor),
-        ])
-    }
-    
-    // MARK: - 타임 옵저버 (A-B 반복 기능)
+        // MARK: - 타임 옵저버 (A-B 반복 기능)
     
     private func addPeriodicTimeObserver() {
         // 기존 옵저버 제거
@@ -365,6 +278,70 @@ class PlayerViewController: UIViewController {
         overlayContainerView.backgroundColor = .clear
         overlayContainerView.addGestureRecognizer(tapGesture)
     }
+    
+    // 전체적인 레이아웃
+    private func setupLayoutConstraints() {
+        playerLayer?.frame = view.bounds
+
+        let margin: CGFloat = 20
+        let spacing: CGFloat = 8
+        let sliderHeight: CGFloat = 30
+        let speedStackHeight: CGFloat = 40
+
+        [titleLabel, uploaderLabel, speedStackView, progressSlider, timeLabel, volumeIcon, volumeSlider, infoBackgroundView].forEach {
+            $0.translatesAutoresizingMaskIntoConstraints = false
+            view.addSubview($0)
+        }
+
+        NSLayoutConstraint.activate([
+            // Speed Stack View
+            speedStackView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: margin),
+            speedStackView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -margin),
+            speedStackView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
+            speedStackView.heightAnchor.constraint(equalToConstant: speedStackHeight),
+
+            // Progress Slider
+            progressSlider.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: margin),
+            progressSlider.trailingAnchor.constraint(equalTo: timeLabel.leadingAnchor, constant: -5),
+            progressSlider.bottomAnchor.constraint(equalTo: speedStackView.topAnchor, constant: -spacing),
+            progressSlider.heightAnchor.constraint(equalToConstant: sliderHeight),
+
+            // Time Label
+            timeLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -margin),
+            timeLabel.centerYAnchor.constraint(equalTo: progressSlider.centerYAnchor),
+            timeLabel.widthAnchor.constraint(equalToConstant: 100),
+            timeLabel.heightAnchor.constraint(equalToConstant: sliderHeight),
+
+            // Volume Icon
+            volumeIcon.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: margin),
+            volumeIcon.bottomAnchor.constraint(equalTo: progressSlider.topAnchor, constant: -spacing),
+            volumeIcon.widthAnchor.constraint(equalToConstant: sliderHeight),
+            volumeIcon.heightAnchor.constraint(equalToConstant: sliderHeight),
+
+            // Volume Slider
+            volumeSlider.leadingAnchor.constraint(equalTo: volumeIcon.trailingAnchor, constant: 8),
+            volumeSlider.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -margin),
+            volumeSlider.centerYAnchor.constraint(equalTo: volumeIcon.centerYAnchor),
+            volumeSlider.heightAnchor.constraint(equalToConstant: sliderHeight),
+
+            // Info Background View
+            infoBackgroundView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: margin),
+            infoBackgroundView.trailingAnchor.constraint(lessThanOrEqualTo: view.trailingAnchor, constant: -margin),
+            infoBackgroundView.bottomAnchor.constraint(equalTo: volumeSlider.topAnchor, constant: -spacing),
+
+            // Title Label
+            titleLabel.topAnchor.constraint(equalTo: infoBackgroundView.topAnchor, constant: 6),
+            titleLabel.leadingAnchor.constraint(equalTo: infoBackgroundView.leadingAnchor, constant: 12),
+            titleLabel.trailingAnchor.constraint(equalTo: infoBackgroundView.trailingAnchor, constant: -12),
+
+            // Uploader Label
+            uploaderLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 2),
+            uploaderLabel.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
+            uploaderLabel.trailingAnchor.constraint(equalTo: titleLabel.trailingAnchor),
+            uploaderLabel.bottomAnchor.constraint(equalTo: infoBackgroundView.bottomAnchor, constant: -6),
+        ])
+    }
+
     
     
     // 볼륨 버튼 탭(뮤트)
