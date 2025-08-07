@@ -22,7 +22,7 @@ final class HotChallTopCell: UICollectionViewCell, ReuseIdentifiable {
     let imageView = UIImageView()
      imageView.contentMode = .scaleAspectFit
     imageView.translatesAutoresizingMaskIntoConstraints = false
-     imageView.backgroundColor = .appPink
+     imageView.backgroundColor = .cellBackground
     return imageView
   }()
   
@@ -31,7 +31,7 @@ final class HotChallTopCell: UICollectionViewCell, ReuseIdentifiable {
     let label = UILabel()
     label.text = "1"
     label.font = .boldSystemFont(ofSize: 36)
-    label.textColor = .white
+    label.textColor = .black
     label.translatesAutoresizingMaskIntoConstraints = false
     
     return label
@@ -41,32 +41,20 @@ final class HotChallTopCell: UICollectionViewCell, ReuseIdentifiable {
    var challengeNameLabel: UILabel = {
     let label = UILabel()
     label.text = "챌린지 제목"
-     label.textColor = .white
-     label.font = .boldSystemFont(ofSize: 24)
+     label.textColor = .black
+     label.font = .boldSystemFont(ofSize: 20)
     label.translatesAutoresizingMaskIntoConstraints = false
     
     return label
   }()
   
-  /// 챌린지 재생버튼
-  private let challengePlayButton: UIButton = {
-    let button = UIButton()
-    button.setImage(UIImage(systemName: "play.circle"), for: .normal)
-    button.tintColor = .white
-    button.translatesAutoresizingMaskIntoConstraints = false
-    
-    return button
-  }()
-  
-  
   override init(frame: CGRect) {
     super.init(frame: frame)
     
-    self.backgroundColor = .appPink
+    self.backgroundColor = .white
     makeUI()
     
   }
-  
   
   required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
@@ -77,7 +65,6 @@ final class HotChallTopCell: UICollectionViewCell, ReuseIdentifiable {
     self.addSubview(challengeImageView)
     self.addSubview(challengeNameLabel)
     self.addSubview(challengeRankLabel)
-    self.addSubview(challengePlayButton)
     
     NSLayoutConstraint.activate([
       challengeImageView.topAnchor.constraint(equalTo: self.topAnchor),
@@ -87,15 +74,11 @@ final class HotChallTopCell: UICollectionViewCell, ReuseIdentifiable {
       challengeImageView.widthAnchor.constraint(equalTo: self.widthAnchor),
       challengeImageView.heightAnchor.constraint(equalTo: self.heightAnchor),
       
-      challengeNameLabel.bottomAnchor.constraint(equalTo: challengeImageView.bottomAnchor),
+      challengeNameLabel.bottomAnchor.constraint(equalTo: self.bottomAnchor,constant: -10),
       challengeNameLabel.leadingAnchor.constraint(equalTo: challengeImageView.leadingAnchor, constant: 20),
       
-      challengeRankLabel.topAnchor.constraint(equalTo: challengeNameLabel.topAnchor, constant: -30),
+      challengeRankLabel.topAnchor.constraint(equalTo: challengeNameLabel.topAnchor, constant: -40),
       challengeRankLabel.leadingAnchor.constraint(equalTo: challengeNameLabel.leadingAnchor),
-      
-      challengePlayButton.centerYAnchor.constraint(equalTo: challengeNameLabel.centerYAnchor),
-      challengePlayButton.trailingAnchor.constraint(equalTo: challengeImageView.trailingAnchor, constant: -20),
-      challengePlayButton.bottomAnchor.constraint(equalTo: challengeImageView.bottomAnchor, constant: -20),
     ])
     
   }

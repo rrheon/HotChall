@@ -8,84 +8,23 @@
 import UIKit
 import AVFoundation
 
-class LoopedVideoPlayer {
-    var queuePlayer: AVQueuePlayer?
-    var looper: AVPlayerLooper?
-    var playerLayer: AVPlayerLayer?
-    var containerView: UIView
-    var isMuted: Bool
-    var isMain: Bool
-
-    init(containerView: UIView, isMuted: Bool = true, isMain: Bool = false) {
-        self.containerView = containerView
-        self.isMuted = isMuted
-        self.isMain = isMain
-    }
-
-    func setupVideo(named fileName: String, completion: ((CGFloat) -> Void)? = nil) {
-        guard let path = Bundle.main.path(forResource: fileName, ofType: nil) else { return }
-        let url = URL(fileURLWithPath: path)
-        let item = AVPlayerItem(url: url)
-        let player = AVQueuePlayer(playerItem: item)
-        let looper = AVPlayerLooper(player: player, templateItem: item)
-        let layer = AVPlayerLayer(player: player)
-
-        layer.frame = containerView.bounds
-        layer.videoGravity = isMain ? .resizeAspectFill : .resizeAspect
-
-        containerView.layer.addSublayer(layer)
-
-        self.queuePlayer = player
-        self.looper = looper
-        self.playerLayer = layer
-
-        player.isMuted = isMuted
-        player.play()
-
-        let asset = AVAsset(url: url)
-        asset.loadValuesAsynchronously(forKeys: ["tracks"]) {
-            guard let track = asset.tracks(withMediaType: .video).first else { return }
-            let size = track.naturalSize.applying(track.preferredTransform)
-            let aspectRatio = abs(size.height / size.width)
-            DispatchQueue.main.async {
-                completion?(aspectRatio)
-            }
-        }
-    }
-
-    func updateFrame() {
-        guard let layer = playerLayer else { return }
-        DispatchQueue.main.async {
-            layer.frame = self.containerView.bounds
-            layer.videoGravity = self.isMain ? .resizeAspectFill : .resizeAspect
-        }
-    }
-
-    func togglePlayPause() {
-        guard let player = queuePlayer else { return }
-        player.timeControlStatus == .playing ? player.pause() : player.play()
-    }
-
-    func setMuted(_ muted: Bool) {
-        queuePlayer?.isMuted = muted
-        isMuted = muted
-    }
-}
-
 class ChallCompareViewController: UIViewController {
 
-    private var mainVideoPlayer: LoopedVideoPlayer!
-    private var subVideoPlayer: LoopedVideoPlayer!
-    private var challComparSubViewHeightConstraint: NSLayoutConstraint?
-    private var isPlaying: Bool = true
+    var subVideoFilename: String?
+    var coordinator: ChalCoordinator?
+    
+    private var mainVideoPlayer: ChallCompareLoopedVideoPlayer!
+    private var isPlaying = true
+    var videoURL: URL?
 
-    private let challComparMainView = makeView(backgroundColor: .systemBackground)
-    private let challComparSubView = makeView(backgroundColor: .systemBackground, cornerRadius: 15)
-    private let bottomBarView = makeView(backgroundColor: UIColor(red: 255/255, green: 199/255, blue: 194/255, alpha: 0.8))
+    private let challCompareMainView = makeView(backgroundColor: .systemBackground)
+    private let challCompareSubView = ChallComparSubView()
 
-    private let pauseButton = makeBottomButton(icon: "pause.circle", title: "일시정지", color: .systemBlue)
-    private let deleteButton = makeBottomButton(icon: "trash.circle", title: "삭제", color: .systemRed)
-    private let shareButton = makeBottomButton(icon: "square.and.arrow.up.circle", title: "공유하기", color: .systemBlue)
+    private let bottomBarView = makeView(backgroundColor: .appPink.withAlphaComponent(0.8))
+    private let pauseButton = makeButton(icon: "pause", title: "일시정지", color: .appCharcoal)
+    private let deleteButton = makeButton(icon: "camera", title: "다시찍기", color: .appCharcoal)
+    private let shareButton = makeButton(icon: "square.and.arrow.up", title: "공유하기", color: .appCharcoal)
+    private let savedButton = makeButton(icon: "square.and.arrow.down", title: "저장하기", color: .appCharcoal)
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -95,48 +34,70 @@ class ChallCompareViewController: UIViewController {
         setupConstraints()
         setupActions()
 
-        mainVideoPlayer = LoopedVideoPlayer(containerView: challComparMainView, isMuted: false, isMain: true)
-        subVideoPlayer = LoopedVideoPlayer(containerView: challComparSubView, isMuted: true, isMain: false)
+        mainVideoPlayer = ChallCompareLoopedVideoPlayer(containerView: challCompareMainView, isMuted: false, isMain: true)
 
-        mainVideoPlayer.setupVideo(named: "nemonemo.mp4")
-        subVideoPlayer.setupVideo(named: "nemonemo2.mp4") { aspectRatio in
-            self.challComparSubViewHeightConstraint?.isActive = false
-            self.challComparSubViewHeightConstraint = self.challComparSubView.heightAnchor.constraint(equalTo: self.challComparSubView.widthAnchor, multiplier: aspectRatio)
-            self.challComparSubViewHeightConstraint?.isActive = true
-            self.view.layoutIfNeeded()
-        }
+         // ✅ 녹화된 영상 재생
+         if let url = videoURL {
+             mainVideoPlayer.setupVideo(url) { [weak self] aspectRatio in
+                 guard let self = self else { return }
+                 // 비율 조정 등 추가 작업 가능
+             }
+         } else {
+             playCameraResultVideo(url: nil)  // 영상 없을 경우 처리
+         }
+
+         // 서브 영상 세팅
+         if let filename = subVideoFilename {
+             challCompareSubView.setupVideo(named: filename) { [weak self] aspectRatio in
+                 guard let self = self else { return }
+                 let width: CGFloat = 140
+                 let height = width * aspectRatio
+                 let safeFrame = self.view.safeAreaLayoutGuide.layoutFrame
+                 self.challCompareSubView.frame = CGRect(x: safeFrame.maxX - width - 10,
+                                                         y: safeFrame.minY + 10,
+                                                         width: width,
+                                                         height: height)
+             }
+         }
+     }
+    
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        mainVideoPlayer.updateFrame()
+        challCompareSubView.videoPlayer.updateFrame()
     }
 
     private func setupViews() {
-        [challComparMainView, challComparSubView, bottomBarView].forEach { view.addSubview($0) }
-        [pauseButton, deleteButton, shareButton].forEach { bottomBarView.addSubview($0) }
+        view.addSubview(challCompareMainView)
+        view.addSubview(challCompareSubView)
+        view.addSubview(bottomBarView)
+        [pauseButton, deleteButton, shareButton, savedButton].forEach { bottomBarView.addSubview($0) }
     }
 
     private func setupConstraints() {
-        challComparSubViewHeightConstraint = challComparSubView.heightAnchor.constraint(equalToConstant: 100)
-        challComparSubViewHeightConstraint?.isActive = true
-
         NSLayoutConstraint.activate([
-            challComparMainView.topAnchor.constraint(equalTo: view.topAnchor),
-            challComparMainView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            challComparMainView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            challComparMainView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-
-            challComparSubView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            challComparSubView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -20),
-            challComparSubView.widthAnchor.constraint(equalToConstant: 150),
-
+            challCompareMainView.topAnchor.constraint(equalTo: view.topAnchor),
+            challCompareMainView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            challCompareMainView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            challCompareMainView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            
             bottomBarView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             bottomBarView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             bottomBarView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-            bottomBarView.heightAnchor.constraint(equalToConstant: 85),
-
-            pauseButton.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -10),
-            pauseButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            deleteButton.centerYAnchor.constraint(equalTo: pauseButton.centerYAnchor),
-            deleteButton.centerXAnchor.constraint(equalTo: view.centerXAnchor, constant: -view.bounds.width * 0.28),
-            shareButton.centerYAnchor.constraint(equalTo: pauseButton.centerYAnchor),
-            shareButton.centerXAnchor.constraint(equalTo: view.centerXAnchor, constant: view.bounds.width * 0.28),
+            bottomBarView.heightAnchor.constraint(equalToConstant: 70),
+            
+            deleteButton.centerYAnchor.constraint(equalTo: bottomBarView.centerYAnchor),
+                deleteButton.trailingAnchor.constraint(equalTo: savedButton.leadingAnchor, constant: -22),
+                
+                savedButton.centerYAnchor.constraint(equalTo: bottomBarView.centerYAnchor),
+                savedButton.trailingAnchor.constraint(equalTo: view.centerXAnchor, constant: -11),
+                
+                pauseButton.centerYAnchor.constraint(equalTo: bottomBarView.centerYAnchor),
+                pauseButton.leadingAnchor.constraint(equalTo: view.centerXAnchor, constant: 11),
+                pauseButton.widthAnchor.constraint(equalToConstant: 70),
+                
+                shareButton.centerYAnchor.constraint(equalTo: bottomBarView.centerYAnchor),
+                shareButton.leadingAnchor.constraint(equalTo: pauseButton.trailingAnchor, constant: 22)
         ])
     }
 
@@ -144,60 +105,112 @@ class ChallCompareViewController: UIViewController {
         pauseButton.addTarget(self, action: #selector(togglePlayPause), for: .touchUpInside)
         deleteButton.addTarget(self, action: #selector(deleteButtonTapped), for: .touchUpInside)
         shareButton.addTarget(self, action: #selector(shareButtonTapped), for: .touchUpInside)
-
-        challComparMainView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(swapVideoLayers)))
-        challComparSubView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(swapVideoLayers)))
+        
+        challCompareMainView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(swapVideoLayers)))
+        challCompareSubView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(swapVideoLayers)))
     }
 
     @objc private func togglePlayPause() {
-        [mainVideoPlayer, subVideoPlayer].forEach { $0?.togglePlayPause() }
+        mainVideoPlayer.togglePlayPause()
+        challCompareSubView.videoPlayer.togglePlayPause()
         isPlaying.toggle()
-        let icon = isPlaying ? "pause.circle" : "play.circle"
+        
+        let iconName = isPlaying ? "pause" : "play"
         let title = isPlaying ? "일시정지" : "재생"
-        pauseButton.configuration = makeButtonConfig(icon: icon, title: title, color: .systemBlue)
+
+        if var config = pauseButton.configuration {
+            config.image = UIImage(systemName: iconName, withConfiguration: UIImage.SymbolConfiguration(pointSize: 20, weight: .regular))
+            var titleContainer = AttributeContainer()
+            titleContainer.font = UIFont.systemFont(ofSize: 13)
+            config.attributedTitle = AttributedString(title, attributes: titleContainer)
+            pauseButton.configuration = config
+        }
     }
 
     @objc private func deleteButtonTapped() {
-        let alert = UIAlertController(title: "정말로 삭제하시겠습니까?", message: nil, preferredStyle: .alert)
+        let alert = UIAlertController(title: "다시 촬영하시겠습니까?", message: nil, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "취소", style: .cancel))
-        alert.addAction(UIAlertAction(title: "삭제", style: .destructive))
+
+        alert.addAction(UIAlertAction(title: "재촬영", style: .destructive) { [weak self] _ in
+            guard let self = self else { return }
+
+            print("재촬영 버튼 클릭됨")
+            if self.coordinator == nil {
+                print("⚠️ coordinator가 nil입니다.")
+            } else {
+                print("✅ coordinator 있음, 카메라 열기 시도")
+                self.coordinator?.navToTakeChallengeViewController()
+            }
+        })
+
         present(alert, animated: true)
     }
 
     @objc private func shareButtonTapped() {
-        guard let path = Bundle.main.path(forResource: "nemonemo", ofType: "mp4") else { return }
-        let videoURL = URL(fileURLWithPath: path)
+        guard let videoURL = videoURL else { return }
         let activityVC = UIActivityViewController(activityItems: [videoURL], applicationActivities: nil)
-
-        if let popover = activityVC.popoverPresentationController {
-            popover.sourceView = self.view
-            popover.sourceRect = shareButton.frame
-        }
-
+        activityVC.popoverPresentationController?.sourceView = shareButton
         present(activityVC, animated: true)
     }
 
     @objc private func swapVideoLayers() {
-        mainVideoPlayer.playerLayer?.removeFromSuperlayer()
-        subVideoPlayer.playerLayer?.removeFromSuperlayer()
-        challComparMainView.layer.addSublayer(subVideoPlayer.playerLayer!)
-        challComparSubView.layer.addSublayer(mainVideoPlayer.playerLayer!)
-
-        mainVideoPlayer.isMain = false
-        subVideoPlayer.isMain = true
-        swap(&mainVideoPlayer.containerView, &subVideoPlayer.containerView)
-        swap(&mainVideoPlayer, &subVideoPlayer)
-        mainVideoPlayer.setMuted(false)
-        subVideoPlayer.setMuted(true)
-
-        mainVideoPlayer.updateFrame()
-        subVideoPlayer.updateFrame()
+        let tempMain = mainVideoPlayer!
+        let tempSub = challCompareSubView.videoPlayer
+        
+        DispatchQueue.main.async {
+            tempMain.playerLayer?.removeFromSuperlayer()
+            tempSub.playerLayer?.removeFromSuperlayer()
+            
+            tempSub.containerView = self.challCompareMainView
+            tempMain.containerView = self.challCompareSubView
+            
+            tempMain.setMuted(true)
+            tempSub.setMuted(false)
+            tempMain.isMain = false
+            tempSub.isMain = true
+            
+            if let subLayer = tempSub.playerLayer {
+                self.challCompareMainView.layer.addSublayer(subLayer)
+            }
+            
+            if let mainLayer = tempMain.playerLayer {
+                self.challCompareSubView.layer.addSublayer(mainLayer)
+            }
+            
+            tempMain.updateFrame()
+            tempSub.updateFrame()
+            
+            self.mainVideoPlayer = tempSub
+            self.challCompareSubView.videoPlayer = tempMain
+        }
     }
+    
+    func playCameraResultVideo(url: URL?) {
+        mainVideoPlayer.playerLayer?.removeFromSuperlayer()
+        challCompareMainView.subviews
+            .filter { $0 is UILabel }
+            .forEach { $0.removeFromSuperview() }
 
-    override func viewDidLayoutSubviews() {
-        super.viewDidLayoutSubviews()
-        mainVideoPlayer.updateFrame()
-        subVideoPlayer.updateFrame()
+        if let url = url {
+            self.videoURL = url
+            mainVideoPlayer.setupVideo(url)
+        } else {
+            challCompareMainView.backgroundColor = .black
+            
+            let label = UILabel()
+            label.text = "파일을 불러 올 수 없습니다"
+            label.textAlignment = .center
+            label.textColor = .white
+            label.font = .systemFont(ofSize: 18, weight: .medium)
+            label.translatesAutoresizingMaskIntoConstraints = false
+            
+            challCompareMainView.addSubview(label)
+            
+            NSLayoutConstraint.activate([
+                label.centerXAnchor.constraint(equalTo: challCompareMainView.centerXAnchor),
+                label.centerYAnchor.constraint(equalTo: challCompareMainView.centerYAnchor)
+            ])
+        }
     }
 }
 
@@ -205,14 +218,12 @@ private func makeView(backgroundColor: UIColor, cornerRadius: CGFloat = 0) -> UI
     let view = UIView()
     view.translatesAutoresizingMaskIntoConstraints = false
     view.backgroundColor = backgroundColor
-    if cornerRadius > 0 {
-        view.layer.cornerRadius = cornerRadius
-        view.layer.masksToBounds = true
-    }
+    view.layer.cornerRadius = cornerRadius
+    view.layer.masksToBounds = cornerRadius > 0
     return view
 }
 
-private func makeBottomButton(icon: String, title: String, color: UIColor) -> UIButton {
+private func makeButton(icon: String, title: String, color: UIColor) -> UIButton {
     let config = makeButtonConfig(icon: icon, title: title, color: color)
     let button = UIButton(configuration: config)
     button.translatesAutoresizingMaskIntoConstraints = false
@@ -221,15 +232,16 @@ private func makeBottomButton(icon: String, title: String, color: UIColor) -> UI
 
 private func makeButtonConfig(icon: String, title: String, color: UIColor) -> UIButton.Configuration {
     var config = UIButton.Configuration.plain()
-    let symbolConfig = UIImage.SymbolConfiguration(pointSize: 30, weight: .regular)
-    config.image = UIImage(systemName: icon, withConfiguration: symbolConfig)
+    config.image = UIImage(systemName: icon, withConfiguration: UIImage.SymbolConfiguration(pointSize: 20, weight: .regular))
     config.title = title
     config.imagePlacement = .top
     config.imagePadding = 5
     config.baseForegroundColor = color
-    config.attributedTitle = AttributedString(title, attributes: AttributeContainer([
-        .font: UIFont.systemFont(ofSize: 15, weight: .regular)
-    ]))
+    
+    var container = AttributeContainer()
+    container.font = UIFont.systemFont(ofSize: 13)
+    config.attributedTitle = AttributedString(title, attributes: container)
+    
     return config
 }
 

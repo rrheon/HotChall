@@ -26,11 +26,11 @@ enum TabBarPage {
     func pageTitleValue() -> String {
         switch self {
         case .home:
-            return "인기차트"
+            return "핫챌Top3"
         case .learn:
             return "챌린지 배우기"
         case .favorites:
-            return "보관함"
+            return "즐겨찾기"
         }
     }
 
@@ -52,7 +52,7 @@ enum TabBarPage {
            case .learn:
              return UIImage(systemName: "figure.dance")
            case .favorites:
-             return UIImage(systemName: "archivebox")
+             return UIImage(systemName: "star")
            }
        }
 }

@@ -20,8 +20,8 @@ final class ChallengePlayerUIManager {
   func showChallPlayer(from viewController: UIViewController, data: ChallengeVideo){
     guard let keyWindow = UIApplication.shared.windows.first(where: { $0.isKeyWindow }) else { return }
   
-    let buttonTitle =  viewController is SavedHotChallViewController ? "삭제하기" : "저장하기"
-    playerView.saveChallengeButton.setTitle(buttonTitle, for: .normal)
+    let buttonTitle = viewController is SavedHotChallViewController ? "삭제하기" : "즐겨찾기"
+    playerView.changeButtonTitle(title: buttonTitle)
     
     
     keyWindow.addSubview(playerView)
@@ -30,13 +30,17 @@ final class ChallengePlayerUIManager {
     
     playerView.layer.cornerRadius = 10
     playerView.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
-    NSLayoutConstraint.activate([
-      playerView.centerXAnchor.constraint(equalTo: keyWindow.centerXAnchor),
-      playerView.leadingAnchor.constraint(equalTo: keyWindow.leadingAnchor),
-      playerView.trailingAnchor.constraint(equalTo: keyWindow.trailingAnchor),
-      playerView.bottomAnchor.constraint(equalTo: keyWindow.safeAreaLayoutGuide.bottomAnchor,
-                                         constant: -49)
-    ])
+    
+    if let tabBarHeight = viewController.tabBarController?.tabBar.frame.height {
+      NSLayoutConstraint.activate([
+        playerView.centerXAnchor.constraint(equalTo: keyWindow.centerXAnchor),
+        playerView.leadingAnchor.constraint(equalTo: keyWindow.leadingAnchor),
+        playerView.trailingAnchor.constraint(equalTo: keyWindow.trailingAnchor),
+        playerView.bottomAnchor.constraint(equalTo: keyWindow.bottomAnchor, constant: -tabBarHeight)
+      ])
+      
+    }
+    
     
     playerView.alpha = 0
 
@@ -50,6 +54,8 @@ final class ChallengePlayerUIManager {
   }
   
   func closeChallPlayer() {
+    guard playerView.superview != nil else { return }
+
       UIView.animate(withDuration: 0.3, animations: {
           self.playerView.alpha = 0
       }) { _ in

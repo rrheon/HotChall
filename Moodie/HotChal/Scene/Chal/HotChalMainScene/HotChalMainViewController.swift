@@ -23,10 +23,12 @@ class HotChalMainViewController: UIViewController {
   override func viewDidLoad() {
     super.viewDidLoad()
     
-    self.title = "핫챌 TOP3"
+    self.title = "핫챌 Top3"
 
     setupMainViewCell()
     addButtonActions()
+    
+    mainView.scrollView.delegate = self
   }
   
   override func loadView() {
@@ -34,6 +36,10 @@ class HotChalMainViewController: UIViewController {
   }
   
   override func viewWillDisappear(_ animated: Bool) {
+    ChallengePlayerUIManager.shared.closeChallPlayer()
+  }
+  
+  func scrollViewDidScroll(_ scrollView: UIScrollView) {
     ChallengePlayerUIManager.shared.closeChallPlayer()
   }
   
@@ -148,15 +154,16 @@ extension HotChalMainViewController: ChallengePlayerViewDelegate {
     delegate?.navToTakeChallengeViewController()
   }
   
-  func navToLearnChallenge(with data: ChallengeVideo) {
-    print(#fileID, #function, #line, "- 챌린지 배우기 화면으로 이동")
-    delegate?.navToLearnChallengeViewController()
-  }
+    func navToLearnChallenge(with data: ChallengeVideo) {
+      print(#fileID, #function, #line, "- 챌린지 배우기 화면으로 이동")
+      delegate?.navToLearnChallengeViewController(with: data)
+    }
   
   func navToShowChallenge(with data: ChallengeVideo) {
     print(#fileID, #function, #line, "- 챌린지 띄우기")
     guard let challenge = data.videoFilename else { return }
-    ChallengePlayerManager.shared.playLocalVideo(named: challenge, from: self)
+//    ChallengePlayerManager.shared.playLocalVideo(named: challenge, from: self)
+    delegate?.navToShwoChallengeViewController()
   }
   
   func saveChallenge(with data: ChallengeVideo) {

@@ -8,9 +8,7 @@
 import UIKit
 
 extension UIViewController {
-  
 
-  
   func setupBackButton(){
     let backBarButtonItem = UIBarButtonItem(title: "뒤로가기", style: .plain, target: self, action: nil)
     backBarButtonItem.tintColor = .white  // 색상 변경
