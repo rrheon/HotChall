@@ -25,9 +25,9 @@ class PlayerViewController: UIViewController {
     private let volumeSlider = UISlider()
     private let speedStackView = UIStackView()
     
-    // A-B 반복용 텍스트 필드
-    private let startTimeField = UITextField()
-    private let endTimeField = UITextField()
+    // A-B 반복용 변수 선언
+    private var loopStart: Double?
+    private var loopEnd: Double?
     
     var videoFilename: String?
     var videoTitle: String?
@@ -122,12 +122,27 @@ class PlayerViewController: UIViewController {
         
         setupPlayer()
         setupUI()
-        setupLoopInputFields()
         addPeriodicTimeObserver()
         setupGestureRecognizers()
         setupVolumeIconTap()
-        setupKeyboardDismissGesture()
         setupNavigationButton()
+        
+        // 반복 재생 세팅 버튼
+        let button: UIButton = {
+           let button = UIButton(type: .system)
+            button.addTarget(self, action: #selector(handleShowModal), for: .touchUpInside)
+            button.setTitle("Loop Setting", for: .normal)
+            return button
+        }()
+        
+        button.translatesAutoresizingMaskIntoConstraints = false
+        self.view.addSubview(button)
+        
+        NSLayoutConstraint.activate([
+            button.bottomAnchor.constraint(equalTo: volumeSlider.topAnchor, constant: -16),
+            button.leadingAnchor.constraint(equalTo: view.trailingAnchor, constant: -115),
+            button.widthAnchor.constraint(equalToConstant: 115),
+        ])
     }
 
     
@@ -311,35 +326,7 @@ class PlayerViewController: UIViewController {
             uploaderLabel.trailingAnchor.constraint(equalTo: titleLabel.trailingAnchor),
         ])
     }
-    // MARK: - A-B 반복 입력 필드
-
-        private func setupLoopInputFields() {
-            [startTimeField, endTimeField].forEach {
-                $0.translatesAutoresizingMaskIntoConstraints = false
-                $0.borderStyle = .roundedRect
-                $0.keyboardType = .decimalPad
-                $0.backgroundColor = .white
-                $0.textAlignment = .center
-                $0.font = .systemFont(ofSize: 13)
-                view.addSubview($0)
-                $0.inputAccessoryView = makeAccessoryView(for: $0)
-                $0.addTarget(self, action: #selector(loopTextFieldDidChange(_:)), for: .editingChanged)
-
-            }
-
-            startTimeField.placeholder = "start(s)"
-            endTimeField.placeholder = "fin(s)"
-
-            NSLayoutConstraint.activate([
-                startTimeField.bottomAnchor.constraint(equalTo: volumeSlider.topAnchor, constant: -16),
-                startTimeField.leadingAnchor.constraint(equalTo: view.trailingAnchor, constant: -150),
-                startTimeField.widthAnchor.constraint(equalToConstant: 60),
-
-                endTimeField.centerYAnchor.constraint(equalTo: startTimeField.centerYAnchor),
-                endTimeField.leadingAnchor.constraint(equalTo: startTimeField.trailingAnchor, constant: 12),
-                endTimeField.widthAnchor.constraint(equalToConstant: 60)
-            ])
-        }
+    
     // MARK: - 타임 옵저버 (A-B 반복 기능)
 
     private func addPeriodicTimeObserver() {
@@ -364,61 +351,25 @@ class PlayerViewController: UIViewController {
             }
 
             // A-B 반복 처리
-            if let startText = self.startTimeField.text,
-               let endText = self.endTimeField.text,
-               let start = Double(startText),
-               let end = Double(endText),
-               end > start {
-                
-                if currentSeconds >= end {
-                    let seekTime = CMTime(seconds: start, preferredTimescale: 60)
-                    self.player?.seek(to: seekTime) { _ in
-                        if self.isPlaying {
-                            self.player?.playImmediately(atRate: self.selectedSpeed)
-                        }
-                    }
-                }
-            }
-        }
+            if let start = loopStart,
+            let end = loopEnd,
+            end > start,
+            currentSeconds >= end {
 
+             let seekTime = CMTime(seconds: start, preferredTimescale: 60)
+             self.player?.seek(to: seekTime) { [weak self] _ in
+                 guard let self = self else { return }
+                 if self.isPlaying {
+                     self.player?.playImmediately(atRate: self.selectedSpeed)
+                 }
+             }
+         }
+    }
         print("✅ New Time observer added")
     }
 
-    //MARK: - 키보드 위 텍스트 입력 칸
-    private func makeAccessoryView(for textField: UITextField) -> UIView {
-        let accessoryView = UIView(frame: CGRect(x: 0, y: 0, width: view.bounds.width, height: 44))
-        accessoryView.backgroundColor = .secondarySystemBackground
-
-        let label = UILabel()
-            label.text = textField.text
-            label.textColor = .label
-            label.textAlignment = .left
-            label.font = .systemFont(ofSize: 16, weight: .medium)
-            label.translatesAutoresizingMaskIntoConstraints = false
-            label.tag = 999
-        
-        let doneButton = UIButton(type: .system)
-            doneButton.setTitle("Done", for: .normal)
-            doneButton.titleLabel?.font = .systemFont(ofSize: 16, weight: .semibold)
-            doneButton.addTarget(self, action: #selector(dismissKeyboardOnly), for: .touchUpInside)
-            doneButton.translatesAutoresizingMaskIntoConstraints = false
-
-        accessoryView.addSubview(label)
-        accessoryView.addSubview(doneButton)
-        
-        NSLayoutConstraint.activate([
-            label.centerXAnchor.constraint(equalTo: accessoryView.centerXAnchor),
-            label.centerYAnchor.constraint(equalTo: accessoryView.centerYAnchor),
-            
-            doneButton.trailingAnchor.constraint(equalTo: accessoryView.trailingAnchor, constant: -16),
-            doneButton.centerYAnchor.constraint(equalTo: accessoryView.centerYAnchor)
-            ])
-
-        return accessoryView
-    }
-
-    
-    // 탭해서 재생, 일시정지
+  
+    // 탭해서 재생, 일시정지 오버레이
     private func setupGestureRecognizers() {
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(togglePlayPause))
         tapGesture.cancelsTouchesInView = false
@@ -445,10 +396,10 @@ class PlayerViewController: UIViewController {
     
     // 재생 슬라이더 변화 감지
     @objc private func progressSliderChanged() {
-            guard let duration = player?.currentItem?.duration.seconds, duration > 0 else { return }
-            let value = Double(progressSlider.value) * duration
-            let rounded = value
-            player?.seek(to: CMTime(seconds: rounded, preferredTimescale: 1000))
+        guard let duration = player?.currentItem?.duration.seconds, duration > 0 else { return }
+        let value = Double(progressSlider.value) * duration
+        let rounded = value
+        player?.seek(to: CMTime(seconds: rounded, preferredTimescale: 1000))
         }
     
     // 볼륨 슬라이더 변화 감지
@@ -520,32 +471,13 @@ class PlayerViewController: UIViewController {
             button.backgroundColor = (speed == selectedSpeed) ? .appPink : UIColor.white.withAlphaComponent(0.2)
         }
     }
-    
-    // 키보드 위 입력 칸에 입력하면 텍스트 필드 영역도 업데이트
-    @objc private func loopTextFieldDidChange(_ textField: UITextField) {
-        if let accessoryView = textField.inputAccessoryView,
-           let label = accessoryView.viewWithTag(999) as? UILabel {
-            label.text = textField.text
-        }
-    }
-    
-    // Done 버튼을 탭하면 키보드가 내려가도록
-    private func setupKeyboardDismissGesture() {
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboardOnly))
-        tapGesture.cancelsTouchesInView = false
-        view.addGestureRecognizer(tapGesture)
-    }
 
-    @objc private func dismissKeyboardOnly() {
-        view.endEditing(true)
-    }
-    
     // 찍어보기 버튼
     private func setupNavigationButton() {
         let button = UIButton(type: .system)
         button.setTitle("챌린지 찍기", for: .normal)
         button.setTitleColor(.white, for: .normal)
-        button.backgroundColor = .appPink .withAlphaComponent(0.5)
+        button.backgroundColor = .appPink .withAlphaComponent(1)
         button.layer.cornerRadius = 10
         button.translatesAutoresizingMaskIntoConstraints = false
         
@@ -561,12 +493,29 @@ class PlayerViewController: UIViewController {
             button.heightAnchor.constraint(equalToConstant: 36)
         ])
     }
-    
+    // 찍어보기(카메라)화면으로 전환 버튼
     @objc func navToTakeChallengeViewController() {
             let vc = CameraViewController()
             self.navigationController?.pushViewController(vc, animated: true)
         }
-
+    
+    // 텍스트 필드 모달 뷰
+    @objc func handleShowModal() {
+        let modalViewController = ModalViewController()
+        modalViewController.delegate = self
+        if let sheet = modalViewController.sheetPresentationController {
+            if let sheet = modalViewController.sheetPresentationController {
+                if #available(iOS 16.0, *) {
+                    sheet.detents = [.custom(resolver: { _ in return 170 })] // 약 1/3 높이
+                } else {
+                    sheet.detents = [.medium()]
+                }
+                sheet.prefersGrabberVisible = true
+                sheet.preferredCornerRadius = 20
+            }
+            self.present(modalViewController, animated: true)
+        }
+    }
 
     //MARK: - 뷰 이동시 숨김/나타냄 처리
     override func viewWillAppear(_ animated: Bool) {
@@ -587,6 +536,20 @@ class PlayerViewController: UIViewController {
             player?.removeTimeObserver(token)
             timeObserverToken = nil
             print("🗑️ Time observer removed")
+        }
+    }
+}
+
+extension PlayerViewController: ModalViewControllerProtocol {
+    func willDismissModalView(_ viewController: ModalViewController, startTime: Double?, endTime: Double?) {
+        if let start = startTime, let end = endTime, end > start {
+            print("🔁 반복 설정됨: \(start)s ~ \(end)s")
+            self.loopStart = start
+            self.loopEnd = end
+        } else {
+            print("🛑 반복 해제됨")
+            self.loopStart = nil
+            self.loopEnd = nil
         }
     }
 }
