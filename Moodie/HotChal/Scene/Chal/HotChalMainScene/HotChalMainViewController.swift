@@ -155,20 +155,17 @@ extension HotChalMainViewController: ChallengePlayerViewDelegate {
   }
   
     func navToLearnChallenge(with data: ChallengeVideo) {
-      print(#fileID, #function, #line, "- 챌린지 배우기 화면으로 이동")
       delegate?.navToLearnChallengeViewController(with: data)
     }
   
   func navToShowChallenge(with data: ChallengeVideo) {
-    print(#fileID, #function, #line, "- 챌린지 띄우기")
     guard let challenge = data.videoFilename else { return }
 //    ChallengePlayerManager.shared.playLocalVideo(named: challenge, from: self)
-    delegate?.navToShwoChallengeViewController()
+    delegate?.navToShowChallengeViewController()
   }
   
   func saveChallenge(with data: ChallengeVideo) {
     CoreDataManager.shared.saveChallenge(with: data) { result in
-      print(#fileID, #function, #line, "- 챌린지 저장")
       ChallengePlayerUIManager.shared.closeChallPlayer()
       let comment = result ? "챌린지가 저장되었습니다." : "이미 저장된 챌린지입니다."
       
