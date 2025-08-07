@@ -510,17 +510,15 @@ class PlayerViewController: UIViewController {
         let modalViewController = ModalViewController()
         modalViewController.delegate = self
         if let sheet = modalViewController.sheetPresentationController {
-            if let sheet = modalViewController.sheetPresentationController {
-                if #available(iOS 16.0, *) {
-                    sheet.detents = [.custom(resolver: { _ in return 170 })] // 약 1/3 높이
-                } else {
-                    sheet.detents = [.medium()]
-                }
-                sheet.prefersGrabberVisible = true
-                sheet.preferredCornerRadius = 20
+            if #available(iOS 16.0, *) {
+                sheet.detents = [.custom(resolver: { _ in return 170 })] // 약 1/3 높이
+            } else {
+                sheet.detents = [.medium()]
             }
-            self.present(modalViewController, animated: true)
+            sheet.prefersGrabberVisible = true
+            sheet.preferredCornerRadius = 20
         }
+        self.present(modalViewController, animated: true)
     }
 
     //MARK: - 뷰 이동시 숨김/나타냄 처리
