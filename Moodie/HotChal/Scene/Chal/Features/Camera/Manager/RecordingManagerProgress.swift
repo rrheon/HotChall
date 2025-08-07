@@ -9,6 +9,7 @@ import UIKit
 
 protocol RecordingProgressManagerDelegate: AnyObject {
     func progressDidUpdate(_ progress: Float)
+    func timeRemainingDidUpdate(_ seconds: Int)
     func progressDidFinish()
 }
 
@@ -18,6 +19,8 @@ final class RecordingProgressManager {
 
     private var displayLink: CADisplayLink?
     private var startTime: Date?
+    private(set) var isCompleted: Bool = false
+
     private let maxDuration: TimeInterval
 
     init(maxDuration: TimeInterval) {
@@ -27,7 +30,7 @@ final class RecordingProgressManager {
     func start() {
         startTime = Date()
         displayLink?.invalidate()
-
+        isCompleted = false
         displayLink = CADisplayLink(target: self, selector: #selector(update))
         displayLink?.add(to: .main, forMode: .common)
     }
@@ -53,7 +56,11 @@ final class RecordingProgressManager {
         let progress = Float(elapsed / maxDuration)
         delegate?.progressDidUpdate(min(progress, 1.0))
 
+        let remaining = max(0, Int(ceil(maxDuration - elapsed)))
+        delegate?.timeRemainingDidUpdate(remaining)
+        
         if elapsed >= maxDuration {
+            isCompleted = true
             stop()
             delegate?.progressDidFinish()
         }

@@ -32,7 +32,7 @@ final class ChallComparSubView: UIView {
     }
 
     private func setupView() {
-        backgroundColor = .systemBackground
+        backgroundColor = .black
         layer.cornerRadius = 15
         layer.masksToBounds = true
         translatesAutoresizingMaskIntoConstraints = false

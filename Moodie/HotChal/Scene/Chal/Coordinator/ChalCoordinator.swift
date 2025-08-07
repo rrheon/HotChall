@@ -2,48 +2,47 @@
 import UIKit
 
 /// 핫첼 메인화면이동 코디네이터
-final class ChalCoordinator: Coordinator {
-  weak var finishDelegate: CoordinatorFinishDelegate?
-  
-  var childCoordinators: [Coordinator] = []
-  var navigationController: UINavigationController
-  var type: CoordinatorType { .favorite }
-  
-  required init(_ navigationController: UINavigationController) {
-    self.navigationController = navigationController
-  }
-  
-  
-  /// 처음 시작화면
-  func start() {
-    let chalMainViewController = HotChalMainViewController()
-    chalMainViewController.delegate = self
-    self.navigationController.viewControllers = [chalMainViewController]
-  }
-  
-  /// 핫챌 Top100 VC로 이동하기
-  func navToHotChallTop100ViewController(with challengeName: String){
-    let vc = HotChallTop100ViewController()
-    vc.challengeName = challengeName
-    vc.delegate = self
-    self.navigationController.pushViewController(vc, animated: true)
-  }
-  
-  
-  /// 챌린지 배우기 디테일 화면으로 이동
-  func navToLearnChallengeViewController(){
-    let vc = ChallCompareViewController()
-//    vc.setupPlayer()
-    self.navigationController.pushViewController(vc, animated: true)
-  }
-  
-  // 챌린지 찍기 화면으로 이동
-  func navToTakeChallengeViewController(){
-    let vc = CameraViewController()
-    self.navigationController.pushViewController(vc, animated: true)
-  }
-
-  
+final class ChalCoordinator: BaseCoordinator {
+    
+    override func start() {
+        let chalMainViewController = HotChalMainViewController()
+        chalMainViewController.delegate = self
+        self.navigationController.viewControllers = [chalMainViewController]
+    }
+    
+    /// 핫챌 Top100 VC로 이동하기
+    func navToHotChallTop100ViewController(with challengeName: String){
+        let vc = HotChallTop100ViewController()
+        vc.challengeName = challengeName
+        vc.delegate = self
+        self.navigationController.pushViewController(vc, animated: true)
+    }
+    
+    /// 챌린지 배우기 디테일 화면으로 이동
+    func navToLearnChallengeViewController(with data: ChallengeVideo){
+        let vc = ChallCompareViewController()
+        vc.subVideoFilename = data.videoFilename
+        vc.coordinator = self
+        vc.hidesBottomBarWhenPushed = true
+        self.navigationController.pushViewController(vc, animated: true)
+    }
+    
+    // 챌린지 찍기 화면으로 이동
+    func navToTakeChallengeViewController() {
+        let vc = CameraViewController()
+        vc.delegate = self
+        vc.modalPresentationStyle = .fullScreen
+        navigationController.present(vc, animated: true)
+    }
+    
+    // 챌린지 찍기 화면에서 -> 비교하기로으로 이동
+    func navToCompareViewController(url: URL) {
+        let vc = ChallCompareViewController()
+        vc.videoURL = url
+        vc.coordinator = self
+        navigationController.pushViewController(vc, animated: true)
+    }
+      
   /// 챌린지 보기 화면으로 이동
   func navToShowChallengeViewController(){
     let vc = ShowChallengePageViewController(
@@ -54,4 +53,13 @@ final class ChalCoordinator: Coordinator {
   }
 }
 
-
+extension ChalCoordinator: CameraViewControllerDelegate {
+    func cameraViewControllerDidFinish() {
+        navigationController.dismiss(animated: true)
+    }
+    
+    func cameraViewControllerNavigateToResult(url: URL) {
+        self.navToCompareViewController(url: url)
+        navigationController.dismiss(animated: true)
+    }
+}

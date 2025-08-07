@@ -10,19 +10,21 @@ import AVFoundation
 
 class ChallCompareViewController: UIViewController {
 
+    var subVideoFilename: String?
+    var coordinator: ChalCoordinator?
+    
     private var mainVideoPlayer: ChallCompareLoopedVideoPlayer!
     private var isPlaying = true
-
-    private var videoURL: URL?
-    public var incomingVideoFilename: String?
+    var videoURL: URL?
 
     private let challCompareMainView = makeView(backgroundColor: .systemBackground)
     private let challCompareSubView = ChallComparSubView()
-    private let bottomBarView = makeView(backgroundColor: UIColor(red: 255/255, green: 199/255, blue: 194/255, alpha: 0.8))
 
-    private let pauseButton = makeButton(icon: "pause.circle", title: "일시정지", color: .systemBlue)
-    private let deleteButton = makeButton(icon: "trash.circle", title: "삭제", color: .systemRed)
-    private let shareButton = makeButton(icon: "square.and.arrow.up.circle", title: "공유하기", color: .systemBlue)
+    private let bottomBarView = makeView(backgroundColor: .appPink.withAlphaComponent(0.8))
+    private let pauseButton = makeButton(icon: "pause", title: "일시정지", color: .appCharcoal)
+    private let deleteButton = makeButton(icon: "camera", title: "다시찍기", color: .appCharcoal)
+    private let shareButton = makeButton(icon: "square.and.arrow.up", title: "공유하기", color: .appCharcoal)
+    private let savedButton = makeButton(icon: "square.and.arrow.down", title: "저장하기", color: .appCharcoal)
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -34,28 +36,42 @@ class ChallCompareViewController: UIViewController {
 
         mainVideoPlayer = ChallCompareLoopedVideoPlayer(containerView: challCompareMainView, isMuted: false, isMain: true)
 
-        if let url = videoURL {
-            mainVideoPlayer.setupVideo(url) { [weak self] aspectRatio in
-                guard let self = self else { return }
-            }
-        } else {
-            playCameraResultVideo(url: nil)
-        }
+         // ✅ 녹화된 영상 재생
+         if let url = videoURL {
+             mainVideoPlayer.setupVideo(url) { [weak self] aspectRatio in
+                 guard let self = self else { return }
+                 // 비율 조정 등 추가 작업 가능
+             }
+         } else {
+             playCameraResultVideo(url: nil)  // 영상 없을 경우 처리
+         }
 
-        challCompareSubView.setupVideo(named: "asepa1.mp4") { [weak self] aspectRatio in
-            guard let self = self else { return }
-            let width: CGFloat = 140
-            let height = width * aspectRatio
-            let safeFrame = self.view.safeAreaLayoutGuide.layoutFrame
-            self.challCompareSubView.frame = CGRect(x: safeFrame.maxX - width - 10, y: safeFrame.minY + 10, width: width, height: height)
-        }
+         // 서브 영상 세팅
+         if let filename = subVideoFilename {
+             challCompareSubView.setupVideo(named: filename) { [weak self] aspectRatio in
+                 guard let self = self else { return }
+                 let width: CGFloat = 140
+                 let height = width * aspectRatio
+                 let safeFrame = self.view.safeAreaLayoutGuide.layoutFrame
+                 self.challCompareSubView.frame = CGRect(x: safeFrame.maxX - width - 10,
+                                                         y: safeFrame.minY + 10,
+                                                         width: width,
+                                                         height: height)
+             }
+         }
+     }
+    
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        mainVideoPlayer.updateFrame()
+        challCompareSubView.videoPlayer.updateFrame()
     }
 
     private func setupViews() {
         view.addSubview(challCompareMainView)
         view.addSubview(challCompareSubView)
         view.addSubview(bottomBarView)
-        [pauseButton, deleteButton, shareButton].forEach { bottomBarView.addSubview($0) }
+        [pauseButton, deleteButton, shareButton, savedButton].forEach { bottomBarView.addSubview($0) }
     }
 
     private func setupConstraints() {
@@ -64,18 +80,24 @@ class ChallCompareViewController: UIViewController {
             challCompareMainView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             challCompareMainView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             challCompareMainView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-
+            
             bottomBarView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             bottomBarView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             bottomBarView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-            bottomBarView.heightAnchor.constraint(equalToConstant: 85),
-
-            pauseButton.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -10),
-            pauseButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            deleteButton.centerYAnchor.constraint(equalTo: pauseButton.centerYAnchor),
-            deleteButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 30),
-            shareButton.centerYAnchor.constraint(equalTo: pauseButton.centerYAnchor),
-            shareButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -30)
+            bottomBarView.heightAnchor.constraint(equalToConstant: 70),
+            
+            deleteButton.centerYAnchor.constraint(equalTo: bottomBarView.centerYAnchor),
+                deleteButton.trailingAnchor.constraint(equalTo: savedButton.leadingAnchor, constant: -22),
+                
+                savedButton.centerYAnchor.constraint(equalTo: bottomBarView.centerYAnchor),
+                savedButton.trailingAnchor.constraint(equalTo: view.centerXAnchor, constant: -11),
+                
+                pauseButton.centerYAnchor.constraint(equalTo: bottomBarView.centerYAnchor),
+                pauseButton.leadingAnchor.constraint(equalTo: view.centerXAnchor, constant: 11),
+                pauseButton.widthAnchor.constraint(equalToConstant: 70),
+                
+                shareButton.centerYAnchor.constraint(equalTo: bottomBarView.centerYAnchor),
+                shareButton.leadingAnchor.constraint(equalTo: pauseButton.trailingAnchor, constant: 22)
         ])
     }
 
@@ -83,7 +105,7 @@ class ChallCompareViewController: UIViewController {
         pauseButton.addTarget(self, action: #selector(togglePlayPause), for: .touchUpInside)
         deleteButton.addTarget(self, action: #selector(deleteButtonTapped), for: .touchUpInside)
         shareButton.addTarget(self, action: #selector(shareButtonTapped), for: .touchUpInside)
-
+        
         challCompareMainView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(swapVideoLayers)))
         challCompareSubView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(swapVideoLayers)))
     }
@@ -92,16 +114,35 @@ class ChallCompareViewController: UIViewController {
         mainVideoPlayer.togglePlayPause()
         challCompareSubView.videoPlayer.togglePlayPause()
         isPlaying.toggle()
-
-        let icon = isPlaying ? "pause.circle" : "play.circle"
+        
+        let iconName = isPlaying ? "pause" : "play"
         let title = isPlaying ? "일시정지" : "재생"
-        pauseButton.configuration = makeButtonConfig(icon: icon, title: title, color: .systemBlue)
+
+        if var config = pauseButton.configuration {
+            config.image = UIImage(systemName: iconName, withConfiguration: UIImage.SymbolConfiguration(pointSize: 20, weight: .regular))
+            var titleContainer = AttributeContainer()
+            titleContainer.font = UIFont.systemFont(ofSize: 13)
+            config.attributedTitle = AttributedString(title, attributes: titleContainer)
+            pauseButton.configuration = config
+        }
     }
 
     @objc private func deleteButtonTapped() {
-        let alert = UIAlertController(title: "정말로 삭제하시겠습니까?", message: nil, preferredStyle: .alert)
+        let alert = UIAlertController(title: "다시 촬영하시겠습니까?", message: nil, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "취소", style: .cancel))
-        alert.addAction(UIAlertAction(title: "삭제", style: .destructive))
+
+        alert.addAction(UIAlertAction(title: "재촬영", style: .destructive) { [weak self] _ in
+            guard let self = self else { return }
+
+            print("재촬영 버튼 클릭됨")
+            if self.coordinator == nil {
+                print("⚠️ coordinator가 nil입니다.")
+            } else {
+                print("✅ coordinator 있음, 카메라 열기 시도")
+                self.coordinator?.navToTakeChallengeViewController()
+            }
+        })
+
         present(alert, animated: true)
     }
 
@@ -115,67 +156,60 @@ class ChallCompareViewController: UIViewController {
     @objc private func swapVideoLayers() {
         let tempMain = mainVideoPlayer!
         let tempSub = challCompareSubView.videoPlayer
-
+        
         DispatchQueue.main.async {
             tempMain.playerLayer?.removeFromSuperlayer()
             tempSub.playerLayer?.removeFromSuperlayer()
-
+            
             tempSub.containerView = self.challCompareMainView
             tempMain.containerView = self.challCompareSubView
-
+            
             tempMain.setMuted(true)
             tempSub.setMuted(false)
             tempMain.isMain = false
             tempSub.isMain = true
-
+            
             if let subLayer = tempSub.playerLayer {
                 self.challCompareMainView.layer.addSublayer(subLayer)
             }
-
+            
             if let mainLayer = tempMain.playerLayer {
                 self.challCompareSubView.layer.addSublayer(mainLayer)
             }
-
+            
             tempMain.updateFrame()
             tempSub.updateFrame()
-
-            // 참조 교체
+            
             self.mainVideoPlayer = tempSub
             self.challCompareSubView.videoPlayer = tempMain
         }
     }
-
-    override func viewDidLayoutSubviews() {
-        super.viewDidLayoutSubviews()
-        mainVideoPlayer.updateFrame()
-        challCompareSubView.videoPlayer.updateFrame()
-    }
-
+    
     func playCameraResultVideo(url: URL?) {
         mainVideoPlayer.playerLayer?.removeFromSuperlayer()
-        challCompareMainView.subviews.forEach { $0.removeFromSuperview() }
+        challCompareMainView.subviews
+            .filter { $0 is UILabel }
+            .forEach { $0.removeFromSuperview() }
 
         if let url = url {
             self.videoURL = url
             mainVideoPlayer.setupVideo(url)
         } else {
             challCompareMainView.backgroundColor = .black
-
+            
             let label = UILabel()
             label.text = "파일을 불러 올 수 없습니다"
             label.textAlignment = .center
             label.textColor = .white
             label.font = .systemFont(ofSize: 18, weight: .medium)
             label.translatesAutoresizingMaskIntoConstraints = false
-
+            
             challCompareMainView.addSubview(label)
-
+            
             NSLayoutConstraint.activate([
                 label.centerXAnchor.constraint(equalTo: challCompareMainView.centerXAnchor),
                 label.centerYAnchor.constraint(equalTo: challCompareMainView.centerYAnchor)
             ])
-
-            challCompareMainView.layoutIfNeeded()
         }
     }
 }
@@ -198,16 +232,16 @@ private func makeButton(icon: String, title: String, color: UIColor) -> UIButton
 
 private func makeButtonConfig(icon: String, title: String, color: UIColor) -> UIButton.Configuration {
     var config = UIButton.Configuration.plain()
-    config.image = UIImage(systemName: icon, withConfiguration: UIImage.SymbolConfiguration(pointSize: 30, weight: .regular))
+    config.image = UIImage(systemName: icon, withConfiguration: UIImage.SymbolConfiguration(pointSize: 20, weight: .regular))
     config.title = title
     config.imagePlacement = .top
     config.imagePadding = 5
     config.baseForegroundColor = color
-
+    
     var container = AttributeContainer()
-    container.font = UIFont.systemFont(ofSize: 15)
+    container.font = UIFont.systemFont(ofSize: 13)
     config.attributedTitle = AttributedString(title, attributes: container)
-
+    
     return config
 }
 

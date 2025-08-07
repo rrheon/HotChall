@@ -126,6 +126,8 @@ class PlayerViewController: UIViewController {
         addPeriodicTimeObserver()
         setupGestureRecognizers()
         setupVolumeIconTap()
+        setupKeyboardDismissGesture()
+        setupNavigationButton()
     }
 
     
@@ -320,6 +322,9 @@ class PlayerViewController: UIViewController {
                 $0.textAlignment = .center
                 $0.font = .systemFont(ofSize: 13)
                 view.addSubview($0)
+                $0.inputAccessoryView = makeAccessoryView(for: $0)
+                $0.addTarget(self, action: #selector(loopTextFieldDidChange(_:)), for: .editingChanged)
+
             }
 
             startTimeField.placeholder = "start(s)"
@@ -379,11 +384,53 @@ class PlayerViewController: UIViewController {
         print("✅ New Time observer added")
     }
 
+    //MARK: - 키보드 위 텍스트 입력 칸
+    private func makeAccessoryView(for textField: UITextField) -> UIView {
+        let accessoryView = UIView(frame: CGRect(x: 0, y: 0, width: view.bounds.width, height: 44))
+        accessoryView.backgroundColor = .secondarySystemBackground
+
+        let label = UILabel()
+            label.text = textField.text
+            label.textColor = .label
+            label.textAlignment = .left
+            label.font = .systemFont(ofSize: 16, weight: .medium)
+            label.translatesAutoresizingMaskIntoConstraints = false
+            label.tag = 999
+        
+        let doneButton = UIButton(type: .system)
+            doneButton.setTitle("Done", for: .normal)
+            doneButton.titleLabel?.font = .systemFont(ofSize: 16, weight: .semibold)
+            doneButton.addTarget(self, action: #selector(dismissKeyboardOnly), for: .touchUpInside)
+            doneButton.translatesAutoresizingMaskIntoConstraints = false
+
+        accessoryView.addSubview(label)
+        accessoryView.addSubview(doneButton)
+        
+        NSLayoutConstraint.activate([
+            label.centerXAnchor.constraint(equalTo: accessoryView.centerXAnchor),
+            label.centerYAnchor.constraint(equalTo: accessoryView.centerYAnchor),
+            
+            doneButton.trailingAnchor.constraint(equalTo: accessoryView.trailingAnchor, constant: -16),
+            doneButton.centerYAnchor.constraint(equalTo: accessoryView.centerYAnchor)
+            ])
+
+        return accessoryView
+    }
+
     
     // 탭해서 재생, 일시정지
     private func setupGestureRecognizers() {
-        view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(togglePlayPause)))
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(togglePlayPause))
+        tapGesture.cancelsTouchesInView = false
+
+        // ⚠️ overlayContainerView 또는 playerBackgroundView 등 적절한 백그라운드 뷰에만 추가
+        view.insertSubview(overlayContainerView, at: 1) // 필요한 경우 초기화와 위치 추가
+        overlayContainerView.frame = view.bounds
+        overlayContainerView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        overlayContainerView.backgroundColor = .clear
+        overlayContainerView.addGestureRecognizer(tapGesture)
     }
+
     
     // 볼륨 버튼 탭(뮤트)
     private func setupVolumeIconTap() {
@@ -441,13 +488,22 @@ class PlayerViewController: UIViewController {
     
     // 탭해서 재생, 일시정지 설정
     @objc private func togglePlayPause() {
-        guard let player = player,
-                      let item = player.currentItem else { return }
+        guard let player = player else { return }
 
-                if player.timeControlStatus == .paused && player.currentTime() >= item.duration {
-                    player.seek(to: .zero)
+        if player.timeControlStatus == .paused {
+            if let duration = player.currentItem?.duration,
+               abs(player.currentTime().seconds - duration.seconds) < 0.3 {
+                print("🔁 끝까지 재생된 상태, 처음부터 다시 재생")
+                player.seek(to: .zero) { [weak self] _ in
+                    guard let self = self else { return }
+                    self.player?.playImmediately(atRate: self.selectedSpeed)
                 }
-                isPlaying.toggle()
+            } else {
+                player.playImmediately(atRate: selectedSpeed)
+            }
+        } else {
+            player.pause()
+        }
     }
     
     // 재생 시간 업데이트
@@ -464,6 +520,53 @@ class PlayerViewController: UIViewController {
             button.backgroundColor = (speed == selectedSpeed) ? .appPink : UIColor.white.withAlphaComponent(0.2)
         }
     }
+    
+    // 키보드 위 입력 칸에 입력하면 텍스트 필드 영역도 업데이트
+    @objc private func loopTextFieldDidChange(_ textField: UITextField) {
+        if let accessoryView = textField.inputAccessoryView,
+           let label = accessoryView.viewWithTag(999) as? UILabel {
+            label.text = textField.text
+        }
+    }
+    
+    // Done 버튼을 탭하면 키보드가 내려가도록
+    private func setupKeyboardDismissGesture() {
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboardOnly))
+        tapGesture.cancelsTouchesInView = false
+        view.addGestureRecognizer(tapGesture)
+    }
+
+    @objc private func dismissKeyboardOnly() {
+        view.endEditing(true)
+    }
+    
+    // 찍어보기 버튼
+    private func setupNavigationButton() {
+        let button = UIButton(type: .system)
+        button.setTitle("챌린지 찍기", for: .normal)
+        button.setTitleColor(.white, for: .normal)
+        button.backgroundColor = .appPink .withAlphaComponent(0.5)
+        button.layer.cornerRadius = 10
+        button.translatesAutoresizingMaskIntoConstraints = false
+        
+        button.addTarget(self, action: #selector(navToTakeChallengeViewController), for: .touchUpInside)
+        
+        view.addSubview(button)
+        
+        // 우측 상단에 위치 (Safe Area 기준)
+        NSLayoutConstraint.activate([
+            button.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 12),
+            button.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -12),
+            button.widthAnchor.constraint(equalToConstant: 80),
+            button.heightAnchor.constraint(equalToConstant: 36)
+        ])
+    }
+    
+    @objc func navToTakeChallengeViewController() {
+            let vc = CameraViewController()
+            self.navigationController?.pushViewController(vc, animated: true)
+        }
+
 
     //MARK: - 뷰 이동시 숨김/나타냄 처리
     override func viewWillAppear(_ animated: Bool) {

@@ -154,10 +154,10 @@ extension HotChalMainViewController: ChallengePlayerViewDelegate {
     delegate?.navToTakeChallengeViewController()
   }
   
-  func navToLearnChallenge(with data: ChallengeVideo) {
-    print(#fileID, #function, #line, "- 챌린지 배우기 화면으로 이동")
-    delegate?.navToLearnChallengeViewController()
-  }
+    func navToLearnChallenge(with data: ChallengeVideo) {
+      print(#fileID, #function, #line, "- 챌린지 배우기 화면으로 이동")
+      delegate?.navToLearnChallengeViewController(with: data)
+    }
   
   func navToShowChallenge(with data: ChallengeVideo) {
     print(#fileID, #function, #line, "- 챌린지 띄우기")
