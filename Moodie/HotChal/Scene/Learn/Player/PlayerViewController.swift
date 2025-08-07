@@ -456,12 +456,13 @@ class PlayerViewController: UIViewController {
         }
     }
     
+    //MARK: - 버튼 설정
     // 찍어보기 버튼
     private func setupNavigationButton() {
         let button = UIButton(type: .system)
-        button.setTitle("챌린지 찍기", for: .normal)
+        button.setTitle("Try this Challenge", for: .normal)
         button.setTitleColor(.white, for: .normal)
-        button.backgroundColor = .appPink .withAlphaComponent(1)
+        button.backgroundColor = .appPink
         button.layer.cornerRadius = 8
         button.translatesAutoresizingMaskIntoConstraints = false
         
@@ -471,10 +472,10 @@ class PlayerViewController: UIViewController {
         
         // 우측 상단에 위치 (Safe Area 기준)
         NSLayoutConstraint.activate([
-            button.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 12),
-            button.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -12),
-            button.widthAnchor.constraint(equalToConstant: 80),
-            button.heightAnchor.constraint(equalToConstant: 36)
+            button.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 5),
+            button.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -15),
+            button.widthAnchor.constraint(equalToConstant: 150),
+            button.heightAnchor.constraint(equalToConstant: 25)
         ])
     }
     
@@ -484,6 +485,7 @@ class PlayerViewController: UIViewController {
             let button = UIButton(type: .system)
             button.addTarget(self, action: #selector(handleShowModal), for: .touchUpInside)
             button.setTitle("Loop Setting", for: .normal)
+            button.setTitleColor(.white, for: .normal)
             button.backgroundColor = .appPink
             button.layer.cornerRadius = 8
             return button
@@ -494,17 +496,17 @@ class PlayerViewController: UIViewController {
         
         NSLayoutConstraint.activate([
             button.bottomAnchor.constraint(equalTo: volumeSlider.topAnchor, constant: -16),
-            button.leadingAnchor.constraint(equalTo: view.trailingAnchor, constant: -115),
+            button.leadingAnchor.constraint(equalTo: view.trailingAnchor, constant: -135),
             button.widthAnchor.constraint(equalToConstant: 115),
         ])
     }
     
-    // 찍어보기(카메라)화면으로 전환 버튼
+    // 찍어보기(카메라)화면으로 전환 함수
     @objc func navToTakeChallengeViewController() {
             let vc = CameraViewController()
             self.navigationController?.pushViewController(vc, animated: true)
         }
-    
+    //MARK: - Modal 관련
     // 텍스트 필드 모달 뷰
     @objc func handleShowModal() {
         let modalViewController = ModalViewController()
