@@ -4,8 +4,8 @@ import UIKit
 import AVFoundation
 
 protocol CameraViewControllerDelegate: AnyObject {
-    func cameraViewControllerDidFinish()
-    func cameraViewControllerNavigateToResult(url: URL)
+    func cameraViewControllerDidFinishRecording(videoURL: URL)
+    func cameraViewControllerDidCancel()
 }
 
 final class CameraViewController: UIViewController {
@@ -253,7 +253,7 @@ final class CameraViewController: UIViewController {
     }
 
     @objc private func onCloseButtonTapped() {
-        delegate?.cameraViewControllerDidFinish()
+        delegate?.cameraViewControllerDidCancel()
     }
     
     private func setUIForRecording(isRecording: Bool) {
@@ -330,7 +330,7 @@ extension CameraViewController: ChallCameraResultViewDelegate {
     }
 
     func cameraResultViewSave(_ view: ChallCameraResultView, didTapSaveWith videoURL: URL) {
-        delegate?.cameraViewControllerNavigateToResult(url: videoURL)
+        delegate?.cameraViewControllerDidFinishRecording(videoURL: videoURL)
     }
 }
 
