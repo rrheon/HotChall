@@ -214,7 +214,7 @@ class PlayerViewController: UIViewController {
         }
         player = AVPlayer(url: url)
         playerLayer = AVPlayerLayer(player: player)
-        playerLayer?.videoGravity = .resizeAspect
+        playerLayer?.videoGravity = .resizeAspectFill
         if let layer = playerLayer {
             view.layer.insertSublayer(layer, at: 0)
         }
@@ -460,7 +460,7 @@ class PlayerViewController: UIViewController {
     // 찍어보기 버튼
     private func setupNavigationButton() {
         let button = UIButton(type: .system)
-        button.setTitle("Try this Challenge", for: .normal)
+        button.setTitle("Try this Challenge!", for: .normal)
         button.setTitleColor(.white, for: .normal)
         button.backgroundColor = .appPink
         button.layer.cornerRadius = 8
@@ -473,8 +473,8 @@ class PlayerViewController: UIViewController {
         // 우측 상단에 위치 (Safe Area 기준)
         NSLayoutConstraint.activate([
             button.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 5),
-            button.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -15),
-            button.widthAnchor.constraint(equalToConstant: 150),
+            button.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -13),
+            button.widthAnchor.constraint(equalToConstant: 140),
             button.heightAnchor.constraint(equalToConstant: 25)
         ])
     }
@@ -495,8 +495,8 @@ class PlayerViewController: UIViewController {
         self.view.addSubview(button)
         
         NSLayoutConstraint.activate([
-            button.bottomAnchor.constraint(equalTo: volumeSlider.topAnchor, constant: -16),
-            button.leadingAnchor.constraint(equalTo: view.trailingAnchor, constant: -135),
+            button.bottomAnchor.constraint(equalTo: volumeSlider.topAnchor, constant: -13),
+            button.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -13),
             button.widthAnchor.constraint(equalToConstant: 115),
         ])
     }

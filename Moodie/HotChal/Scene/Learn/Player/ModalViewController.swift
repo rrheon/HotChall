@@ -34,14 +34,13 @@ class ModalViewController: UIViewController {
         view.addSubview(titleLabel)
 
         // 안내 문구 라벨
-        let infoLabel = UILabel()
-        infoLabel.text = "⚠️ 입력하지 않으면 루프가 초기화됩니다"
-        infoLabel.font = UIFont.systemFont(ofSize: 10)
-        infoLabel.textColor = .gray
-        infoLabel.textAlignment = .center
-        infoLabel.numberOfLines = 0
-        infoLabel.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(infoLabel)
+        let infoButton = UIButton(type: .system)
+        infoButton.setTitle("⚠️", for: .normal)
+        infoButton.titleLabel?.font = UIFont.systemFont(ofSize: 15)
+        infoButton.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(infoButton)
+        
+        infoButton.addTarget(self, action: #selector(showTooltip), for: .touchUpInside)
 
         // 텍스트필드 StackView (기존 방식 유지)
         let timeInputStackView = UIStackView(arrangedSubviews: [startTimeField, endTimeField])
@@ -61,7 +60,7 @@ class ModalViewController: UIViewController {
         view.addSubview(timeInputStackView)
         
         let closeButton = UIButton(type: .system)
-            closeButton.setTitle("Complete Setting", for: .normal)
+            closeButton.setTitle("☑️ Complete Setting", for: .normal)
             closeButton.addTarget(self, action: #selector(close), for: .touchUpInside)
             closeButton.translatesAutoresizingMaskIntoConstraints = false
         
@@ -80,15 +79,44 @@ class ModalViewController: UIViewController {
             timeInputStackView.heightAnchor.constraint(equalToConstant: 44),
             
             // 안내문
-            infoLabel.topAnchor.constraint(equalTo: closeButton.bottomAnchor, constant: 5),
-            infoLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-            infoLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+            infoButton.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 18),
+            infoButton.trailingAnchor.constraint(equalTo: titleLabel.trailingAnchor, constant: -90),
                 
             // 설정완료 버튼
             closeButton.topAnchor.constraint(equalTo: timeInputStackView.bottomAnchor, constant: 10),
             closeButton.centerXAnchor.constraint(equalTo: view.centerXAnchor)
             ])
         }
+    
+    class TooltipView: UIView {
+        init(text: String) {
+            super.init(frame: .zero)
+            
+            let label = UILabel()
+            label.text = text
+            label.textColor = .white
+            label.font = UIFont.systemFont(ofSize: 12)
+            label.numberOfLines = 0
+            label.textAlignment = .center
+            
+            self.backgroundColor = UIColor.black.withAlphaComponent(0.8)
+            self.layer.cornerRadius = 8
+            self.translatesAutoresizingMaskIntoConstraints = false
+            
+            label.translatesAutoresizingMaskIntoConstraints = false
+            addSubview(label)
+            
+            NSLayoutConstraint.activate([
+                label.topAnchor.constraint(equalTo: topAnchor, constant: 8),
+                label.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -8),
+                label.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 8),
+                label.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -8),
+            ])
+        }
+        required init?(coder: NSCoder) {
+            fatalError("init(coder:) has not been implemented")
+        }
+    }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
@@ -114,6 +142,32 @@ class ModalViewController: UIViewController {
             delegate?.willDismissModalView(self, startTime: start, endTime: end)
         }
         self.dismiss(animated: true)
+    }
+    
+    @objc private func showTooltip(sender: UIButton) {
+        let tooltip = TooltipView(text: "아무것도 입력하지 않고 완료 버튼을 누르면 루프가 초기화됩니다.")
+        tooltip.alpha = 0
+        view.addSubview(tooltip)
+        
+        // 버튼 기준 위치 설정
+        NSLayoutConstraint.activate([
+            tooltip.bottomAnchor.constraint(equalTo: sender.bottomAnchor, constant: 45),
+            tooltip.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            tooltip.widthAnchor.constraint(lessThanOrEqualToConstant: 300)
+        ])
+        
+        // 애니메이션으로 나타나고, 2초 뒤에 사라짐
+        UIView.animate(withDuration: 0.3, animations: {
+            tooltip.alpha = 1
+        }) { _ in
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                UIView.animate(withDuration: 0.3, animations: {
+                    tooltip.alpha = 0
+                }) { _ in
+                    tooltip.removeFromSuperview()
+                }
+            }
+        }
     }
 }
     
