@@ -157,12 +157,19 @@ final class ChallPlayerView: UIView {
   
   /// 버튼 타이틀 변경  - 저장하기 / 삭제하기
   /// - Parameter title: 변경할 타이틀
-  func changeButtonTitle(title: String){
+  func changeButton(title: String, image: String) {
     let font = UIFont.systemFont(ofSize: 14)
     let attributes: [NSAttributedString.Key: Any] = [.font: font]
     let newTitle = NSAttributedString(string: title, attributes: attributes)
-    saveChallengeButton.configuration?.attributedTitle = AttributedString(newTitle)
-
+    
+    var config = saveChallengeButton.configuration ?? UIButton.Configuration.filled()
+    config.attributedTitle = AttributedString(newTitle)
+    config.image = UIImage(systemName: image)
+    config.imagePlacement = .top
+    config.imagePadding = 10
+    
+    saveChallengeButton.configuration = config
   }
+  
   
 }
