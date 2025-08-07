@@ -26,6 +26,30 @@ class ChallCompareViewController: UIViewController {
     private let deleteButton = makeButton(icon: "camera", title: "다시찍기", color: .appCharcoal)
     private let shareButton = makeButton(icon: "square.and.arrow.up", title: "공유하기", color: .appCharcoal)
     private let savedButton = makeButton(icon: "square.and.arrow.down", title: "저장하기", color: .appCharcoal)
+    
+    private let backButton: UIButton = {
+        let button = UIButton(type: .system)
+        let config = UIImage.SymbolConfiguration(pointSize: 14, weight: .bold)
+        let image = UIImage(systemName: "chevron.backward", withConfiguration: config)
+        button.setImage(image, for: .normal)
+        button.tintColor = .white
+        button.backgroundColor = .appPink.withAlphaComponent(0.8)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.clipsToBounds = true
+
+        return button
+    }()
+
+    // ✅ 네비게이션 바 숨기기
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        navigationController?.setNavigationBarHidden(true, animated: false)
+    }
+
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        navigationController?.setNavigationBarHidden(false, animated: false)
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -38,7 +62,7 @@ class ChallCompareViewController: UIViewController {
         mainVideoPlayer = ChallCompareLoopedVideoPlayer(containerView: challCompareMainView, isMuted: false, isMain: true)
 
         if let url = videoURL {
-            mainVideoPlayer.setupVideo(url) { [weak self] aspectRatio in
+            mainVideoPlayer.setupVideo(url) { [weak self] _ in
                 self?.mainVideoPlayer.updateFrame()
             }
         } else {
@@ -63,12 +87,15 @@ class ChallCompareViewController: UIViewController {
         super.viewDidLayoutSubviews()
         mainVideoPlayer.updateFrame()
         challCompareSubView.videoPlayer.updateFrame()
+        backButton.layer.cornerRadius = backButton.bounds.width / 2
+
     }
 
     private func setupViews() {
         view.addSubview(challCompareMainView)
         view.addSubview(challCompareSubView)
         view.addSubview(bottomBarView)
+        view.addSubview(backButton)
         [pauseButton, deleteButton, shareButton, savedButton].forEach { bottomBarView.addSubview($0) }
     }
 
@@ -82,20 +109,25 @@ class ChallCompareViewController: UIViewController {
             bottomBarView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             bottomBarView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             bottomBarView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-            bottomBarView.heightAnchor.constraint(equalToConstant: 85),
+            bottomBarView.heightAnchor.constraint(equalToConstant: 90),
 
-            deleteButton.centerYAnchor.constraint(equalTo: bottomBarView.centerYAnchor),
+            deleteButton.centerYAnchor.constraint(equalTo: bottomBarView.centerYAnchor, constant: -13),
             deleteButton.trailingAnchor.constraint(equalTo: savedButton.leadingAnchor, constant: -24),
 
-            savedButton.centerYAnchor.constraint(equalTo: bottomBarView.centerYAnchor),
+            savedButton.centerYAnchor.constraint(equalTo: bottomBarView.centerYAnchor, constant: -13),
             savedButton.trailingAnchor.constraint(equalTo: view.centerXAnchor, constant: -12),
 
-            pauseButton.centerYAnchor.constraint(equalTo: bottomBarView.centerYAnchor),
+            pauseButton.centerYAnchor.constraint(equalTo: bottomBarView.centerYAnchor, constant: -13),
             pauseButton.leadingAnchor.constraint(equalTo: view.centerXAnchor, constant: 12),
             pauseButton.widthAnchor.constraint(equalToConstant: 70),
 
-            shareButton.centerYAnchor.constraint(equalTo: bottomBarView.centerYAnchor),
-            shareButton.leadingAnchor.constraint(equalTo: pauseButton.trailingAnchor, constant: 24)
+            shareButton.centerYAnchor.constraint(equalTo: bottomBarView.centerYAnchor, constant: -13),
+            shareButton.leadingAnchor.constraint(equalTo: pauseButton.trailingAnchor, constant: 24),
+            
+            backButton.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 10),
+            backButton.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
+            backButton.widthAnchor.constraint(equalToConstant: 30),
+            backButton.heightAnchor.constraint(equalToConstant: 30)
         ])
     }
 
@@ -104,9 +136,14 @@ class ChallCompareViewController: UIViewController {
         deleteButton.addTarget(self, action: #selector(deleteButtonTapped), for: .touchUpInside)
         shareButton.addTarget(self, action: #selector(shareButtonTapped), for: .touchUpInside)
         savedButton.addTarget(self, action: #selector(saveButtonTapped), for: .touchUpInside)
+        backButton.addTarget(self, action: #selector(backButtonTapped), for: .touchUpInside)
 
         challCompareMainView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(swapVideoLayers)))
         challCompareSubView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(swapVideoLayers)))
+    }
+
+    @objc private func backButtonTapped() {
+        navigationController?.popViewController(animated: true)
     }
 
     @objc private func togglePlayPause() {
@@ -133,9 +170,7 @@ class ChallCompareViewController: UIViewController {
             guard let self = self else { return }
 
             self.coordinator?.currentSubVideoFilename = self.subVideoFilename
-
             self.navigationController?.popViewController(animated: false)
-
             self.coordinator?.navToTakeChallengeViewController()
         })
         present(alert, animated: true)
