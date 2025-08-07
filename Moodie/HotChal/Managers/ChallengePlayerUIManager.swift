@@ -21,8 +21,8 @@ final class ChallengePlayerUIManager {
     guard let keyWindow = UIApplication.shared.windows.first(where: { $0.isKeyWindow }) else { return }
   
     let buttonTitle = viewController is SavedHotChallViewController ? "삭제하기" : "즐겨찾기"
-    playerView.changeButtonTitle(title: buttonTitle)
-    
+    let buttonImage = viewController is SavedHotChallViewController ? "trash" : "star"
+    playerView.changeButton(title: buttonTitle, image: buttonImage)
     
     keyWindow.addSubview(playerView)
     playerView.challengeData = data

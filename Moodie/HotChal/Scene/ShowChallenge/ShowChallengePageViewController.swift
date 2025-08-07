@@ -11,6 +11,8 @@ import UIKit
 /// 챌린지 보여주기 화면 PageViewController
 final class ShowChallengePageViewController: UIPageViewController {
   
+  weak var coordinatorDelgate: ChallengeNavigationDelegate?
+  
   private var challengeList: [ChallengeVideo] = MockupDataManager.shared.challengeVideos
   private var currentIndex: Int = 0
   
@@ -24,6 +26,7 @@ final class ShowChallengePageViewController: UIPageViewController {
                        direction: .forward,
                        animated: false,
                        completion: nil)
+
   }
   
   
@@ -32,7 +35,7 @@ final class ShowChallengePageViewController: UIPageViewController {
   private func makePage(for index: Int) -> ShowChallengeViewController {
     let vc = ShowChallengeViewController()
     vc.challengeData = challengeList[index]
-    
+    vc.delegate = coordinatorDelgate
     return vc
   }
   

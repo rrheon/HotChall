@@ -107,6 +107,6 @@ final class PopupViewController: UIViewController {
   }
   
   @objc func dismissPopup(){
-    self.dismiss(animated: true)
+    self.dismiss(animated: false)
   }
 }

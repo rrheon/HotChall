@@ -14,6 +14,8 @@ import AVKit
 /// 챌린지 보기 화면
 final class ShowChallengeViewController: UIViewController {
     
+  weak var delegate: ChallengeNavigationDelegate?
+  
   var challengeData: ChallengeVideo? {
     didSet{
       guard let data = challengeData else { return }
@@ -59,6 +61,10 @@ final class ShowChallengeViewController: UIViewController {
     stackView.distribution = .fillEqually
     stackView.alignment = .fill
     stackView.spacing = 10
+    stackView.backgroundColor = .backgroundColor.withAlphaComponent(0.8)
+    stackView.layer.cornerRadius = 8
+    stackView.isLayoutMarginsRelativeArrangement = true
+    stackView.layoutMargins = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
     
     return stackView
   }()
@@ -140,35 +146,68 @@ final class ShowChallengeViewController: UIViewController {
   /// 버튼 액션 설정
   private func addButtonActions() {
     saveChallengeButton.addAction(UIAction { [weak self] _ in
-      guard let self = self, let data = self.challengeData else { return }
-      print(#fileID, #function, #line, "- 탭")
-
+      guard let self = self,
+            let data = self.challengeData else { return }
+      CoreDataManager.shared.saveChallenge(with: data) { result in
+        ChallengePlayerUIManager.shared.closeChallPlayer()
+        let comment = result ? "챌린지가 저장되었습니다." : "이미 저장된 챌린지입니다."
+        
+        ToastPopupManager.shared.showToast(message: comment)
+      }
     }, for: .touchUpInside)
     
     learnChallengeButton.addAction(UIAction { [weak self] _ in
-      guard let self = self, let data = self.challengeData else { return }
-      print(#fileID, #function, #line, "- 탭")    }, for: .touchUpInside)
+      guard let self = self,
+            let data = self.challengeData else { return }
+      delegate?.navToLearnChallengeViewController()
+    
+    }, for: .touchUpInside)
     
     takeChallengeButton.addAction(UIAction { [weak self] _ in
-      guard let self = self, let data = self.challengeData else { return }
-      print(#fileID, #function, #line, "- 탭")    }, for: .touchUpInside)
+      guard let self = self,
+            let data = self.challengeData else { return }
+      delegate?.navToTakeChallengeViewController()
+    }, for: .touchUpInside)
   }
   
   
   /// 챌린지 영상 일시정지 / 재생을 위해 재스처 달기
   private func setupVideoTapGesture() {
-      let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleVideoTap))
-      videoBackgroundView.isUserInteractionEnabled = true
-      videoBackgroundView.addGestureRecognizer(tapGesture)
+    let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleVideoTap))
+    videoBackgroundView.isUserInteractionEnabled = true
+    videoBackgroundView.addGestureRecognizer(tapGesture)
   }
   
   /// 챌린지 영상 일시정지 / 재생
   @objc private func handleVideoTap() {
-      if player.timeControlStatus == .playing {
-          player.pause()
-      } else {
-          player.play()
-      }
+    let imageView: UIImageView = UIImageView()
+    imageView.tintColor = .appPink
+    
+    if player.timeControlStatus == .playing {
+      imageView.image = UIImage(systemName: "pause.fill")
+      player.pause()
+    } else {
+      imageView.image = UIImage(systemName: "play.fill")
+      player.play()
+    }
+    
+    guard let keyWindow = UIApplication.shared.windows.first(where: { $0.isKeyWindow }) else { return }
+    
+    imageView.translatesAutoresizingMaskIntoConstraints = false
+    keyWindow.addSubview(imageView)
+    
+    NSLayoutConstraint.activate([
+      imageView.centerXAnchor.constraint(equalTo: keyWindow.safeAreaLayoutGuide.centerXAnchor),
+      imageView.centerYAnchor.constraint(equalTo: keyWindow.safeAreaLayoutGuide.centerYAnchor),
+      imageView.heightAnchor.constraint(equalToConstant: 56),
+      imageView.widthAnchor.constraint(equalToConstant: 56)
+    ])
+    
+    UIView.animate(withDuration: 1.0, delay: 0.3, options: .curveEaseOut, animations: {
+      imageView.alpha = 0.0
+    }, completion: { _ in
+      imageView.removeFromSuperview()
+    })
   }
 
   /// 데이터 설정
@@ -182,14 +221,14 @@ final class ShowChallengeViewController: UIViewController {
     var config = UIButton.Configuration.plain()
     config.image = UIImage(systemName: imageName)
     config.imagePadding = 10
-    config.baseForegroundColor = .black
+    config.baseForegroundColor = .appPink
     
     // 이미지 크기 줄이기
-    let imageSize = UIImage.SymbolConfiguration(pointSize: 14, weight: .regular)
+    let imageSize = UIImage.SymbolConfiguration(pointSize: 18, weight: .bold)
     config.preferredSymbolConfigurationForImage = imageSize
     
     // 텍스트 크기 줄이기
-    let font = UIFont.systemFont(ofSize: 14)
+    let font = UIFont.boldSystemFont(ofSize: 14)
     let attributes: [NSAttributedString.Key: Any] = [ .font: font ]
     config.attributedTitle = AttributedString(NSAttributedString(string: title, attributes: attributes))
     

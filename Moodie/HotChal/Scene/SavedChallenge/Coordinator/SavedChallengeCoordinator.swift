@@ -34,22 +34,7 @@ final class SavedChallengeCoordinator: Coordinator {
     vc.challengeName = challengeName
     self.navigationController.pushViewController(vc, animated: true)
   }
-  
-  // 챌린지 찍기 화면으로 이동
-  func navToTakeChallengeViewController(){
-      let cameraCoordinator = CameraCoordinator(navigationController)
-      cameraCoordinator.delegate = self
-      cameraCoordinator.finishDelegate = self
-      childCoordinators.append(cameraCoordinator)
-      cameraCoordinator.start()
-  }
-  
-  /// 챌린지 배우기 디테일 화면으로 이동
-  func navToLearnChallengeViewController(){
-    let vc = ChallCompareViewController()
-//    vc.setupPlayer()
-    self.navigationController.pushViewController(vc, animated: true)
-  }
+
 }
 
 extension SavedChallengeCoordinator: CameraCoordinatorDelegate {
@@ -64,4 +49,6 @@ extension SavedChallengeCoordinator: CoordinatorFinishDelegate {
         childCoordinators.removeAll { $0 === childCoordinator }
     }
 }
+
+extension SavedChallengeCoordinator: ChallengeNavigationDelegate {}
 
