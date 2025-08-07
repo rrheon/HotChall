@@ -14,6 +14,8 @@ import AVKit
 /// 챌린지 보기 화면
 final class ShowChallengeViewController: UIViewController {
     
+  weak var delegate: ChallengeNavigationDelegate?
+  
   var challengeData: ChallengeVideo? {
     didSet{
       guard let data = challengeData else { return }
@@ -146,20 +148,25 @@ final class ShowChallengeViewController: UIViewController {
     saveChallengeButton.addAction(UIAction { [weak self] _ in
       guard let self = self,
             let data = self.challengeData else { return }
-      print(#fileID, #function, #line, "- 탭")
-
+      CoreDataManager.shared.saveChallenge(with: data) { result in
+        ChallengePlayerUIManager.shared.closeChallPlayer()
+        let comment = result ? "챌린지가 저장되었습니다." : "이미 저장된 챌린지입니다."
+        
+        ToastPopupManager.shared.showToast(message: comment)
+      }
     }, for: .touchUpInside)
     
     learnChallengeButton.addAction(UIAction { [weak self] _ in
       guard let self = self,
             let data = self.challengeData else { return }
-      print(#fileID, #function, #line, "- 탭")
+      delegate?.navToLearnChallengeViewController()
+    
     }, for: .touchUpInside)
     
     takeChallengeButton.addAction(UIAction { [weak self] _ in
       guard let self = self,
             let data = self.challengeData else { return }
-      print(#fileID, #function, #line, "- 탭")
+      delegate?.navToTakeChallengeViewController()
     }, for: .touchUpInside)
   }
   

@@ -28,15 +28,6 @@ final class HotChallLearnCoordinator: Coordinator {
     
   }
 
-  // 챌린지 찍기 화면으로 이동
-  func navToTakeChallengeViewController(){
-      let cameraCoordinator = CameraCoordinator(navigationController)
-      cameraCoordinator.delegate = self
-      cameraCoordinator.finishDelegate = self
-      childCoordinators.append(cameraCoordinator)
-      cameraCoordinator.start()
-  }
-  
   /// 챌린지 배우기 디테일 화면으로 이동
     func navToLearnChallengeViewController(filename: String, title: String, uploader: String){
     let vc = PlayerViewController()
@@ -46,15 +37,7 @@ final class HotChallLearnCoordinator: Coordinator {
     vc.hidesBottomBarWhenPushed = true
     self.navigationController.pushViewController(vc, animated: true)
   }
-  
-  /// 챌린지 보기 화면으로 이동
-  func navToShowChallengeViewController(){
-    let vc = ShowChallengePageViewController(
-      transitionStyle: .scroll,
-      navigationOrientation: .vertical
-    )
-    self.navigationController.pushViewController(vc, animated: true)
-  }
+
   
 }
 extension HotChallLearnCoordinator: CameraCoordinatorDelegate {
@@ -69,3 +52,5 @@ extension HotChallLearnCoordinator: CoordinatorFinishDelegate {
         childCoordinators.removeAll { $0 === childCoordinator }
     }
 }
+
+extension HotChallLearnCoordinator: ChallengeNavigationDelegate {}

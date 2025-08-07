@@ -26,16 +26,6 @@ final class ChalCoordinator: BaseCoordinator {
         vc.hidesBottomBarWhenPushed = true
         self.navigationController.pushViewController(vc, animated: true)
     }
-    
-    // 챌린지 찍기 화면으로 이동
-    func navToTakeChallengeViewController() {
-        let cameraCoordinator = CameraCoordinator(navigationController)
-        cameraCoordinator.delegate = self
-        cameraCoordinator.finishDelegate = self
-        childCoordinators.append(cameraCoordinator)
-        cameraCoordinator.start()
-    }
-    
 
     func navToCompareViewController(url: URL) {
         let vc = ChallCompareViewController()
@@ -43,15 +33,6 @@ final class ChalCoordinator: BaseCoordinator {
         vc.coordinator = self
         navigationController.pushViewController(vc, animated: true)
     }
-      
-  /// 챌린지 보기 화면으로 이동
-  func navToShowChallengeViewController(){
-    let vc = ShowChallengePageViewController(
-      transitionStyle: .scroll,
-      navigationOrientation: .vertical
-    )
-    self.navigationController.pushViewController(vc, animated: true)
-  }
 }
 
 extension ChalCoordinator: CameraCoordinatorDelegate {
@@ -65,3 +46,8 @@ extension ChalCoordinator: CoordinatorFinishDelegate {
         childCoordinators.removeAll { $0 === childCoordinator }
     }
 }
+
+extension ChalCoordinator: ChallengeNavigationDelegate {}
+
+
+

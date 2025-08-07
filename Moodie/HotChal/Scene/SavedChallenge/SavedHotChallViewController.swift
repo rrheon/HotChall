@@ -198,12 +198,38 @@ extension SavedHotChallViewController: UICollectionViewDelegate {
 // MARK: 삭제팝업 프로토콜
 
 extension SavedHotChallViewController {
+#warning("팝업 띄우는거 수정하기")
   func showDeletePopup() {
-    let vc = PopupViewController()
-    vc.delegate = self
-    vc.modalPresentationStyle = .overFullScreen
-    self.present(vc, animated: true)
+    
+//    let vc = PopupViewController()
+//    vc.delegate = self
+//    vc.modalPresentationStyle = .overFullScreen
+//    self.present(vc, animated: false)
+    
+      let alertState = AlertViewState(
+          title: "즐겨찾기 삭제",
+          message: "",
+          showAlertIcon: false,
+          buttons: [
+              .init(title: "취소", style: .primary, action: {}),
+              .init(title: "삭제", style: .primary, action: {}),
+          ]
+      )
+    
+      showAlert(state: alertState)
   }
+//  
+//  let alertState = AlertViewState(
+//      title: "카메라 접근 불가",
+//      message: "설정 > 개인정보 보호에서 카메라 권한을 허용해주세요.",
+//      showAlertIcon: false,
+//      buttons: [
+//          .init(title: "확인", style: .primary, action: {})
+//      ]
+//  )
+//
+//  showAlert(state: alertState)
+//}
 }
 
 extension SavedHotChallViewController: ChallengeHeaderViewActionDelegate{
