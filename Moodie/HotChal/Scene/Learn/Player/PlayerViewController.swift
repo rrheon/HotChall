@@ -302,7 +302,7 @@ class PlayerViewController: UIViewController {
 
             // Progress Slider
             progressSlider.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: margin),
-            progressSlider.trailingAnchor.constraint(equalTo: timeLabel.leadingAnchor, constant: -5),
+            progressSlider.trailingAnchor.constraint(equalTo: timeLabel.leadingAnchor, constant: 45),
             progressSlider.bottomAnchor.constraint(equalTo: speedStackView.topAnchor, constant: -spacing),
             progressSlider.heightAnchor.constraint(equalToConstant: sliderHeight),
 

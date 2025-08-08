@@ -124,7 +124,7 @@ class ModalViewController: UIViewController {
         
         if let sheet = self.sheetPresentationController {
             if #available(iOS 16.0, *) {
-                sheet.detents = [.custom { _ in return 170 }] // 또는 .fractional(0.33)
+                sheet.detents = [.custom { _ in return 170 }]
             } else {
                 sheet.detents = [.medium()]
             }
