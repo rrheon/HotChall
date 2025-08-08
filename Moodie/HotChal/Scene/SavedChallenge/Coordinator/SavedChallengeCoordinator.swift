@@ -30,8 +30,8 @@ final class SavedChallengeCoordinator: Coordinator {
 
   /// 핫챌 Top100 VC로 이동하기
   func navToHotChallTop100ViewController(with challengeName: String){
-    let vc = HotChallTop100ViewController()
-    vc.challengeName = challengeName
+    let vc = HotChallTop100ViewController(vcType: .savedChallenge, navTitle: challengeName)
+
     self.navigationController.pushViewController(vc, animated: true)
   }
 

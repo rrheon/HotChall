@@ -44,9 +44,9 @@ final class HotChalMainView: UIView {
   }()
   
   /// 각 챌린지의 카테고리에 맞는 컬렉션뷰
-  let top1ChallengeView = HotChallTop3CategoryView(title: "소다팝 챌린지")
-  let top2ChallengeView = HotChallTop3CategoryView(title: "챌린지1")
-  let top3ChallengeView = HotChallTop3CategoryView(title: "챌린지2")
+  let top1ChallengeView = HotChallTop3CategoryView(title: "SodaPop")
+  let top2ChallengeView = HotChallTop3CategoryView(title: "Golden")
+  let top3ChallengeView = HotChallTop3CategoryView(title: "TocaToca")
   
   override init(frame: CGRect) {
     super.init(frame: frame)
