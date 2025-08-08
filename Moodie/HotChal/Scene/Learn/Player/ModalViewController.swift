@@ -35,7 +35,7 @@ class ModalViewController: UIViewController {
 
         // 안내 문구 라벨
         let infoButton = UIButton(type: .system)
-        infoButton.setTitle("⚠️", for: .normal)
+        infoButton.setImage(UIImage(systemName: "exclamationmark.bubble"), for: .normal)
         infoButton.titleLabel?.font = UIFont.systemFont(ofSize: 15)
         infoButton.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(infoButton)
@@ -95,12 +95,12 @@ class ModalViewController: UIViewController {
             
             let label = UILabel()
             label.text = text
-            label.textColor = .white
+            label.textColor = .black
             label.font = UIFont.systemFont(ofSize: 12)
             label.numberOfLines = 0
             label.textAlignment = .center
             
-            self.backgroundColor = UIColor.black.withAlphaComponent(0.8)
+            self.backgroundColor = UIColor.white.withAlphaComponent(0.8)
             self.layer.cornerRadius = 8
             self.translatesAutoresizingMaskIntoConstraints = false
             
