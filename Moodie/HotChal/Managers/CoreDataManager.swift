@@ -75,6 +75,7 @@ final class CoreDataManager {
       challenge.title = data.title
       challenge.uploader = data.uploader
       challenge.videoFilename = data.videoFilename
+      challenge.viewCount = Int16(data.viewCount ?? 0)
 
       do {
         try context.save()

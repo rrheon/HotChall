@@ -12,6 +12,8 @@ final class HotChallLearnViewController: UIViewController {
   
   weak var delegate: HotChallLearnCoordinator?
   
+  var searchTimer: Timer?
+
   // 검색결과가 없을 때
   var defaultsChallengeDatas: [ChallengeVideo] = []
   
@@ -239,7 +241,22 @@ extension HotChallLearnViewController: UISearchBarDelegate {
     return newLength <= maxLength
   }
   
+  func searchBarShouldEndEditing(_ searchBar: UISearchBar) -> Bool {
+    print(#fileID, #function, #line, "- comment")
+    return true
+
+  }
+  
+  func searchBarTextDidEndEditing(_ searchBar: UISearchBar) {
+    print(#fileID, #function, #line, "- comment11")
+  }
+  
   func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+    self.searchTimer?.invalidate()
+    self.searchTimer = Timer.scheduledTimer(withTimeInterval: 1.0,
+                                            repeats: false,
+                                            block: { [weak self] timer in
+      guard let self = self else { return }
       if searchText.isEmpty {
           challengeDatas = defaultsChallengeDatas
       } else {
@@ -253,5 +270,8 @@ extension HotChallLearnViewController: UISearchBarDelegate {
       collectionView.isHidden = !hasResults
       
       collectionView.reloadData()
+    })
+    
+
   }
 }
