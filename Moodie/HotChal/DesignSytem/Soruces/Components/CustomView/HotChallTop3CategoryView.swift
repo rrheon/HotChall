@@ -18,6 +18,7 @@ final class HotChallTop3CategoryView: UIView {
     let label = UILabel()
     label.font = .boldSystemFont(ofSize: 24)
     label.textColor = .white
+    
     return label
   }()
 

@@ -9,7 +9,7 @@ import UIKit
 
 /// HotChall - front - HotChallMainViewController
 /// 핫챌 메인 화면
-class HotChalMainViewController: UIViewController {
+final class HotChalMainViewController: UIViewController {
   
   weak var delegate: ChalCoordinator?
   
@@ -66,7 +66,7 @@ class HotChalMainViewController: UIViewController {
   /// 버튼 액션 추가하기
   private func addButtonActions(){
     mainView.topMoreButton.addAction(UIAction { [weak self] _ in
-      self?.delegate?.navToHotChallTop100ViewController(with: "핫챌 Top100")
+      self?.delegate?.navToHotChallTop100ViewController()
     } , for: .touchUpInside)
     
     // 카테고리 별 전체보기 버튼을 찾아서 버튼 액션 달아주기
@@ -75,10 +75,10 @@ class HotChalMainViewController: UIViewController {
       mainView.top2ChallengeView,
       mainView.top3ChallengeView
     ].forEach {
-      guard let challengeName: String = $0.titleLabel.text else { return }
+      guard let challengeName = $0.titleLabel.text else { return }
       
       $0.moreButton.addAction(UIAction { [weak self] _ in
-        self?.delegate?.navToHotChallTop100ViewController(with: challengeName)
+        self?.delegate?.navToHotChallTop100ViewController(type: .category, title: challengeName)
       }, for: .touchUpInside)
     }
   }
