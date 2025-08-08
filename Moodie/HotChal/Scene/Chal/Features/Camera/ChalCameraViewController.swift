@@ -1,5 +1,3 @@
-// CameraViewController.swift
-
 import UIKit
 import AVFoundation
 
@@ -12,12 +10,18 @@ final class CameraViewController: UIViewController {
 
     weak var delegate: CameraViewControllerDelegate?
     
+    var audioFileName: String?
+    
     // MARK: - Services & Managers
     private let cameraService = CameraService()
     private lazy var recordingService = RecordingService(session: cameraService.session)
     private let countdownManager = CountdownManager()
-    private let progressManager = RecordingProgressManager(maxDuration: 15)
-
+    private var progressManager: RecordingProgressManager!
+    
+    // 오디오 재생용
+    private var audioPlayer: AVAudioPlayer?
+    private var songDuration: Int = 15
+    
     // MARK: - UI Components
     private var resultView: ChallCameraResultView?
     private let recordButton = RecordButton()
@@ -78,11 +82,11 @@ final class CameraViewController: UIViewController {
         let image = UIImage(systemName: "xmark.circle.fill", withConfiguration: config)
         button.setImage(image, for: .normal)
         button.tintColor = .white
-
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
     
+    // MARK: - Lifecycle
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         navigationController?.setNavigationBarHidden(true, animated: animated)
@@ -90,9 +94,31 @@ final class CameraViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        // 1. 오디오 준비 & 길이 읽기
+        if let mp4Url = Bundle.main.url(forResource: audioFileName, withExtension: "mp4") {
+            prepareAudio(url: mp4Url)
+            Task {
+                let durationSec = await getVideoDuration(url: mp4Url)
+                await MainActor.run {
+                    self.songDuration = Int(durationSec)
+                    self.progressManager = RecordingProgressManager(maxDuration: TimeInterval(self.songDuration))
+                    self.progressManager.delegate = self
+                }
+            }
+        } else {
+            // 파일이 없으면 기본값 15초로
+            self.progressManager = RecordingProgressManager(maxDuration: TimeInterval(self.songDuration))
+            self.progressManager.delegate = self
+        }
+
+        
+        // 2. progressManager 초기화
+        progressManager = RecordingProgressManager(maxDuration: TimeInterval(songDuration))
+        progressManager.delegate = self
+        
         recordButton.delegate = self
         countdownManager.delegate = self
-        progressManager.delegate = self
         recordingService.delegate = self
 
         requestCameraPermission()
@@ -104,6 +130,7 @@ final class CameraViewController: UIViewController {
         navigationController?.setNavigationBarHidden(false, animated: animated)
     }
 
+    // MARK: - Permissions
     private func requestCameraPermission() {
         CameraPermissionService.requestCameraAndMicPermissions { [weak self] granted in
             guard let self = self else { return }
@@ -136,6 +163,7 @@ final class CameraViewController: UIViewController {
         present(alert, animated: true)
     }
 
+    // MARK: - UI
     private func setupUI() {
         view.backgroundColor = .black
         view.addSubview(recordingTimeLabel)
@@ -200,7 +228,6 @@ final class CameraViewController: UIViewController {
         resultView.delegate = self
         resultView.translatesAutoresizingMaskIntoConstraints = false
 
-
         view.addSubview(resultView)
         NSLayoutConstraint.activate([
             resultView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
@@ -211,6 +238,7 @@ final class CameraViewController: UIViewController {
         self.resultView = resultView
     }
     
+    // MARK: - Actions
     @objc private func onCameraPositionChangedPressed() {
         cameraService.switchCamera()
     }
@@ -237,7 +265,11 @@ final class CameraViewController: UIViewController {
         let fileURL = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString + ".mov")
         recordingService.startRecording(to: fileURL)
         recordButton.setState(.recording)
+        
         progressManager.start()
+        
+        audioPlayer?.currentTime = 0
+        audioPlayer?.play()
         
         setUIForRecording(isRecording: true)
     }
@@ -245,10 +277,13 @@ final class CameraViewController: UIViewController {
     private func stopRecording() {
         recordingService.stopRecording()
         progressManager.stop()
+        
+        audioPlayer?.stop()
+        
         progressView.setProgress(0.0, animated: false)
         recordButton.setState(.ready)
         
-        recordingTimeLabel.text = "15:00"
+        recordingTimeLabel.text = String(format: "%02d:00", songDuration)
         setUIForRecording(isRecording: false)
     }
 
@@ -261,11 +296,29 @@ final class CameraViewController: UIViewController {
         recordingTimeLabel.isHidden = !isRecording
         cameraControlWrapperView.isHidden = isRecording
     }
+
+    private func getVideoDuration(url: URL) async -> Double {
+            let asset = AVAsset(url: url)
+            do {
+                let duration = try await asset.load(.duration)
+                return CMTimeGetSeconds(duration)
+            } catch {
+                print("영상 길이 못찾음: \(error)")
+                return 0
+            }
+        }
     
+    private func prepareAudio(url: URL) {
+        do {
+            audioPlayer = try AVAudioPlayer(contentsOf: url)
+            audioPlayer?.prepareToPlay()
+        } catch {
+            print("오디오 준비 실패: \(error)")
+        }
+    }
 }
 
-// MARK: - Delegate
-
+// MARK: - Delegates
 extension CameraViewController: RecordButtonDelegate {
     func recordButtonDidTapStart(_ button: RecordButton) {
         startRecording()
@@ -333,4 +386,3 @@ extension CameraViewController: ChallCameraResultViewDelegate {
         delegate?.cameraViewControllerDidFinishRecording(videoURL: videoURL)
     }
 }
-

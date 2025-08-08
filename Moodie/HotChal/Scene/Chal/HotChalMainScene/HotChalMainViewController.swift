@@ -151,7 +151,7 @@ extension HotChalMainViewController: UICollectionViewDelegateFlowLayout{
 
 extension HotChalMainViewController: ChallengePlayerViewDelegate {
   func navToTakeChallenge(with data: ChallengeVideo) {
-    delegate?.navToTakeChallengeViewController()
+      delegate?.navToTakeChallengeViewController(audioFileName: data.mp4FilenameWithoutExtension ?? "")
   }
   
     func navToLearnChallenge(with data: ChallengeVideo) {

@@ -139,7 +139,7 @@ class ChallCompareViewController: UIViewController {
                 print("⚠️ coordinator가 nil입니다.")
             } else {
                 print("✅ coordinator 있음, 카메라 열기 시도")
-                self.coordinator?.navToTakeChallengeViewController()
+//                self.coordinator?.navToTakeChallengeViewController()
             }
         })
 

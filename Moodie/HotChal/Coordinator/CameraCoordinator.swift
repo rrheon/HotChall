@@ -14,8 +14,21 @@ final class CameraCoordinator: BaseCoordinator {
     
     weak var delegate: CameraCoordinatorDelegate?
     
+    private let audioFileName: String
+    
+    init(navigationController: UINavigationController, audioFileName: String) {
+        self.audioFileName = audioFileName
+        super.init(navigationController)
+    }
+    
+    required init(_ navigationController: UINavigationController) {
+        fatalError("init(_:) has not been implemented")
+    }
+    
     override func start() {
         let cameraVC = CameraViewController()
+        print("dsadss \(audioFileName)")
+        cameraVC.audioFileName = audioFileName
         cameraVC.delegate = self
         cameraVC.modalPresentationStyle = .fullScreen
         navigationController.present(cameraVC, animated: true)

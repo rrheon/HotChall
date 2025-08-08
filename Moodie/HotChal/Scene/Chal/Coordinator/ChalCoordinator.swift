@@ -28,8 +28,8 @@ final class ChalCoordinator: BaseCoordinator {
     }
     
     // 챌린지 찍기 화면으로 이동
-    func navToTakeChallengeViewController() {
-        let cameraCoordinator = CameraCoordinator(navigationController)
+    func navToTakeChallengeViewController(audioFileName: String) {
+        let cameraCoordinator = CameraCoordinator(navigationController: navigationController, audioFileName: audioFileName)
         cameraCoordinator.delegate = self
         cameraCoordinator.finishDelegate = self
         childCoordinators.append(cameraCoordinator)
