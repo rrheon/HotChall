@@ -11,8 +11,17 @@ import UIKit
 final class HotChallLearnViewController: UIViewController {
   
   weak var delegate: HotChallLearnCoordinator?
-
-  private var collectionView: UICollectionView = {
+  
+  // 검색결과가 없을 때
+  var defaultsChallengeDatas: [ChallengeVideo] = []
+  
+  var challengeDatas: [ChallengeVideo] = []
+  
+  /// 챌린지 검색 서치바
+  private let challengeSearchbar: UISearchBar = UISearchBar()
+  
+  /// 추천 및 검색결과 collectionView
+  private let collectionView: UICollectionView = {
     let layout = UICollectionViewFlowLayout()
     layout.scrollDirection = .vertical
     layout.minimumLineSpacing = 16
@@ -26,22 +35,43 @@ final class HotChallLearnViewController: UIViewController {
     return collectionView
   }()
   
+  private let recommendChallengeLabel: UILabel = {
+    let label = UILabel()
+    label.text = "추천 챌린지"
+    label.font = .systemFont(ofSize: 18)
+    label.translatesAutoresizingMaskIntoConstraints = false
+
+    
+    return label
+  }()
+  
+  private let noResultView: UIView = NoResultView()
+  
+  // MARK: viewDidLoad
+
   override func viewDidLoad() {
     super.viewDidLoad()
     self.title = "챌린지 배우기"
   
     self.view.backgroundColor = .backgroundColor
-    
+        
     setupCollectionView()
+    setupSearchBar()
     setupLayout()
   }
   
-  func scrollViewDidScroll(_ scrollView: UIScrollView) {
+  override func viewWillAppear(_ animated: Bool) {
+    super.viewWillAppear(animated)
+    defaultsChallengeDatas = Array(MockupDataManager.shared.challengeVideos.shuffled().prefix(10))
+    challengeDatas = defaultsChallengeDatas
+  }
+  
+  override func viewWillDisappear(_ animated: Bool) {
+    super.viewWillDisappear(animated)
     ChallengePlayerUIManager.shared.closeChallPlayer()
   }
   
-  
-  override func viewWillDisappear(_ animated: Bool) {
+  func scrollViewDidScroll(_ scrollView: UIScrollView) {
     ChallengePlayerUIManager.shared.closeChallPlayer()
   }
   
@@ -52,15 +82,66 @@ final class HotChallLearnViewController: UIViewController {
     collectionView.register(ChallengeCell.self, forCellWithReuseIdentifier: ChallengeCell.reuseIdentifier)
   }
   
+  // searchBar 설정
+  private func setupSearchBar(){
+    challengeSearchbar.delegate = self
+    challengeSearchbar.translatesAutoresizingMaskIntoConstraints = false
+    challengeSearchbar.backgroundImage = UIImage()
+    
+    if let searchBarTextField = challengeSearchbar.value(forKey: "searchField") as? UITextField {
+      searchBarTextField.font = UIFont.systemFont(ofSize: 14)
+      searchBarTextField.textColor = .black
+      searchBarTextField.layer.cornerRadius = 10
+      searchBarTextField.layer.masksToBounds = true
+      searchBarTextField.backgroundColor = .white
+      searchBarTextField.layer.borderColor = UIColor.lightGray.cgColor
+      searchBarTextField.layer.borderWidth = 0.5
+      
+      let placeholderText = "챌린지 이름을 입력하세요."
+         let attributedString = NSAttributedString(
+          string: placeholderText,
+          attributes: [NSAttributedString.Key.foregroundColor: UIColor.lightGray]
+         )
+         searchBarTextField.attributedPlaceholder = attributedString
+    
+      if let leftView = searchBarTextField.leftView as? UIImageView  {
+        leftView.image = leftView.image?.withRenderingMode(.alwaysTemplate)
+        leftView.tintColor = .gray
+      }
+ 
+      let clearButton = searchBarTextField.value(forKey: "clearButton") as? UIButton
+      clearButton?.setImage(clearButton?.imageView?.image?.withRenderingMode(.alwaysTemplate),
+                            for: .normal)
+      clearButton?.tintColor = .gray
+    }
+  }
+  
   // layout 설정
   private func setupLayout(){
+    view.addSubview(challengeSearchbar)
     view.addSubview(collectionView)
+    view.addSubview(recommendChallengeLabel)
+    view.addSubview(noResultView)
+    noResultView.translatesAutoresizingMaskIntoConstraints = false
+    noResultView.isHidden = true
     
     NSLayoutConstraint.activate([
-      collectionView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+      challengeSearchbar.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor,
+                                              constant: 10),
+      challengeSearchbar.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
+      challengeSearchbar.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor),
+      challengeSearchbar.heightAnchor.constraint(equalToConstant: 44),
+      
+      recommendChallengeLabel.topAnchor.constraint(equalTo: challengeSearchbar.bottomAnchor, constant: 20),
+      recommendChallengeLabel.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor,constant: 10),
+      
+      collectionView.topAnchor.constraint(equalTo: recommendChallengeLabel.bottomAnchor, constant: 5),
       collectionView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
-      collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-      collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
+      collectionView.leadingAnchor.constraint(equalTo: recommendChallengeLabel.leadingAnchor),
+      collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+      
+      noResultView.centerYAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerYAnchor),
+      noResultView.centerXAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerXAnchor)
     ])
   }
 }
@@ -70,8 +151,11 @@ final class HotChallLearnViewController: UIViewController {
 
 extension HotChallLearnViewController: UICollectionViewDataSource {
   
-  func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-    return MockupDataManager.shared.challengeVideos.count
+  func collectionView(
+    _ collectionView: UICollectionView,
+    numberOfItemsInSection section: Int
+  ) -> Int {
+    return challengeDatas.count
   }
   
   func collectionView(
@@ -83,7 +167,7 @@ extension HotChallLearnViewController: UICollectionViewDataSource {
       for: indexPath
     ) as? ChallengeCell else { return UICollectionViewCell() }
     
-    cell.challengeData =  MockupDataManager.shared.challengeVideos[indexPath.item]
+    cell.challengeData =  challengeDatas[indexPath.row]
     
     return cell
   }
@@ -110,12 +194,6 @@ extension HotChallLearnViewController: UICollectionViewDelegateFlowLayout{
   }
 }
 
-extension HotChallLearnViewController {
-  enum Event {
-    case learnViewControllerTwo
-  }
-}
-
 // MARK: Challenge Player Delegate
 
 extension HotChallLearnViewController: ChallengePlayerViewDelegate {
@@ -124,7 +202,6 @@ extension HotChallLearnViewController: ChallengePlayerViewDelegate {
   }
   
   func navToLearnChallenge(with data: ChallengeVideo) {
-    print(#fileID, #function, #line, "- 챌린지 배우기 화면으로 이동")
       delegate?.navToLearnChallengeViewController(
         filename: data.videoFilename ?? "",
         title: data.title ?? "",
@@ -132,19 +209,49 @@ extension HotChallLearnViewController: ChallengePlayerViewDelegate {
   }
   
   func navToShowChallenge(with data: ChallengeVideo) {
-    print(#fileID, #function, #line, "- 챌린지 띄우기")
     guard let challenge = data.videoFilename else { return }
     delegate?.navToShowChallengeViewController()
   }
   
   func saveChallenge(with data: ChallengeVideo) {
     CoreDataManager.shared.saveChallenge(with: data) { result in
-      print(#fileID, #function, #line, "- 챌린지 저장")
       ChallengePlayerUIManager.shared.closeChallPlayer()
       let comment = result ? "챌린지가 저장되었습니다." : "이미 저장된 챌린지입니다."
       
       
-      ToastPopupManager.shared.showToast(message: comment)
+      ToastPopupManager.shared.showToast(message: comment, from: self)
     }
+  }
+}
+
+// MARK: SearchBar Delegate
+
+extension HotChallLearnViewController: UISearchBarDelegate {
+  func searchBar(
+    _ searchBar: UISearchBar,
+    shouldChangeTextIn range: NSRange,
+    replacementText text: String
+  ) -> Bool {
+    let maxLength = 20
+    let currentText = searchBar.text ?? ""
+    let newLength = (currentText.count ) + text.count - range.length
+
+    return newLength <= maxLength
+  }
+  
+  func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+      if searchText.isEmpty {
+          challengeDatas = defaultsChallengeDatas
+      } else {
+          challengeDatas = MockupDataManager.shared.challengeVideos.filter {
+              $0.title?.contains(searchText) ?? false
+          }
+      }
+      
+      let hasResults = !challengeDatas.isEmpty
+      noResultView.isHidden = hasResults
+      collectionView.isHidden = !hasResults
+      
+      collectionView.reloadData()
   }
 }

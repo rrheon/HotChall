@@ -16,7 +16,7 @@ final class HotChallTop3CategoryView: UIView {
   /// 카테고리 라벨
   let titleLabel: UILabel = {
     let label = UILabel()
-    label.font = .boldSystemFont(ofSize: 20)
+    label.font = .boldSystemFont(ofSize: 24)
     label.textColor = .white
     return label
   }()

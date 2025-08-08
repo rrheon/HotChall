@@ -97,7 +97,7 @@ final class CoreDataManager {
     
     do {
       guard let result = try? context.fetch(fetchRequest),
-            let object = result.first as? NSManagedObject else { return }
+            let object = result.first else { return }
       context.delete(object)
 
       try context.save()
