@@ -166,12 +166,17 @@ class ChallCompareViewController: UIViewController {
     @objc private func deleteButtonTapped() {
         let alert = UIAlertController(title: "다시 촬영하시겠습니까?", message: "저장하지 않은 영상은 삭제됩니다", preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "취소", style: .cancel))
+
         alert.addAction(UIAlertAction(title: "재촬영", style: .destructive) { [weak self] _ in
             guard let self = self else { return }
 
-            self.coordinator?.currentSubVideoFilename = self.subVideoFilename
-            self.navigationController?.popViewController(animated: false)
-            self.coordinator?.navToTakeChallengeViewController()
+            print("재촬영 버튼 클릭됨")
+            if self.coordinator == nil {
+                print("⚠️ coordinator가 nil입니다.")
+            } else {
+                print("✅ coordinator 있음, 카메라 열기 시도")
+                self.coordinator?.navToTakeChallengeViewController()
+            }
         })
         present(alert, animated: true)
     }
