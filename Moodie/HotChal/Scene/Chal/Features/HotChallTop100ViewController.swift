@@ -8,19 +8,39 @@
 import UIKit
 
 
+/// 핫챌 Top100 화면 케이스
+enum HotChallTop100Case {
+  case savedChallenge
+  case category
+  case normal
+}
+
 /// HotChall - front - HotChallTop100ViewController
 /// 핫챌 Top100 화면
 final class HotChallTop100ViewController: UIViewController {
   weak var delegate: ChalCoordinator?
   
-  var challengeName: String = "핫챌 Top100"
-  
-  private let sampleData: [String] = Array(repeating: "챌린지 제목", count: 100) // 임시
-  private let sampleData2: [String] = Array(repeating: "아티스트", count: 100)
+  let vcType: HotChallTop100Case
+  var challengeName: String
+  var challengeDatas: [ChallengeVideo] = []
   
   private let mainView: HotChallTop100View = HotChallTop100View()
  
-
+  init(vcType: HotChallTop100Case = .normal, navTitle: String = "핫챌 Top100"){
+    self.vcType = vcType
+    self.challengeName = navTitle
+    
+    super.init(nibName: nil, bundle: nil)
+  }
+  
+  @available(*, unavailable)
+  required init?(coder: NSCoder) {
+    self.vcType = .normal
+    self.challengeName = "핫챌 Top100"
+    
+    super.init(coder: coder)
+  }
+  
   // MARK: - View
   override func viewDidLoad() {
     super.viewDidLoad()
@@ -28,7 +48,7 @@ final class HotChallTop100ViewController: UIViewController {
     view.backgroundColor = .systemBackground
     self.navigationItem.title = challengeName
     
-    registerCell()
+    setupCollectionView()
 
   }
   
@@ -44,8 +64,19 @@ final class HotChallTop100ViewController: UIViewController {
     ChallengePlayerUIManager.shared.closeChallPlayer()
   }
   
-  /// 셀등록
-  private func registerCell(){
+  /// collectionView 설정
+  private func setupCollectionView(){
+    switch vcType {
+    case .savedChallenge:
+      challengeDatas = CoreDataManager.shared.getSavedChallengeList()
+        .filter{ $0.category == challengeName }
+    case .category:
+      challengeDatas = MockupDataManager.shared.challengeVideos
+        .filter{ $0.category == challengeName }
+    case .normal:
+      challengeDatas = MockupDataManager.shared.challengeVideos
+    }
+    
     mainView.top100ListView.dataSource = self
     mainView.top100ListView.delegate = self
   }
@@ -59,7 +90,7 @@ extension HotChallTop100ViewController: UICollectionViewDataSource {
     _ collectionView: UICollectionView,
     numberOfItemsInSection section: Int
   ) -> Int {
-    return MockupDataManager.shared.challengeVideos.count
+    return challengeDatas.count
   }
   
   func collectionView(
@@ -72,7 +103,7 @@ extension HotChallTop100ViewController: UICollectionViewDataSource {
     ) as? ChallegneTop100Cell else { return UICollectionViewCell() }
     
     let number = indexPath.item + 1
-    let data = MockupDataManager.shared.challengeVideos[indexPath.item]
+    let data = challengeDatas[indexPath.row]
     
     cell.challengeRankLabel.text = "\(number)"
     cell.challengeTitleLabel.text = data.title

@@ -114,7 +114,7 @@ final class SavedHotChallViewController: UIViewController {
       
       // 4. Header
       let headerSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0),
-                                              heightDimension: .estimated(60))
+                                              heightDimension: .estimated(40))
       let sectionHeader = NSCollectionLayoutBoundarySupplementaryItem(
         layoutSize: headerSize,
         elementKind: UICollectionView.elementKindSectionHeader,
