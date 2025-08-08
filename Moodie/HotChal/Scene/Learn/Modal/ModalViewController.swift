@@ -1,5 +1,5 @@
 //
-//  TextModalViewController.swift
+//  ModalViewController.swift
 //  HotChal
 //
 //  Created by jonghyuck on 8/7/25.
