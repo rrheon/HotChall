@@ -53,6 +53,7 @@ class ModalViewController: UIViewController {
         [startTimeField, endTimeField].forEach {
             $0.borderStyle = .roundedRect
             $0.keyboardType = .decimalPad
+            $0.textColor = .label
             $0.backgroundColor = .white
             $0.textAlignment = .center
         }
