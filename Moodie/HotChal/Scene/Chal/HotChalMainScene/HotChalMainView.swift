@@ -38,7 +38,8 @@ final class HotChalMainView: UIView {
     collectionView.backgroundColor = .white
     collectionView.showsHorizontalScrollIndicator = false
     collectionView.isPagingEnabled = true
-
+    collectionView.layer.cornerRadius = 10
+    
     return collectionView
   }()
   

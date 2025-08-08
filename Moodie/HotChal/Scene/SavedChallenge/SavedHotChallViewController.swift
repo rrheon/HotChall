@@ -114,7 +114,7 @@ final class SavedHotChallViewController: UIViewController {
       
       // 4. Header
       let headerSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0),
-                                              heightDimension: .estimated(40))
+                                              heightDimension: .estimated(60))
       let sectionHeader = NSCollectionLayoutBoundarySupplementaryItem(
         layoutSize: headerSize,
         elementKind: UICollectionView.elementKindSectionHeader,
@@ -198,38 +198,12 @@ extension SavedHotChallViewController: UICollectionViewDelegate {
 // MARK: 삭제팝업 프로토콜
 
 extension SavedHotChallViewController {
-#warning("팝업 띄우는거 수정하기")
   func showDeletePopup() {
-    
-//    let vc = PopupViewController()
-//    vc.delegate = self
-//    vc.modalPresentationStyle = .overFullScreen
-//    self.present(vc, animated: false)
-    
-      let alertState = AlertViewState(
-          title: "즐겨찾기 삭제",
-          message: "",
-          showAlertIcon: false,
-          buttons: [
-              .init(title: "취소", style: .primary, action: {}),
-              .init(title: "삭제", style: .primary, action: {}),
-          ]
-      )
-    
-      showAlert(state: alertState)
+    let vc = PopupViewController()
+    vc.delegate = self
+    vc.modalPresentationStyle = .overFullScreen
+    self.present(vc, animated: false)
   }
-//  
-//  let alertState = AlertViewState(
-//      title: "카메라 접근 불가",
-//      message: "설정 > 개인정보 보호에서 카메라 권한을 허용해주세요.",
-//      showAlertIcon: false,
-//      buttons: [
-//          .init(title: "확인", style: .primary, action: {})
-//      ]
-//  )
-//
-//  showAlert(state: alertState)
-//}
 }
 
 extension SavedHotChallViewController: ChallengeHeaderViewActionDelegate{
@@ -246,12 +220,10 @@ extension SavedHotChallViewController: ChallengePlayerViewDelegate {
   }
   
   func navToLearnChallenge(with data: ChallengeVideo) {
-    print(#fileID, #function, #line, "- 챌린지 배우기 화면으로 이동")
     delegate?.navToLearnChallengeViewController()
   }
   
   func navToShowChallenge(with data: ChallengeVideo) {
-    print(#fileID, #function, #line, "- 챌린지 띄우기")
     guard let challenge = data.videoFilename else { return }
     delegate?.navToShowChallengeViewController()
   }
@@ -271,9 +243,8 @@ extension SavedHotChallViewController: SavedChallengeDelegate {
   func didTapDeleteButton() {
     guard let uuid = selectedChallengeUUID else { return }
     CoreDataManager.shared.deleteSavedChallenge(with: uuid) {
-      print(#fileID, #function, #line, "- 챌린지 삭제")
       ChallengePlayerUIManager.shared.closeChallPlayer()
-      ToastPopupManager.shared.showToast(message: "챌린지가 삭제되었습니다.")
+      ToastPopupManager.shared.showToast(message: "챌린지가 삭제되었습니다.", from: self)
       self.reloadData()
     }
   }

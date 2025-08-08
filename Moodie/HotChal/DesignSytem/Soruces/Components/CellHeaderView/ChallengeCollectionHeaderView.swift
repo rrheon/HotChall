@@ -31,7 +31,12 @@ final class ChallengeCollectionHeaderView: UICollectionReusableView, ReuseIdenti
     let button = UIButton(configuration: UIButton.Configuration.plain())
     button.setTitle("전체보기", for: .normal)
     button.setTitleColor(.white, for: .normal)
-    button.setImage(UIImage(systemName: "chevron.right"), for: .normal)
+    button.titleLabel?.font = .systemFont(ofSize: 12)
+    
+    let config = UIImage.SymbolConfiguration(pointSize: 10, weight: .regular)
+    let image = UIImage(systemName: "chevron.right", withConfiguration: config)
+    button.setImage(image, for: .normal)
+
     button.semanticContentAttribute = .forceRightToLeft
     button.translatesAutoresizingMaskIntoConstraints = false
     button.configuration?.imagePadding = 10

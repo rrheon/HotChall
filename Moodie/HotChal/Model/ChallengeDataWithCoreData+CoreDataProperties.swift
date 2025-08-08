@@ -8,6 +8,8 @@
 import Foundation
 import CoreData
 
+public class ChallengeVideoWithCoreData: NSManagedObject {}
+
 extension ChallengeVideoWithCoreData {
   @nonobjc public class func fetchRequest() -> NSFetchRequest<ChallengeVideoWithCoreData> {
       return NSFetchRequest<ChallengeVideoWithCoreData>(entityName: "ChallengeVideoWithCoreData")

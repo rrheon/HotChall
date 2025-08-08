@@ -9,7 +9,7 @@ import UIKit
 
 
 /// ToastPopup 매니져
-final class ToastPopupManager {
+final class ToastPopupManager: GetKeyWindowProtocol {
   static let shared = ToastPopupManager()
   
   private init() {}
@@ -17,8 +17,9 @@ final class ToastPopupManager {
   /// Toast Popup 띄우기
   /// - Parameters:
   ///   - message: Toast Popup 메세지(기본값 = 통신 실패 메세지)
-  func showToast(message: String) {
-    guard let keyWindow = UIApplication.shared.windows.first(where: { $0.isKeyWindow }) else { return }
+  func showToast(message: String, from viewController: UIViewController) {
+    guard let keyWindow = getKeyWindow() else { return }
+
     
     let toastContainer = UIView()
     toastContainer.backgroundColor = .appPink
@@ -37,17 +38,23 @@ final class ToastPopupManager {
     
     keyWindow.addSubview(toastContainer)
     
-    NSLayoutConstraint.activate([
-      toastContainer.bottomAnchor.constraint(equalTo: keyWindow.safeAreaLayoutGuide.bottomAnchor, constant: -50),
-      toastContainer.leadingAnchor.constraint(equalTo: keyWindow.safeAreaLayoutGuide.leadingAnchor, constant: 10),
-      toastContainer.trailingAnchor.constraint(equalTo: keyWindow.safeAreaLayoutGuide.trailingAnchor, constant: -10),
-      toastContainer.heightAnchor.constraint(equalToConstant: 56),
-      
-      toastLabel.centerYAnchor.constraint(equalTo: toastContainer.centerYAnchor),
-      toastLabel.leadingAnchor.constraint(equalTo: toastContainer.leadingAnchor, constant: 10),
-      toastLabel.trailingAnchor.constraint(equalTo: toastContainer.trailingAnchor, constant: -10)
-    ])
-    
+    if let tabBarHeight = viewController.tabBarController?.tabBar.frame.height {
+      NSLayoutConstraint.activate([
+        toastContainer.bottomAnchor.constraint(equalTo: keyWindow.safeAreaLayoutGuide.bottomAnchor,
+                                               constant: -tabBarHeight),
+        toastContainer.leadingAnchor.constraint(equalTo: keyWindow.safeAreaLayoutGuide.leadingAnchor,
+                                                constant: 10),
+        toastContainer.trailingAnchor.constraint(equalTo: keyWindow.safeAreaLayoutGuide.trailingAnchor,
+                                                 constant: -10),
+        toastContainer.heightAnchor.constraint(equalToConstant: 56),
+        
+        toastLabel.centerYAnchor.constraint(equalTo: toastContainer.centerYAnchor),
+        toastLabel.leadingAnchor.constraint(equalTo: toastContainer.leadingAnchor, constant: 10),
+        toastLabel.trailingAnchor.constraint(equalTo: toastContainer.trailingAnchor, constant: -10)
+        
+      ])
+    }
+ 
     UIView.animate(withDuration: 3.0, delay: 0.3, options: .curveEaseOut, animations: {
       toastContainer.alpha = 0.0
     }, completion: { _ in

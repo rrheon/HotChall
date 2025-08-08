@@ -15,8 +15,9 @@ class HotChalMainViewController: UIViewController {
   
   private let mainView: HotChalMainView = HotChalMainView()
   
-  override func viewWillAppear(_ animated: Bool) {
-    navigationController?.navigationBar.prefersLargeTitles = true
+  override func loadView() {
+    super.loadView()
+    self.view = mainView
   }
   
   /// viewDidLoad
@@ -31,11 +32,13 @@ class HotChalMainViewController: UIViewController {
     mainView.scrollView.delegate = self
   }
   
-  override func loadView() {
-    self.view = mainView
+  override func viewWillAppear(_ animated: Bool) {
+    super.viewWillAppear(animated)
+    navigationController?.navigationBar.prefersLargeTitles = true
   }
   
   override func viewWillDisappear(_ animated: Bool) {
+    super.viewWillDisappear(animated)
     ChallengePlayerUIManager.shared.closeChallPlayer()
   }
   
@@ -154,13 +157,13 @@ extension HotChalMainViewController: ChallengePlayerViewDelegate {
     delegate?.navToTakeChallengeViewController()
   }
   
-    func navToLearnChallenge(with data: ChallengeVideo) {
-      delegate?.navToLearnChallengeViewController(with: data)
-    }
+  func navToLearnChallenge(with data: ChallengeVideo) {
+    delegate?.navToLearnChallengeViewController(with: data)
+  }
   
   func navToShowChallenge(with data: ChallengeVideo) {
     guard let challenge = data.videoFilename else { return }
-//    ChallengePlayerManager.shared.playLocalVideo(named: challenge, from: self)
+    //    ChallengePlayerManager.shared.playLocalVideo(named: challenge, from: self)
     delegate?.navToShowChallengeViewController()
   }
   
@@ -169,8 +172,7 @@ extension HotChalMainViewController: ChallengePlayerViewDelegate {
       ChallengePlayerUIManager.shared.closeChallPlayer()
       let comment = result ? "챌린지가 저장되었습니다." : "이미 저장된 챌린지입니다."
       
-      
-      ToastPopupManager.shared.showToast(message: comment)
+      ToastPopupManager.shared.showToast(message: comment, from: self)
     }
   }
 }
