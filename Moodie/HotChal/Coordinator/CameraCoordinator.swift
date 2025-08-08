@@ -27,7 +27,6 @@ final class CameraCoordinator: BaseCoordinator {
     
     override func start() {
         let cameraVC = CameraViewController()
-        print("dsadss \(audioFileName)")
         cameraVC.audioFileName = audioFileName
         cameraVC.delegate = self
         cameraVC.modalPresentationStyle = .fullScreen

@@ -87,15 +87,30 @@ final class CameraViewController: UIViewController {
     }()
     
     // MARK: - Lifecycle
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        
+        recordButton.delegate = self
+        countdownManager.delegate = self
+        recordingService.delegate = self
+
+        audioSetting()
+        requestCameraPermission()
+        setupUI()
+    }
+    
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         navigationController?.setNavigationBarHidden(true, animated: animated)
     }
-    
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        
-        // 1. 오디오 준비 & 길이 읽기
+
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        navigationController?.setNavigationBarHidden(false, animated: animated)
+    }
+
+    // MARK: - Audio Setting
+    private func audioSetting() {
         if let mp4Url = Bundle.main.url(forResource: audioFileName, withExtension: "mp4") {
             prepareAudio(url: mp4Url)
             Task {
@@ -107,29 +122,10 @@ final class CameraViewController: UIViewController {
                 }
             }
         } else {
-            // 파일이 없으면 기본값 15초로
             self.progressManager = RecordingProgressManager(maxDuration: TimeInterval(self.songDuration))
             self.progressManager.delegate = self
         }
-
-        
-        // 2. progressManager 초기화
-        progressManager = RecordingProgressManager(maxDuration: TimeInterval(songDuration))
-        progressManager.delegate = self
-        
-        recordButton.delegate = self
-        countdownManager.delegate = self
-        recordingService.delegate = self
-
-        requestCameraPermission()
-        setupUI()
     }
-    
-    override func viewWillDisappear(_ animated: Bool) {
-        super.viewWillDisappear(animated)
-        navigationController?.setNavigationBarHidden(false, animated: animated)
-    }
-
     // MARK: - Permissions
     private func requestCameraPermission() {
         CameraPermissionService.requestCameraAndMicPermissions { [weak self] granted in
