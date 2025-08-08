@@ -28,7 +28,6 @@ final class HotChallTop100ViewController: UIViewController {
     view.backgroundColor = .systemBackground
     self.navigationItem.title = challengeName
     
-    setupBackButton()
     registerCell()
 
   }

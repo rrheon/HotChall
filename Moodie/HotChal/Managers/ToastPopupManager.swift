@@ -9,7 +9,7 @@ import UIKit
 
 
 /// ToastPopup 매니져
-final class ToastPopupManager {
+final class ToastPopupManager: GetKeyWindowProtocol {
   static let shared = ToastPopupManager()
   
   private init() {}
@@ -18,7 +18,8 @@ final class ToastPopupManager {
   /// - Parameters:
   ///   - message: Toast Popup 메세지(기본값 = 통신 실패 메세지)
   func showToast(message: String, from viewController: UIViewController) {
-    guard let keyWindow = UIApplication.shared.windows.first(where: { $0.isKeyWindow }) else { return }
+    guard let keyWindow = getKeyWindow() else { return }
+
     
     let toastContainer = UIView()
     toastContainer.backgroundColor = .appPink
