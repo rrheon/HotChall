@@ -15,7 +15,6 @@ final class ChallengePlayerUIManager {
   
   let playerView: ChallPlayerView = ChallPlayerView()
 
-  
   /// 플레이어 UI 보여주기
   func showChallPlayer(from viewController: UIViewController, data: ChallengeVideo){
     guard let keyWindow = UIApplication.shared.windows.first(where: { $0.isKeyWindow }) else { return }

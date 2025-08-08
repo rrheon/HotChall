@@ -152,7 +152,7 @@ final class ShowChallengeViewController: UIViewController {
         ChallengePlayerUIManager.shared.closeChallPlayer()
         let comment = result ? "챌린지가 저장되었습니다." : "이미 저장된 챌린지입니다."
         
-        ToastPopupManager.shared.showToast(message: comment)
+        ToastPopupManager.shared.showToast(message: comment, from: self)
       }
     }, for: .touchUpInside)
     

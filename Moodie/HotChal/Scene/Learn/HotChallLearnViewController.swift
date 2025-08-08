@@ -36,12 +36,12 @@ final class HotChallLearnViewController: UIViewController {
     setupLayout()
   }
   
-  func scrollViewDidScroll(_ scrollView: UIScrollView) {
+  override func viewWillDisappear(_ animated: Bool) {
+    super.viewWillDisappear(animated)
     ChallengePlayerUIManager.shared.closeChallPlayer()
   }
   
-  
-  override func viewWillDisappear(_ animated: Bool) {
+  func scrollViewDidScroll(_ scrollView: UIScrollView) {
     ChallengePlayerUIManager.shared.closeChallPlayer()
   }
   
@@ -124,7 +124,6 @@ extension HotChallLearnViewController: ChallengePlayerViewDelegate {
   }
   
   func navToLearnChallenge(with data: ChallengeVideo) {
-    print(#fileID, #function, #line, "- 챌린지 배우기 화면으로 이동")
       delegate?.navToLearnChallengeViewController(
         filename: data.videoFilename ?? "",
         title: data.title ?? "",
@@ -132,19 +131,17 @@ extension HotChallLearnViewController: ChallengePlayerViewDelegate {
   }
   
   func navToShowChallenge(with data: ChallengeVideo) {
-    print(#fileID, #function, #line, "- 챌린지 띄우기")
     guard let challenge = data.videoFilename else { return }
     delegate?.navToShowChallengeViewController()
   }
   
   func saveChallenge(with data: ChallengeVideo) {
     CoreDataManager.shared.saveChallenge(with: data) { result in
-      print(#fileID, #function, #line, "- 챌린지 저장")
       ChallengePlayerUIManager.shared.closeChallPlayer()
       let comment = result ? "챌린지가 저장되었습니다." : "이미 저장된 챌린지입니다."
       
       
-      ToastPopupManager.shared.showToast(message: comment)
+      ToastPopupManager.shared.showToast(message: comment, from: self)
     }
   }
 }
