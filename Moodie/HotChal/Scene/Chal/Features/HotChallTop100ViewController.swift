@@ -124,7 +124,7 @@ extension HotChallTop100ViewController: UICollectionViewDelegateFlowLayout{
     _ collectionView: UICollectionView,
     didSelectItemAt indexPath: IndexPath
   ) {
-    let challengeData: ChallengeVideo = MockupDataManager.shared.challengeVideos[indexPath.item]
+    let challengeData: ChallengeVideo = challengeDatas[indexPath.item]
 
     ChallengePlayerUIManager.shared.showChallPlayer(from: self, data: challengeData)
 

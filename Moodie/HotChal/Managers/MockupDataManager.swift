@@ -34,6 +34,7 @@ final class MockupDataManager {
   
   lazy var sortedWithViewCountChallengeVideos: [ChallengeVideo] = []
 
+  lazy var recommendChallengeVideos: [ChallengeVideo] = []
   
   // MARK: init
 
@@ -50,6 +51,8 @@ final class MockupDataManager {
       
       top3ChallengeVideosWithCategory.updateValue(challenges, forKey: num)
     }
+    
+    recommendChallengeVideos = Array(challengeVideos.shuffled().prefix(10))
   }
   
   // MARK: mockup
