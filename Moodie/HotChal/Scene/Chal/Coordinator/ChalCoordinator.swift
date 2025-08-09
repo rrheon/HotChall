@@ -35,20 +35,3 @@ final class ChalCoordinator: BaseCoordinator {
         navigationController.pushViewController(vc, animated: true)
     }
 }
-
-extension ChalCoordinator: CameraCoordinatorDelegate {
-    func cameraCoordinatorDidFinishWithVideo(url: URL) {
-        navToCompareViewController(url: url)
-    }
-}
-
-extension ChalCoordinator: CoordinatorFinishDelegate {
-    func coordinatorDidFinish(childCoordinator: Coordinator) {
-        childCoordinators.removeAll { $0 === childCoordinator }
-    }
-}
-
-extension ChalCoordinator: ChallengeNavigationDelegate {}
-
-
-

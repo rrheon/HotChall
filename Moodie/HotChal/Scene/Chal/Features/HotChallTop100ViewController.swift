@@ -18,7 +18,7 @@ enum HotChallTop100Case {
 /// HotChall - front - HotChallTop100ViewController
 /// 핫챌 Top100 화면
 final class HotChallTop100ViewController: UIViewController {
-  weak var delegate: ChalCoordinator?
+  weak var delegate: BaseCoordinator?
   
   let vcType: HotChallTop100Case
   var challengeName: String
@@ -151,7 +151,7 @@ extension HotChallTop100ViewController: ChallengePlayerViewDelegate {
   }
   
   func navToLearnChallenge(with data: ChallengeVideo) {
-    delegate?.navToLearnChallengeViewController(with: data)
+//    delegate?.navToLearnChallengeViewController(with: data)
   }
   
   func navToShowChallenge(with data: ChallengeVideo) {

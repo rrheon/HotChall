@@ -127,13 +127,6 @@ final class SavedHotChallViewController: UIViewController {
   }
 }
 
-/// 화면 이동 Enum
-extension SavedHotChallViewController {
-  enum Event {
-    case favoriteDateil
-  }
-}
-
 // MARK: CollectionView extension
 
 extension SavedHotChallViewController: UICollectionViewDataSource {
