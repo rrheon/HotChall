@@ -156,7 +156,7 @@ extension HotChallTop100ViewController: ChallengePlayerViewDelegate {
   
   func navToShowChallenge(with data: ChallengeVideo) {
     guard let challenge = data.videoFilename else { return }
-    delegate?.navToShowChallengeViewController()
+    delegate?.navToShowChallengeViewController(with: challenge)
   }
   
   func saveChallenge(with data: ChallengeVideo) {

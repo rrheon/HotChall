@@ -13,10 +13,13 @@ final class ChallengePlayerUIManager: GetKeyWindowProtocol {
   
   private init() {}
   
-  let playerView: ChallPlayerView = ChallPlayerView()
+  var playerView: ChallPlayerView?
 
   /// 플레이어 UI 보여주기
   func showChallPlayer(from viewController: UIViewController, data: ChallengeVideo){
+    let playerView = ChallPlayerView(challenge: data)
+    self.playerView = playerView
+     
     guard let keyWindow = getKeyWindow() else { return }
   
     let buttonTitle = viewController is SavedHotChallViewController ? "삭제하기" : "즐겨찾기"
@@ -44,8 +47,8 @@ final class ChallengePlayerUIManager: GetKeyWindowProtocol {
     playerView.alpha = 0
 
     UIView.animate(withDuration: 0.3) {
-        self.playerView.alpha = 1
-        self.playerView.transform = .identity
+      self.playerView?.alpha = 1
+      self.playerView?.transform = .identity
     }
     
     playerView.delegate = viewController as? ChallengePlayerViewDelegate
@@ -53,12 +56,12 @@ final class ChallengePlayerUIManager: GetKeyWindowProtocol {
   }
   
   func closeChallPlayer() {
-    guard playerView.superview != nil else { return }
+    guard playerView?.superview != nil else { return }
 
       UIView.animate(withDuration: 0.3, animations: {
-          self.playerView.alpha = 0
+        self.playerView?.alpha = 0
       }) { _ in
-          self.playerView.removeFromSuperview()
+        self.playerView?.removeFromSuperview()
       }
   }
 

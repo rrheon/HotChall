@@ -115,6 +115,7 @@ extension HotChalMainViewController: UICollectionViewDataSource {
       ) as? HotChallTopCell else { return UICollectionViewCell() }
       
       cell.challengeData = (MockupDataManager.shared.top3ChallengeVideos[indexPath.item], indexPath.item)
+      
       return cell
     }
     
@@ -144,9 +145,28 @@ extension HotChalMainViewController: UICollectionViewDataSource {
 extension HotChalMainViewController: UICollectionViewDelegateFlowLayout{
   
   func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-    let challengeData: ChallengeVideo = MockupDataManager.shared.challengeVideos[indexPath.item]
-    ChallengePlayerUIManager.shared.showChallPlayer(from: self, data: challengeData)
+    var challengeData: ChallengeVideo?
+    
+    let categoryDatas = MockupDataManager.shared.top3ChallengeVideosWithCategory
+    
+    switch collectionView {
+    case mainView.topCollectionView:
+      challengeData = MockupDataManager.shared.top3ChallengeVideos[indexPath.row]
+    case mainView.top1ChallengeView.collectionView:
+      challengeData = categoryDatas[0]?[indexPath.row]
+    case mainView.top2ChallengeView.collectionView:
+      challengeData = categoryDatas[1]?[indexPath.row]
+    case mainView.top3ChallengeView.collectionView:
+      challengeData = categoryDatas[2]?[indexPath.row]
+    default:
+      break
+    }
+    
+    if let data = challengeData {
+      ChallengePlayerUIManager.shared.showChallPlayer(from: self, data: data)
+    }
   }
+
   
   func collectionView(
     _ collectionView: UICollectionView,
@@ -178,7 +198,7 @@ extension HotChalMainViewController: ChallengePlayerViewDelegate {
   func navToShowChallenge(with data: ChallengeVideo) {
     guard let challenge = data.videoFilename else { return }
     //    ChallengePlayerManager.shared.playLocalVideo(named: challenge, from: self)
-    delegate?.navToShowChallengeViewController()
+    delegate?.navToShowChallengeViewController(with: challenge)
   }
   
   func saveChallenge(with data: ChallengeVideo) {

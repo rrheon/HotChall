@@ -9,84 +9,114 @@ import UIKit
 
 
 /// 핫챌 Top3 셀
+import UIKit
+
 final class HotChallTopCell: UICollectionViewCell, ReuseIdentifiable {
+  
   var challengeData: (ChallengeVideo?, Int?) {
-    didSet{
+    didSet {
       guard let data = challengeData.0,
             let rank = challengeData.1 else { return }
       configure(with: data, rank: rank)
     }
   }
-  /// 챌린지 썸네일 이미지뷰
-   var challengeImageView: UIImageView = {
+  
+  // 썸네일 이미지
+  private let challengeImageView: UIImageView = {
     let imageView = UIImageView()
-     imageView.contentMode = .scaleAspectFit
+    imageView.contentMode = .scaleAspectFit
+    imageView.clipsToBounds = true
+    imageView.layer.cornerRadius = 12
     imageView.translatesAutoresizingMaskIntoConstraints = false
-     imageView.backgroundColor = .cellBackground
     return imageView
   }()
   
-  /// 챌린지 랭킹 라벨
+  // 반투명 오버레이
+  private let overlayView: UIView = {
+    let view = UIView()
+    view.backgroundColor = UIColor.black.withAlphaComponent(0.4)
+    view.translatesAutoresizingMaskIntoConstraints = false
+    return view
+  }()
+  
+  // 랭크 라벨
   private let challengeRankLabel: UILabel = {
     let label = UILabel()
-    label.text = "1"
-    label.font = .boldSystemFont(ofSize: 36)
-    label.textColor = .black
+    label.font = .boldSystemFont(ofSize: 28)
+    label.textAlignment = .center
+    label.textColor = .white
+    label.layer.cornerRadius = 25
+    label.layer.masksToBounds = true
     label.translatesAutoresizingMaskIntoConstraints = false
-    
     return label
   }()
   
-  /// 챌린지 이름 라벨
-   var challengeNameLabel: UILabel = {
+  // 챌린지 제목
+  private let challengeNameLabel: UILabel = {
     let label = UILabel()
-    label.text = "챌린지 제목"
-     label.textColor = .black
-     label.font = .boldSystemFont(ofSize: 20)
+    label.font = .boldSystemFont(ofSize: 18)
+    label.textColor = .white
+    label.numberOfLines = 1
     label.translatesAutoresizingMaskIntoConstraints = false
-    
     return label
   }()
   
   override init(frame: CGRect) {
     super.init(frame: frame)
-    
-    self.backgroundColor = .white
+    backgroundColor = .clear
+    layer.shadowColor = UIColor.black.cgColor
+    layer.shadowOpacity = 0.1
+    layer.shadowOffset = CGSize(width: 0, height: 4)
+    layer.shadowRadius = 6
     makeUI()
-    
   }
   
   required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
   }
   
-  /// UI 설정
-  private func makeUI(){
-    self.addSubview(challengeImageView)
-    self.addSubview(challengeNameLabel)
-    self.addSubview(challengeRankLabel)
+  // UI 구성
+  private func makeUI() {
+    contentView.addSubview(challengeImageView)
+    contentView.addSubview(overlayView)
+    contentView.addSubview(challengeNameLabel)
+    contentView.addSubview(challengeRankLabel)
     
     NSLayoutConstraint.activate([
-      challengeImageView.topAnchor.constraint(equalTo: self.topAnchor),
-      challengeImageView.leadingAnchor.constraint(equalTo: self.leadingAnchor),
-      challengeImageView.trailingAnchor.constraint(equalTo: self.trailingAnchor),
-      challengeImageView.bottomAnchor.constraint(equalTo: self.bottomAnchor),
-      challengeImageView.widthAnchor.constraint(equalTo: self.widthAnchor),
-      challengeImageView.heightAnchor.constraint(equalTo: self.heightAnchor),
+      challengeImageView.topAnchor.constraint(equalTo: contentView.topAnchor),
+      challengeImageView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+      challengeImageView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+      challengeImageView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
       
-      challengeNameLabel.bottomAnchor.constraint(equalTo: self.bottomAnchor,constant: -10),
-      challengeNameLabel.leadingAnchor.constraint(equalTo: challengeImageView.leadingAnchor, constant: 20),
+      overlayView.leadingAnchor.constraint(equalTo: challengeImageView.leadingAnchor),
+      overlayView.trailingAnchor.constraint(equalTo: challengeImageView.trailingAnchor),
+      overlayView.bottomAnchor.constraint(equalTo: challengeImageView.bottomAnchor),
+      overlayView.heightAnchor.constraint(equalToConstant: 40),
       
-      challengeRankLabel.topAnchor.constraint(equalTo: challengeNameLabel.topAnchor, constant: -40),
-      challengeRankLabel.leadingAnchor.constraint(equalTo: challengeNameLabel.leadingAnchor),
+      challengeNameLabel.leadingAnchor.constraint(equalTo: overlayView.leadingAnchor, constant: 8),
+      challengeNameLabel.centerYAnchor.constraint(equalTo: overlayView.centerYAnchor),
+      challengeNameLabel.trailingAnchor.constraint(lessThanOrEqualTo: overlayView.trailingAnchor, constant: -8),
+      
+      challengeRankLabel.bottomAnchor.constraint(equalTo: challengeNameLabel.topAnchor, constant: -15),
+      challengeRankLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 8),
+      challengeRankLabel.widthAnchor.constraint(equalToConstant: 50),
+      challengeRankLabel.heightAnchor.constraint(equalToConstant: 50)
     ])
-    
   }
   
-  /// 데이터 설정
+  // 데이터 세팅
   private func configure(with item: ChallengeVideo, rank: Int) {
     challengeImageView.image = UIImage(named: item.thumbnailImage ?? "")
     challengeNameLabel.text = item.title
+    
+    // 랭크 + 메달 색상
     challengeRankLabel.text = "\(rank + 1)"
+    challengeRankLabel.backgroundColor = .appPink
+    //    switch rank {
+//    case 0: challengeRankLabel.backgroundColor = .systemYellow   // 금
+//    case 1: challengeRankLabel.backgroundColor = .lightGray      // 은
+//    case 2: challengeRankLabel.backgroundColor = .systemOrange   // 동
+//    default: challengeRankLabel.backgroundColor = .darkGray
+//    }
   }
 }
