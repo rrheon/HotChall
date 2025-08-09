@@ -18,7 +18,7 @@ enum HotChallTop100Case {
 /// HotChall - front - HotChallTop100ViewController
 /// 핫챌 Top100 화면
 final class HotChallTop100ViewController: UIViewController {
-  weak var delegate: ChalCoordinator?
+  weak var delegate: BaseCoordinator?
   
   let vcType: HotChallTop100Case
   var challengeName: String
@@ -26,7 +26,7 @@ final class HotChallTop100ViewController: UIViewController {
   
   private let mainView: HotChallTop100View = HotChallTop100View()
  
-  init(vcType: HotChallTop100Case = .normal, navTitle: String = "핫챌 Top100"){
+  init(vcType: HotChallTop100Case = .normal, navTitle: String = "핫챌 Top20"){
     self.vcType = vcType
     self.challengeName = navTitle
     
@@ -36,7 +36,7 @@ final class HotChallTop100ViewController: UIViewController {
   @available(*, unavailable)
   required init?(coder: NSCoder) {
     self.vcType = .normal
-    self.challengeName = "핫챌 Top100"
+    self.challengeName = "핫챌 Top20"
     
     super.init(coder: coder)
   }
@@ -74,7 +74,7 @@ final class HotChallTop100ViewController: UIViewController {
       challengeDatas = MockupDataManager.shared.challengeVideos
         .filter{ $0.category == challengeName }
     case .normal:
-      challengeDatas = MockupDataManager.shared.challengeVideos
+      challengeDatas = MockupDataManager.shared.sortedWithViewCountChallengeVideos
     }
     
     mainView.top100ListView.dataSource = self
@@ -124,7 +124,7 @@ extension HotChallTop100ViewController: UICollectionViewDelegateFlowLayout{
     _ collectionView: UICollectionView,
     didSelectItemAt indexPath: IndexPath
   ) {
-    let challengeData: ChallengeVideo = MockupDataManager.shared.challengeVideos[indexPath.item]
+    let challengeData: ChallengeVideo = challengeDatas[indexPath.item]
 
     ChallengePlayerUIManager.shared.showChallPlayer(from: self, data: challengeData)
 
@@ -151,12 +151,12 @@ extension HotChallTop100ViewController: ChallengePlayerViewDelegate {
   }
   
   func navToLearnChallenge(with data: ChallengeVideo) {
-    delegate?.navToLearnChallengeViewController(with: data)
+//    delegate?.navToLearnChallengeViewController(with: data)
   }
   
   func navToShowChallenge(with data: ChallengeVideo) {
     guard let challenge = data.videoFilename else { return }
-    delegate?.navToShowChallengeViewController()
+    delegate?.navToShowChallengeViewController(with: challenge)
   }
   
   func saveChallenge(with data: ChallengeVideo) {

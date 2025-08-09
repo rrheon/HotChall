@@ -28,7 +28,7 @@ final class ChallPlayerView: UIView {
   
   weak var delegate: ChallengePlayerViewDelegate?
   
-  var challengeData: ChallengeVideo?
+  var challengeData: ChallengeVideo
   
   /// 챌린지 배우기 버튼
   private lazy var learnChallengeButton: UIButton = makeChallengeButton(title: "배우기",
@@ -55,10 +55,13 @@ final class ChallPlayerView: UIView {
     return button
   }()
   
-  override init(frame: CGRect) {
-    super.init(frame: frame)
+  init(challenge: ChallengeVideo) {
+    self.challengeData = challenge
+    
+    super.init(frame: .zero)
     
     self.backgroundColor = .appPink
+    
     
     setupLayout()
     setupButtonActions()
@@ -99,27 +102,26 @@ final class ChallPlayerView: UIView {
   
   /// 버튼의 액션 설정
   private func setupButtonActions(){
-    guard let mockupData = MockupDataManager.shared.challengeVideos.first else { return }
     
     learnChallengeButton.addAction(UIAction { [weak self] _ in
       guard let self = self else { return }
-      self.delegate?.navToLearnChallenge(with: self.challengeData ?? mockupData)
+      self.delegate?.navToLearnChallenge(with: challengeData)
       
     }, for: .touchUpInside)
     
     saveChallengeButton.addAction(UIAction { [weak self] _ in
       guard let self = self else { return }
-      self.delegate?.saveChallenge(with: self.challengeData ?? mockupData)
+      self.delegate?.saveChallenge(with: challengeData)
     }, for: .touchUpInside)
     
     takeChallengeButton.addAction(UIAction { [weak self] _ in
       guard let self = self else { return }
-      self.delegate?.navToTakeChallenge(with: self.challengeData ?? mockupData)
+      self.delegate?.navToTakeChallenge(with: challengeData)
     }, for: .touchUpInside)
     
     showChallengeButton.addAction(UIAction { [weak self] _ in
       guard let self = self else { return }
-      self.delegate?.navToShowChallenge(with: self.challengeData ?? mockupData)
+      self.delegate?.navToShowChallenge(with: challengeData)
     }, for: .touchUpInside)
     
     closePlayerButton.addAction(UIAction { [weak self] _ in

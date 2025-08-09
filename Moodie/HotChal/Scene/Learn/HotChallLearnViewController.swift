@@ -12,10 +12,10 @@ final class HotChallLearnViewController: UIViewController {
   
   weak var delegate: HotChallLearnCoordinator?
   
-  // 검색결과가 없을 때
-  var defaultsChallengeDatas: [ChallengeVideo] = []
+  var searchTimer: Timer?
+
   
-  var challengeDatas: [ChallengeVideo] = []
+  lazy var challengeDatas: [ChallengeVideo] = []
   
   /// 챌린지 검색 서치바
   private let challengeSearchbar: UISearchBar = UISearchBar()
@@ -54,16 +54,12 @@ final class HotChallLearnViewController: UIViewController {
     self.title = "챌린지 배우기"
   
     self.view.backgroundColor = .backgroundColor
-        
+    
+    challengeDatas = MockupDataManager.shared.recommendChallengeVideos
+    
     setupCollectionView()
     setupSearchBar()
     setupLayout()
-  }
-  
-  override func viewWillAppear(_ animated: Bool) {
-    super.viewWillAppear(animated)
-    defaultsChallengeDatas = Array(MockupDataManager.shared.challengeVideos.shuffled().prefix(10))
-    challengeDatas = defaultsChallengeDatas
   }
   
   override func viewWillDisappear(_ animated: Bool) {
@@ -73,6 +69,12 @@ final class HotChallLearnViewController: UIViewController {
   
   func scrollViewDidScroll(_ scrollView: UIScrollView) {
     ChallengePlayerUIManager.shared.closeChallPlayer()
+  }
+  
+  override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+    ChallengePlayerUIManager.shared.closeChallPlayer()
+
+    view.endEditing(true)
   }
   
   // collectionView 설정
@@ -167,7 +169,7 @@ extension HotChallLearnViewController: UICollectionViewDataSource {
       for: indexPath
     ) as? ChallengeCell else { return UICollectionViewCell() }
     
-    cell.challengeData =  challengeDatas[indexPath.row]
+    cell.challengeData = challengeDatas[indexPath.row]
     
     return cell
   }
@@ -178,7 +180,7 @@ extension HotChallLearnViewController: UICollectionViewDataSource {
 extension HotChallLearnViewController: UICollectionViewDelegateFlowLayout{
   
   func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-    let challengeData: ChallengeVideo = MockupDataManager.shared.challengeVideos[indexPath.item]
+    let challengeData: ChallengeVideo = challengeDatas[indexPath.item]
 
     ChallengePlayerUIManager.shared.showChallPlayer(from: self, data: challengeData)
 
@@ -210,7 +212,7 @@ extension HotChallLearnViewController: ChallengePlayerViewDelegate {
   
   func navToShowChallenge(with data: ChallengeVideo) {
     guard let challenge = data.videoFilename else { return }
-    delegate?.navToShowChallengeViewController()
+    delegate?.navToShowChallengeViewController(with: challenge)
   }
   
   func saveChallenge(with data: ChallengeVideo) {
@@ -240,8 +242,13 @@ extension HotChallLearnViewController: UISearchBarDelegate {
   }
   
   func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+    self.searchTimer?.invalidate()
+    self.searchTimer = Timer.scheduledTimer(withTimeInterval: 1.0,
+                                            repeats: false,
+                                            block: { [weak self] timer in
+      guard let self = self else { return }
       if searchText.isEmpty {
-          challengeDatas = defaultsChallengeDatas
+          challengeDatas = MockupDataManager.shared.recommendChallengeVideos
       } else {
           challengeDatas = MockupDataManager.shared.challengeVideos.filter {
               $0.title?.contains(searchText) ?? false
@@ -253,5 +260,12 @@ extension HotChallLearnViewController: UISearchBarDelegate {
       collectionView.isHidden = !hasResults
       
       collectionView.reloadData()
+    })
+  }
+  
+  func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+    ChallengePlayerUIManager.shared.closeChallPlayer()
+
+    view.endEditing(true)
   }
 }

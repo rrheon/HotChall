@@ -12,10 +12,10 @@ import Foundation
 protocol ChallengeNavigationDelegate: CameraCoordinatorDelegate, CoordinatorFinishDelegate {
   func navToTakeChallengeViewController()
   func navToLearnChallengeViewController()
-  func navToShowChallengeViewController()
+  func navToShowChallengeViewController(with challenge: String)
 }
 
-extension ChallengeNavigationDelegate where Self: Coordinator {
+extension ChallengeNavigationDelegate where Self: BaseCoordinator {
   func navToTakeChallengeViewController() {
     let cameraCoordinator = CameraCoordinator(navigationController)
     cameraCoordinator.delegate = self
@@ -29,12 +29,13 @@ extension ChallengeNavigationDelegate where Self: Coordinator {
     navigationController.pushViewController(vc, animated: true)
   }
   
-  func navToShowChallengeViewController() {
+  func navToShowChallengeViewController(with challenge: String) {
     let vc = ShowChallengePageViewController(
       transitionStyle: .scroll,
       navigationOrientation: .vertical
     )
     vc.coordinatorDelgate = self
+    vc.selectedVideo = challenge
     navigationController.pushViewController(vc, animated: true)
   }
 }

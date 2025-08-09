@@ -89,10 +89,15 @@ final class HotChalMainViewController: UIViewController {
 extension HotChalMainViewController: UICollectionViewDataSource {
   
   func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-    if collectionView == mainView.topCollectionView {
-      return 3
-    } else {
-      return 5
+    let categoryDatas = MockupDataManager.shared.top3ChallengeVideosWithCategory
+
+    switch collectionView {
+    case mainView.topCollectionView: return 3
+    case mainView.top1ChallengeView.collectionView: return categoryDatas[0]?.count ?? 0
+    case mainView.top2ChallengeView.collectionView: return categoryDatas[1]?.count ?? 0
+    case mainView.top3ChallengeView.collectionView: return categoryDatas[2]?.count ?? 0
+    default:
+      return 0
     }
   }
   
@@ -100,28 +105,38 @@ extension HotChalMainViewController: UICollectionViewDataSource {
     _ collectionView: UICollectionView,
     cellForItemAt indexPath: IndexPath
   ) -> UICollectionViewCell {
-
-    switch collectionView {
-    // 메인 화면의 Top3 Cell
-    case mainView.topCollectionView:
+    let categoryDatas = MockupDataManager.shared.top3ChallengeVideosWithCategory
+    
+    // Top CollectionView
+    if collectionView == mainView.topCollectionView {
       guard let cell = collectionView.dequeueReusableCell(
         withReuseIdentifier: HotChallTopCell.reuseIdentifier,
         for: indexPath
       ) as? HotChallTopCell else { return UICollectionViewCell() }
-      cell.challengeData = (MockupDataManager.shared.challengeVideos[indexPath.item], indexPath.item)
+      
+      cell.challengeData = (MockupDataManager.shared.top3ChallengeVideos[indexPath.item], indexPath.item)
       
       return cell
-      
-    // Top3 카테고리에 대한 챌린지 Cell
-    default:
+    }
+    
+    // Top 1~3 CollectionViews 매핑
+    let collectionViews: [UICollectionView] = [
+      mainView.top1ChallengeView.collectionView,
+      mainView.top2ChallengeView.collectionView,
+      mainView.top3ChallengeView.collectionView
+    ]
+    
+    if let categoryIndex = collectionViews.firstIndex(of: collectionView) {
       guard let cell = collectionView.dequeueReusableCell(
         withReuseIdentifier: ChallengeCell.reuseIdentifier,
         for: indexPath
       ) as? ChallengeCell else { return UICollectionViewCell() }
-      cell.challengeData = MockupDataManager.shared.challengeVideos[indexPath.item]
       
+      cell.challengeData = categoryDatas[categoryIndex]?[indexPath.row]
       return cell
     }
+    
+    return UICollectionViewCell()
   }
 }
 
@@ -130,9 +145,28 @@ extension HotChalMainViewController: UICollectionViewDataSource {
 extension HotChalMainViewController: UICollectionViewDelegateFlowLayout{
   
   func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-    let challengeData: ChallengeVideo = MockupDataManager.shared.challengeVideos[indexPath.item]
-    ChallengePlayerUIManager.shared.showChallPlayer(from: self, data: challengeData)
+    var challengeData: ChallengeVideo?
+    
+    let categoryDatas = MockupDataManager.shared.top3ChallengeVideosWithCategory
+    
+    switch collectionView {
+    case mainView.topCollectionView:
+      challengeData = MockupDataManager.shared.top3ChallengeVideos[indexPath.row]
+    case mainView.top1ChallengeView.collectionView:
+      challengeData = categoryDatas[0]?[indexPath.row]
+    case mainView.top2ChallengeView.collectionView:
+      challengeData = categoryDatas[1]?[indexPath.row]
+    case mainView.top3ChallengeView.collectionView:
+      challengeData = categoryDatas[2]?[indexPath.row]
+    default:
+      break
+    }
+    
+    if let data = challengeData {
+      ChallengePlayerUIManager.shared.showChallPlayer(from: self, data: data)
+    }
   }
+
   
   func collectionView(
     _ collectionView: UICollectionView,
@@ -164,7 +198,7 @@ extension HotChalMainViewController: ChallengePlayerViewDelegate {
   func navToShowChallenge(with data: ChallengeVideo) {
     guard let challenge = data.videoFilename else { return }
     //    ChallengePlayerManager.shared.playLocalVideo(named: challenge, from: self)
-    delegate?.navToShowChallengeViewController()
+    delegate?.navToShowChallengeViewController(with: challenge)
   }
   
   func saveChallenge(with data: ChallengeVideo) {

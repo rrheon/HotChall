@@ -9,18 +9,9 @@ import UIKit
 
 
 /// 챌린지  배우기 코디네이터
-final class HotChallLearnCoordinator: Coordinator {
-  weak var finishDelegate: CoordinatorFinishDelegate?
-  
-  var childCoordinators: [Coordinator] = []
-  var navigationController: UINavigationController
-  var type: CoordinatorType { .favorite }
-  
-  required init(_ navigationController: UINavigationController) {
-    self.navigationController = navigationController
-  }
-  
-  func start() {
+final class HotChallLearnCoordinator: BaseCoordinator {
+
+  override func start() {
     let HotChallLearnViewController = HotChallLearnViewController()
     HotChallLearnViewController.delegate = self
     
@@ -37,20 +28,4 @@ final class HotChallLearnCoordinator: Coordinator {
     vc.hidesBottomBarWhenPushed = true
     self.navigationController.pushViewController(vc, animated: true)
   }
-
-  
 }
-extension HotChallLearnCoordinator: CameraCoordinatorDelegate {
-    func cameraCoordinatorDidFinishWithVideo(url: URL) {
-        let compareVC = ChallCompareViewController()
-        navigationController.pushViewController(compareVC, animated: true)
-    }
-}
-
-extension HotChallLearnCoordinator: CoordinatorFinishDelegate {
-    func coordinatorDidFinish(childCoordinator: Coordinator) {
-        childCoordinators.removeAll { $0 === childCoordinator }
-    }
-}
-
-extension HotChallLearnCoordinator: ChallengeNavigationDelegate {}

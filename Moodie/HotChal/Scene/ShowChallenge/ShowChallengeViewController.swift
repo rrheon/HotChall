@@ -94,8 +94,10 @@ final class ShowChallengeViewController: UIViewController {
     player.play()
 
   }
+  
   override func viewDidDisappear(_ animated: Bool) {
     player.pause()
+    player.seek(to: .zero)
   }
   
   override func viewDidLayoutSubviews() {
@@ -126,6 +128,7 @@ final class ShowChallengeViewController: UIViewController {
   
   /// 챌린지 플레이어 셋팅
   private func setupChallengePlayer(withAssetName name: String) {
+    print(name)
     guard let url = Bundle.main.url(forResource: name, withExtension: nil) else {
       print("❌ 로컬 비디오 파일을 찾을 수 없습니다.")
       return

@@ -49,9 +49,6 @@ final class ChallegneTop100Cell: UICollectionViewCell, ReuseIdentifiable {
   
   override init(frame: CGRect) {
     super.init(frame: frame)
- 
-//    contentView.backgroundColor = .systemGray5
-//    contentView.layer.cornerRadius = 5
     
     setupLayout()
   }
