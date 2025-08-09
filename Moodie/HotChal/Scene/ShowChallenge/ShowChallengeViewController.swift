@@ -162,7 +162,7 @@ final class ShowChallengeViewController: UIViewController {
     learnChallengeButton.addAction(UIAction { [weak self] _ in
       guard let self = self,
             let data = self.challengeData else { return }
-      delegate?.navToLearnChallengeViewController()
+      delegate?.navToLearnChallengeViewController(with: data)
     
     }, for: .touchUpInside)
     
@@ -194,7 +194,7 @@ final class ShowChallengeViewController: UIViewController {
       player.play()
     }
     
-    guard let keyWindow = UIApplication.shared.windows.first(where: { $0.isKeyWindow }) else { return }
+    guard let keyWindow = getKeyWindow() else { return }
     
     imageView.translatesAutoresizingMaskIntoConstraints = false
     keyWindow.addSubview(imageView)
@@ -245,3 +245,7 @@ final class ShowChallengeViewController: UIViewController {
   }
   
 }
+
+// MARK: GetKeyWindow Protocol
+
+extension ShowChallengeViewController: GetKeyWindowProtocol{}

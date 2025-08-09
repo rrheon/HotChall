@@ -28,6 +28,6 @@ extension ChallengeVideo {
     self.videoFilename = coreDataObject.videoFilename
     self.mp4Filename = coreDataObject.mp4Filename
     self.category = coreDataObject.category
-    self.viewCount = Int(coreDataObject.viewCount ?? 0)
+    self.viewCount = Int(coreDataObject.viewCount)
   }
 }
