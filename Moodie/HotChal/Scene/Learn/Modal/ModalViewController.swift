@@ -1,5 +1,5 @@
 //
-//  TextModalViewController.swift
+//  ModalViewController.swift
 //  HotChal
 //
 //  Created by jonghyuck on 8/7/25.
@@ -35,7 +35,7 @@ class ModalViewController: UIViewController {
 
         // 안내 문구 라벨
         let infoButton = UIButton(type: .system)
-        infoButton.setTitle("⚠️", for: .normal)
+        infoButton.setImage(UIImage(systemName: "exclamationmark.bubble"), for: .normal)
         infoButton.titleLabel?.font = UIFont.systemFont(ofSize: 15)
         infoButton.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(infoButton)
@@ -53,7 +53,8 @@ class ModalViewController: UIViewController {
         [startTimeField, endTimeField].forEach {
             $0.borderStyle = .roundedRect
             $0.keyboardType = .decimalPad
-            $0.backgroundColor = .white
+            $0.textColor = .label
+            $0.backgroundColor = .clear
             $0.textAlignment = .center
         }
         
@@ -94,12 +95,12 @@ class ModalViewController: UIViewController {
             
             let label = UILabel()
             label.text = text
-            label.textColor = .white
+            label.textColor = .black
             label.font = UIFont.systemFont(ofSize: 12)
             label.numberOfLines = 0
             label.textAlignment = .center
             
-            self.backgroundColor = UIColor.black.withAlphaComponent(0.8)
+            self.backgroundColor = UIColor.white.withAlphaComponent(0.8)
             self.layer.cornerRadius = 8
             self.translatesAutoresizingMaskIntoConstraints = false
             
@@ -123,7 +124,7 @@ class ModalViewController: UIViewController {
         
         if let sheet = self.sheetPresentationController {
             if #available(iOS 16.0, *) {
-                sheet.detents = [.custom { _ in return 170 }] // 또는 .fractional(0.33)
+                sheet.detents = [.custom { _ in return 170 }]
             } else {
                 sheet.detents = [.medium()]
             }
