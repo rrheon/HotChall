@@ -15,7 +15,7 @@ protocol ChallengeNavigationDelegate: CameraCoordinatorDelegate, CoordinatorFini
   func navToShowChallengeViewController(with challenge: String)
 }
 
-extension ChallengeNavigationDelegate where Self: Coordinator {
+extension ChallengeNavigationDelegate where Self: BaseCoordinator {
   func navToTakeChallengeViewController() {
     let cameraCoordinator = CameraCoordinator(navigationController)
     cameraCoordinator.delegate = self

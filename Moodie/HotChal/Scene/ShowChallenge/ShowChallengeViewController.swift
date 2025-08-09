@@ -94,8 +94,10 @@ final class ShowChallengeViewController: UIViewController {
     player.play()
 
   }
+  
   override func viewDidDisappear(_ animated: Bool) {
     player.pause()
+    player.seek(to: .zero)
   }
   
   override func viewDidLayoutSubviews() {
