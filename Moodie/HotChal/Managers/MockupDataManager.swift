@@ -12,8 +12,48 @@ import Foundation
 final class MockupDataManager {
   static let shared = MockupDataManager()
   
-  private init() {}
+  lazy var top3ChallengeVideos: [ChallengeVideo] = {
+    var seenCategories = Set<String>()
+    var uniqueVideos: [ChallengeVideo] = []
+    
+    for video in sortedWithViewCountChallengeVideos {
+      if let category = video.category, !seenCategories.contains(category) {
+        seenCategories.insert(category)
+        uniqueVideos.append(video)
+      }
+      if uniqueVideos.count == 3 {
+        break
+      }
+    }
+    return uniqueVideos
+  }()
+
+  lazy var top3Categories = top3ChallengeVideos.map { $0.category }
   
+  lazy var top3ChallengeVideosWithCategory: [Int : [ChallengeVideo]] = [:]
+  
+  lazy var sortedWithViewCountChallengeVideos: [ChallengeVideo] = []
+
+  
+  // MARK: init
+
+  private init() {
+    sortedWithViewCountChallengeVideos = Array(challengeVideos.sorted(by: {
+      guard let firstViewCount = $0.viewCount,
+            let secondViewCount = $1.viewCount else { return false }
+      return firstViewCount > secondViewCount
+    }).prefix(20))
+    
+    
+    for (num, category) in top3Categories.enumerated() {
+      let challenges = challengeVideos.filter { $0.category == category }
+      
+      top3ChallengeVideosWithCategory.updateValue(challenges, forKey: num)
+    }
+  }
+  
+  // MARK: mockup
+
   let challengeVideos: [ChallengeVideo] = [
     ChallengeVideo(id: UUID(),
                    thumbnailImage: "Golden1",
@@ -165,7 +205,7 @@ final class MockupDataManager {
             uploader: "kgirlsmoment",
             videoFilename: "idol1.mp4",
             mp4Filename: "",
-            category: "idol",
+            category: "Idol",
             viewCount: Int.random(in: 0...32767)),
     
       .init(id: UUID(),
@@ -174,7 +214,7 @@ final class MockupDataManager {
             uploader: "조씨Jossi",
             videoFilename: "idol2.mp4",
             mp4Filename: "",
-            category: "idol",
+            category: "Idol",
             viewCount: Int.random(in: 0...32767)),
     
       .init(id: UUID(),
@@ -183,7 +223,7 @@ final class MockupDataManager {
             uploader: "aespa",
             videoFilename: "idol3.mp4",
             mp4Filename: "",
-            category: "idol",
+            category: "Idol",
             viewCount: Int.random(in: 0...32767)),
     
       .init(id: UUID(),
@@ -192,7 +232,7 @@ final class MockupDataManager {
             uploader: "르세라핌픽쳐스",
             videoFilename: "idol4.mp4",
             mp4Filename: "",
-            category: "idol",
+            category: "Idol",
             viewCount: Int.random(in: 0...32767)),
     
       .init(id: UUID(),
@@ -201,7 +241,7 @@ final class MockupDataManager {
             uploader: "aespa",
             videoFilename: "karina1.mp4",
             mp4Filename: "",
-            category: "up",
+            category: "Up",
             viewCount: Int.random(in: 0...32767)),
     
       .init(id: UUID(),
@@ -210,7 +250,7 @@ final class MockupDataManager {
             uploader: "꿀챌리",
             videoFilename: "karina2.mp4",
             mp4Filename: "",
-            category: "karina",
+            category: "Karina",
             viewCount: Int.random(in: 0...32767)),
     
       .init(id: UUID(),
@@ -219,7 +259,7 @@ final class MockupDataManager {
             uploader: "˚bunnyasa",
             videoFilename: "kdh1.mp4",
             mp4Filename: "",
-            category: "kdh",
+            category: "Kdh",
             viewCount: Int.random(in: 0...32767)),
     
       .init(id: UUID(),
@@ -228,7 +268,7 @@ final class MockupDataManager {
             uploader: "aespa",
             videoFilename: "miyao1.mp4",
             mp4Filename: "",
-            category: "miyao",
+            category: "Miyao",
             viewCount: Int.random(in: 0...32767)),
     
       .init(id: UUID(),
@@ -255,7 +295,7 @@ final class MockupDataManager {
             uploader: "이영지",
             videoFilename: "ohmyGirl1.mp4",
             mp4Filename: "",
-            category: "I AM",
+            category: "IAM",
             viewCount: Int.random(in: 0...32767)),
     
       .init(id: UUID(),
@@ -264,7 +304,7 @@ final class MockupDataManager {
             uploader: "aespa",
             videoFilename: "savage1.mp4",
             mp4Filename: "",
-            category: "savage",
+            category: "Savage",
             viewCount: Int.random(in: 0...32767)),
     
       .init(id: UUID(),
@@ -273,7 +313,7 @@ final class MockupDataManager {
             uploader: "aespa",
             videoFilename: "superNova1.mp4",
             mp4Filename: "",
-            category: "superNova",
+            category: "SuperNova",
             viewCount: Int.random(in: 0...32767)),
     
       .init(id: UUID(),
@@ -282,7 +322,7 @@ final class MockupDataManager {
             uploader: "aespa",
             videoFilename: "superNova2.mp4",
             mp4Filename: "",
-            category: "superNova",
+            category: "SuperNova",
             viewCount: Int.random(in: 0...32767)),
     
       .init(id: UUID(),
@@ -291,7 +331,7 @@ final class MockupDataManager {
             uploader: "aespa",
             videoFilename: "superNova3.mp4",
             mp4Filename: "",
-            category: "superNova",
+            category: "SuperNova",
             viewCount: Int.random(in: 0...32767)),
     
       .init(id: UUID(),
@@ -300,7 +340,7 @@ final class MockupDataManager {
             uploader: "aespa",
             videoFilename: "superNova4.mp4",
             mp4Filename: "",
-            category: "superNova",
+            category: "SuperNova",
             viewCount: Int.random(in: 0...32767)),
     
       .init(id: UUID(),
@@ -309,7 +349,7 @@ final class MockupDataManager {
             uploader: "aespa",
             videoFilename: "whiplash1.mp4",
             mp4Filename: "",
-            category: "whiplash",
+            category: "Whiplash",
             viewCount: Int.random(in: 0...32767)),
     
       .init(id: UUID(),
@@ -318,9 +358,12 @@ final class MockupDataManager {
             uploader: "aespa",
             videoFilename: "whiplash2.mp4",
             mp4Filename: "",
-            category: "whiplash",
+            category: "Whiplash",
             viewCount: Int.random(in: 0...32767))
   ]
   
+  func fetchTop3Challenge(with category: String) -> [ChallengeVideo]{
+    return challengeVideos.filter { $0.category == category }
+  }
   
 }

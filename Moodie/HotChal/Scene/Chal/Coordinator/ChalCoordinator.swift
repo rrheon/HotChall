@@ -12,7 +12,7 @@ final class ChalCoordinator: BaseCoordinator {
     
     /// 핫챌 Top100 VC로 이동하기
   func navToHotChallTop100ViewController(type: HotChallTop100Case = .normal,
-                                         title challengeName: String = "핫챌 Top100"){
+                                         title challengeName: String = "핫챌 Top20"){
         let vc = HotChallTop100ViewController(vcType: type, navTitle: challengeName)
 
         vc.delegate = self

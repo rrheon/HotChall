@@ -23,7 +23,7 @@ final class HotChalMainView: UIView {
     button.semanticContentAttribute = .forceRightToLeft
     button.configuration?.imagePadding = 10
     button.tintColor = .white
-
+    
     return button
   }()
   
@@ -44,25 +44,38 @@ final class HotChalMainView: UIView {
   }()
   
   /// 각 챌린지의 카테고리에 맞는 컬렉션뷰
-  let top1ChallengeView = HotChallTop3CategoryView(title: "SodaPop")
-  let top2ChallengeView = HotChallTop3CategoryView(title: "Golden")
-  let top3ChallengeView = HotChallTop3CategoryView(title: "TocaToca")
+  var top1ChallengeView = HotChallTop3CategoryView()
+  var top2ChallengeView = HotChallTop3CategoryView()
+  var top3ChallengeView = HotChallTop3CategoryView()
   
   override init(frame: CGRect) {
     super.init(frame: frame)
     
     self.scrollView.backgroundColor = .backgroundColor
+    setupCollectionView()
     
     setupLayout()
     
-    topCollectionView.register(HotChallTopCell.self,
-                               forCellWithReuseIdentifier: HotChallTopCell.reuseIdentifier)
   }
   
   required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
   }
   
+  /// collectionView 설정
+  private func setupCollectionView(){
+    
+    topCollectionView.register(HotChallTopCell.self,
+                               forCellWithReuseIdentifier: HotChallTopCell.reuseIdentifier)
+    
+    let top3ChallengeDatas = MockupDataManager.shared.top3ChallengeVideos
+    
+    guard top3ChallengeDatas.count >= 3 else { return }
+    
+    self.top1ChallengeView.titleLabel.text = top3ChallengeDatas[0].category ?? ""
+    self.top2ChallengeView.titleLabel.text = top3ChallengeDatas[1].category ?? ""
+    self.top3ChallengeView.titleLabel.text = top3ChallengeDatas[2].category ?? ""
+  }
   
   /// UI설정
   private func setupLayout() {
@@ -74,11 +87,11 @@ final class HotChalMainView: UIView {
     
     [topMoreButton, topCollectionView, top1ChallengeView, top2ChallengeView, top3ChallengeView]
       .forEach {
-      contentView.addSubview($0)
-      $0.translatesAutoresizingMaskIntoConstraints = false
-    }
+        contentView.addSubview($0)
+        $0.translatesAutoresizingMaskIntoConstraints = false
+      }
     
-  
+    
     NSLayoutConstraint.activate([
       scrollView.topAnchor.constraint(equalTo: self.safeAreaLayoutGuide.topAnchor),
       scrollView.leadingAnchor.constraint(equalTo: self.leadingAnchor),
@@ -102,11 +115,11 @@ final class HotChalMainView: UIView {
       top1ChallengeView.topAnchor.constraint(equalTo: topCollectionView.bottomAnchor, constant: 30),
       top1ChallengeView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 10),
       top1ChallengeView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -10),
-
+      
       top2ChallengeView.topAnchor.constraint(equalTo: top1ChallengeView.bottomAnchor, constant: 30),
       top2ChallengeView.leadingAnchor.constraint(equalTo: top1ChallengeView.leadingAnchor),
       top2ChallengeView.trailingAnchor.constraint(equalTo: top1ChallengeView.trailingAnchor),
-
+      
       top3ChallengeView.topAnchor.constraint(equalTo: top2ChallengeView.bottomAnchor, constant: 30),
       top3ChallengeView.leadingAnchor.constraint(equalTo: top1ChallengeView.leadingAnchor),
       top3ChallengeView.trailingAnchor.constraint(equalTo: top1ChallengeView.trailingAnchor),

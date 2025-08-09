@@ -14,7 +14,7 @@ final class HotChallTop3CategoryView: UIView {
   // MARK: - UI Components
 
   /// 카테고리 라벨
-  let titleLabel: UILabel = {
+  var titleLabel: UILabel = {
     let label = UILabel()
     label.font = .boldSystemFont(ofSize: 24)
     label.textColor = .white
@@ -70,9 +70,9 @@ final class HotChallTop3CategoryView: UIView {
 
   // MARK: - Init
 
-  init(title: String) {
+  init() {
     super.init(frame: .zero)
-    titleLabel.text = title
+
     setupLayout()
   }
 

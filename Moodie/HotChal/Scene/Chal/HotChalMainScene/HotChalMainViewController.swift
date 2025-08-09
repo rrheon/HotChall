@@ -89,10 +89,15 @@ final class HotChalMainViewController: UIViewController {
 extension HotChalMainViewController: UICollectionViewDataSource {
   
   func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-    if collectionView == mainView.topCollectionView {
-      return 3
-    } else {
-      return 5
+    let categoryDatas = MockupDataManager.shared.top3ChallengeVideosWithCategory
+
+    switch collectionView {
+    case mainView.topCollectionView: return 3
+    case mainView.top1ChallengeView.collectionView: return categoryDatas[0]?.count ?? 0
+    case mainView.top2ChallengeView.collectionView: return categoryDatas[1]?.count ?? 0
+    case mainView.top3ChallengeView.collectionView: return categoryDatas[2]?.count ?? 0
+    default:
+      return 0
     }
   }
   
@@ -100,28 +105,37 @@ extension HotChalMainViewController: UICollectionViewDataSource {
     _ collectionView: UICollectionView,
     cellForItemAt indexPath: IndexPath
   ) -> UICollectionViewCell {
-
-    switch collectionView {
-    // 메인 화면의 Top3 Cell
-    case mainView.topCollectionView:
+    let categoryDatas = MockupDataManager.shared.top3ChallengeVideosWithCategory
+    
+    // Top CollectionView
+    if collectionView == mainView.topCollectionView {
       guard let cell = collectionView.dequeueReusableCell(
         withReuseIdentifier: HotChallTopCell.reuseIdentifier,
         for: indexPath
       ) as? HotChallTopCell else { return UICollectionViewCell() }
-      cell.challengeData = (MockupDataManager.shared.challengeVideos[indexPath.item], indexPath.item)
       
+      cell.challengeData = (MockupDataManager.shared.top3ChallengeVideos[indexPath.item], indexPath.item)
       return cell
-      
-    // Top3 카테고리에 대한 챌린지 Cell
-    default:
+    }
+    
+    // Top 1~3 CollectionViews 매핑
+    let collectionViews: [UICollectionView] = [
+      mainView.top1ChallengeView.collectionView,
+      mainView.top2ChallengeView.collectionView,
+      mainView.top3ChallengeView.collectionView
+    ]
+    
+    if let categoryIndex = collectionViews.firstIndex(of: collectionView) {
       guard let cell = collectionView.dequeueReusableCell(
         withReuseIdentifier: ChallengeCell.reuseIdentifier,
         for: indexPath
       ) as? ChallengeCell else { return UICollectionViewCell() }
-      cell.challengeData = MockupDataManager.shared.challengeVideos[indexPath.item]
       
+      cell.challengeData = categoryDatas[categoryIndex]?[indexPath.row]
       return cell
     }
+    
+    return UICollectionViewCell()
   }
 }
 

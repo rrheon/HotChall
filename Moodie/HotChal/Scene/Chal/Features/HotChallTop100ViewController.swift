@@ -26,7 +26,7 @@ final class HotChallTop100ViewController: UIViewController {
   
   private let mainView: HotChallTop100View = HotChallTop100View()
  
-  init(vcType: HotChallTop100Case = .normal, navTitle: String = "핫챌 Top100"){
+  init(vcType: HotChallTop100Case = .normal, navTitle: String = "핫챌 Top20"){
     self.vcType = vcType
     self.challengeName = navTitle
     
@@ -36,7 +36,7 @@ final class HotChallTop100ViewController: UIViewController {
   @available(*, unavailable)
   required init?(coder: NSCoder) {
     self.vcType = .normal
-    self.challengeName = "핫챌 Top100"
+    self.challengeName = "핫챌 Top20"
     
     super.init(coder: coder)
   }
@@ -74,7 +74,7 @@ final class HotChallTop100ViewController: UIViewController {
       challengeDatas = MockupDataManager.shared.challengeVideos
         .filter{ $0.category == challengeName }
     case .normal:
-      challengeDatas = MockupDataManager.shared.challengeVideos
+      challengeDatas = MockupDataManager.shared.sortedWithViewCountChallengeVideos
     }
     
     mainView.top100ListView.dataSource = self
