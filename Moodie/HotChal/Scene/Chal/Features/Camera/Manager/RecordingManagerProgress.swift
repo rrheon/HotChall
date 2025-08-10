@@ -65,5 +65,8 @@ final class RecordingProgressManager {
             delegate?.progressDidFinish()
         }
     }
+    deinit {
+        stop()
+    }
 }
 

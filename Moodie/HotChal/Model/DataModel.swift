@@ -30,4 +30,8 @@ extension ChallengeVideo {
     self.category = coreDataObject.category
     self.viewCount = Int(coreDataObject.viewCount)
   }
+    var mp4FilenameWithoutExtension: String? {
+        guard let mp4Filename = self.videoFilename else { return nil }
+        return URL(fileURLWithPath: mp4Filename).deletingPathExtension().lastPathComponent
+    }
 }
