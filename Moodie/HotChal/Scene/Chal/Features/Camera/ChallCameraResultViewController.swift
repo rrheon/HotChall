@@ -1,10 +1,3 @@
-//
-//  ChallCamera.swift
-//  HotChal
-//
-//  Created by heojiwoo on 8/6/25.
-//
-
 import UIKit
 import AVFoundation
 
@@ -17,10 +10,10 @@ final class ChallCameraResultView: UIView {
     private let videoURL: URL
     private var player: AVPlayer?
     private var playerLayer: AVPlayerLayer?
-
-    weak var delegate: ChallCameraResultViewDelegate?
-
+    private var timeObserver: Any?
     private var isPlaying = true
+    
+    weak var delegate: ChallCameraResultViewDelegate?
     
     // MARK: - UI
     private let bottomStackView: UIStackView = {
@@ -62,6 +55,16 @@ final class ChallCameraResultView: UIView {
         return button
     }()
     
+    private let timelineSlider: UISlider = {
+        let slider = UISlider()
+        slider.minimumValue = 0
+        slider.maximumValue = 1
+        slider.isContinuous = true
+        slider.isEnabled = false // 처음엔 비활성화
+        slider.translatesAutoresizingMaskIntoConstraints = false
+        return slider
+    }()
+    
     // MARK: - Init
     init(videoURL: URL) {
         self.videoURL = videoURL
@@ -69,7 +72,6 @@ final class ChallCameraResultView: UIView {
         setupPlayer()
         setupUI()
         setupGesture()
-        
     }
 
     required init?(coder: NSCoder) {
@@ -81,16 +83,6 @@ final class ChallCameraResultView: UIView {
         playerLayer?.frame = bounds
     }
 
-    @objc private func replay() {
-        player?.seek(to: .zero)
-        player?.play()
-    }
-    
-    private func setupGesture() {
-        let tap = UITapGestureRecognizer(target: self, action: #selector(playPausePressed))
-        self.addGestureRecognizer(tap)
-    }
-    
     // MARK: - Video
     private func setupPlayer() {
         player = AVPlayer(url: videoURL)
@@ -107,13 +99,28 @@ final class ChallCameraResultView: UIView {
             object: player?.currentItem
         )
 
+        addPlayerObservers()
         player?.play()
+    }
+    
+    private func addPlayerObservers() {
+        timeObserver = player?.addPeriodicTimeObserver(
+            forInterval: CMTime(seconds: 0.1, preferredTimescale: 600),
+            queue: .main
+        ) { [weak self] currentTime in
+            guard let self = self else { return }
+            let duration = self.player?.currentItem?.duration.seconds ?? 0
+            guard duration.isFinite, duration > 0 else { return }
+            self.timelineSlider.value = Float(currentTime.seconds / duration)
+            self.timelineSlider.isEnabled = true
+        }
     }
 
     // MARK: - UI Setup
     private func setupUI() {
         addSubview(bottomStackView)
         addSubview(playPauseButton)
+        addSubview(timelineSlider)
         bottomStackView.addArrangedSubview(closeButton)
         bottomStackView.addArrangedSubview(saveButton)
         
@@ -121,7 +128,16 @@ final class ChallCameraResultView: UIView {
         saveButton.addTarget(self, action: #selector(savePressed), for: .touchUpInside)
         playPauseButton.addTarget(self, action: #selector(playPausePressed), for: .touchUpInside)
         
+        // 슬라이더 이벤트
+        timelineSlider.addTarget(self, action: #selector(sliderTouchDown), for: .touchDown)
+        timelineSlider.addTarget(self, action: #selector(sliderValueChanged), for: .valueChanged)
+        timelineSlider.addTarget(self, action: #selector(sliderTouchUp), for: [.touchUpInside, .touchUpOutside])
+        
         NSLayoutConstraint.activate([
+            timelineSlider.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 20),
+            timelineSlider.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -20),
+            timelineSlider.bottomAnchor.constraint(equalTo: bottomStackView.topAnchor, constant: -12),
+            
             bottomStackView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 20),
             bottomStackView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -20),
             bottomStackView.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor, constant: -20),
@@ -134,6 +150,12 @@ final class ChallCameraResultView: UIView {
         ])
     }
 
+    private func setupGesture() {
+        let tap = UITapGestureRecognizer(target: self, action: #selector(playPausePressed))
+        self.addGestureRecognizer(tap)
+    }
+
+    // MARK: - Actions
     @objc private func closePressed() {
         delegate?.cameraResultViewClose(self)
     }
@@ -147,7 +169,6 @@ final class ChallCameraResultView: UIView {
         isPlaying ? player?.play() : player?.pause()
         
         let iconName = isPlaying ? "pause.fill" : "play.fill"
-        
         playPauseButton.setImage(UIImage(systemName: iconName), for: .normal)
         playPauseButton.isHidden = false
         
@@ -157,13 +178,39 @@ final class ChallCameraResultView: UIView {
                 self.playPauseButton.isHidden = true
             }
         }
+    }
+    
+    @objc private func sliderTouchDown(_ sender: UISlider) {
+        player?.pause()
+    }
+
+    @objc private func sliderValueChanged(_ sender: UISlider) {
+        let duration = player?.currentItem?.duration.seconds ?? 0
+        guard duration.isFinite, duration > 0 else { return }
         
+        let targetTime = Double(sender.value) * duration
+        // 프레임 나누기
+        let cmTime = CMTime(seconds: targetTime, preferredTimescale: 600)
+        player?.seek(to: cmTime, toleranceBefore: .zero, toleranceAfter: .zero)
+    }
+
+    @objc private func sliderTouchUp(_ sender: UISlider) {
+        if isPlaying {
+            player?.play()
+        }
+    }
+
+    @objc private func replay() {
+        player?.seek(to: .zero)
+        timelineSlider.value = 0
+        player?.play()
     }
 
     deinit {
+        if let timeObserver {
+            player?.removeTimeObserver(timeObserver)
+            self.timeObserver = nil
+        }
         NotificationCenter.default.removeObserver(self)
     }
 }
-
-
-
