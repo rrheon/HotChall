@@ -33,7 +33,7 @@ final class PlayerManager: UIView {
     }
     
     private func setupUI() {
-        backgroundColor = .clear
+      backgroundColor = .backgroundColor.withAlphaComponent(0.6)
         
         // infoBackgroundView 세팅
         infoBackgroundView.layer.cornerRadius = 10
@@ -88,7 +88,7 @@ final class PlayerManager: UIView {
             let button = UIButton(type: .system)
             button.setTitle("\(speed)x", for: .normal)
             button.setTitleColor(.white, for: .normal)
-            button.backgroundColor = UIColor.white.withAlphaComponent(0.2)
+            button.backgroundColor = .backgroundColor.withAlphaComponent(0.8)
             button.layer.cornerRadius = 8
             button.titleLabel?.font = .systemFont(ofSize: 15, weight: .medium)
             button.tag = Int(speed * 10)
@@ -119,7 +119,7 @@ final class PlayerManager: UIView {
             //속도조절
             speedStackView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: margin),
             speedStackView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -margin),
-            speedStackView.bottomAnchor.constraint(equalTo: bottomAnchor),
+            speedStackView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -20),
             speedStackView.heightAnchor.constraint(equalToConstant: speedStackHeight),
             
             // 재생바

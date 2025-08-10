@@ -9,7 +9,7 @@ import UIKit
 import AVFoundation
 import MediaPlayer
 
-class PlayerViewController: UIViewController, ModalViewControllerProtocol {
+final class PlayerViewController: UIViewController, ModalViewControllerProtocol {
     
     private let controlsView = PlayerManager()
     private var player: AVPlayer?
@@ -20,9 +20,7 @@ class PlayerViewController: UIViewController, ModalViewControllerProtocol {
     private var loopStart: Double?
     private var loopEnd: Double?
     
-    var videoFilename: String?
-    var videoTitle: String?
-    var uploader: String?
+  var challengeData: ChallengeVideo?
     
     private var isPlaying = true {
         didSet {
@@ -59,6 +57,20 @@ class PlayerViewController: UIViewController, ModalViewControllerProtocol {
         imageView.alpha = 0
         return imageView
     }()
+  
+  private let buttonStackView: UIStackView = {
+    let stackView = UIStackView()
+    stackView.axis = .vertical
+    stackView.distribution = .fillEqually
+    stackView.alignment = .fill
+    stackView.spacing = 10
+    stackView.backgroundColor = .backgroundColor.withAlphaComponent(0.6)
+    stackView.layer.cornerRadius = 8
+    stackView.isLayoutMarginsRelativeArrangement = true
+    stackView.layoutMargins = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
+    
+    return stackView
+  }()
     
     // MARK: - viewDidLoad
     override func viewDidLoad() {
@@ -72,13 +84,12 @@ class PlayerViewController: UIViewController, ModalViewControllerProtocol {
         addPeriodicTimeObserver()
         setupGestureRecognizers()
         setupVolumeIconTap()
-        setupNavigationButton()
-        setupLoopSettingButton()
+        setupPlayerButtons()
         setupConstraints()
         
         // 초기 텍스트 세팅
-        controlsView.titleLabel.text = videoTitle ?? "None Title"
-        controlsView.uploaderLabel.text = uploader ?? "Unknown Uploader"
+      controlsView.titleLabel.text = challengeData?.title ?? "None Title"
+      controlsView.uploaderLabel.text = challengeData?.uploader ?? "Unknown Uploader"
         
         // 기본 선택 속도 세팅
         selectedSpeed = 1.0
@@ -97,9 +108,9 @@ class PlayerViewController: UIViewController, ModalViewControllerProtocol {
     
     // MARK: - setupPlayer
     func setupPlayer() {
-        guard let filename = videoFilename,
+        guard let filename = challengeData?.videoFilename,
               let url = Bundle.main.url(forResource: filename, withExtension: nil) else {
-            print("❌ Invalid video filename: \(String(describing: videoFilename))")
+          print("❌ Invalid video filename: \(String(describing: challengeData?.videoFilename))")
             return
         }
         player = AVPlayer(url: url)
@@ -149,10 +160,10 @@ class PlayerViewController: UIViewController, ModalViewControllerProtocol {
     
     func setupConstraints() {
         NSLayoutConstraint.activate([
+          controlsView.topAnchor.constraint(equalTo: buttonStackView.bottomAnchor, constant: 50),
             controlsView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             controlsView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            controlsView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
-            controlsView.heightAnchor.constraint(equalToConstant: 180)
+            controlsView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20)
         ])
     }
     
@@ -318,47 +329,40 @@ class PlayerViewController: UIViewController, ModalViewControllerProtocol {
     
     // MARK: - 버튼 설정
     
-    private func setupNavigationButton() {
-        let button = UIButton(type: .system)
-        button.setTitle("Try this Challenge!", for: .normal)
-        button.setTitleColor(.white, for: .normal)
-        button.backgroundColor = .appPink
-        button.layer.cornerRadius = 8
-        button.translatesAutoresizingMaskIntoConstraints = false
-        
-        button.addTarget(self, action: #selector(navToTakeChallengeViewController), for: .touchUpInside)
-        
-        view.addSubview(button)
-        
-        NSLayoutConstraint.activate([
-            button.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 5),
-            button.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -13),
-            button.widthAnchor.constraint(equalToConstant: 140),
-            button.heightAnchor.constraint(equalToConstant: 25)
-        ])
+    private func setupPlayerButtons() {
+      view.addSubview(buttonStackView)
+      buttonStackView.translatesAutoresizingMaskIntoConstraints = false
+      let saveChallengeButton = ChallengeButton(title: "즐겨찾기", imageName: "star")
+      let takeChallengeButton = ChallengeButton(title: "찍어보기", imageName: "camera.shutter.button")
+      let repeatChallengeButton = ChallengeButton(title: "반복설정", imageName: "repeat")
+      
+      saveChallengeButton.addAction(UIAction { [weak self] _ in
+        guard let self = self,
+              let data = self.challengeData else { return }
+        CoreDataManager.shared.saveChallenge(with: data) { result in
+          ChallengePlayerUIManager.shared.closeChallPlayer()
+          let comment = result ? "챌린지가 저장되었습니다." : "이미 저장된 챌린지입니다."
+          
+          ToastPopupManager.shared.showToast(message: comment, from: self)
+        }
+      }, for: .touchUpInside)
+
+      
+      takeChallengeButton.addTarget(self,
+                                    action: #selector(navToTakeChallengeViewController),
+                                    for: .touchUpInside)
+      
+      repeatChallengeButton.addTarget(self, action: #selector(handleShowModal), for: .touchUpInside)
+      
+      [saveChallengeButton,takeChallengeButton,repeatChallengeButton].forEach {
+        buttonStackView.addArrangedSubview($0)
+      }
+      NSLayoutConstraint.activate([
+        buttonStackView.centerYAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerYAnchor),
+        buttonStackView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -10)
+      ])
     }
-    
-    private func setupLoopSettingButton() {
-        let button: UIButton = {
-            let button = UIButton(type: .system)
-            button.addTarget(self, action: #selector(handleShowModal), for: .touchUpInside)
-            button.setTitle("Loop Setting", for: .normal)
-            button.setTitleColor(.white, for: .normal)
-            button.backgroundColor = .appPink
-            button.layer.cornerRadius = 8
-            button.translatesAutoresizingMaskIntoConstraints = false
-            return button
-        }()
-        
-        self.view.addSubview(button)
-        
-        NSLayoutConstraint.activate([
-            button.bottomAnchor.constraint(equalTo: controlsView.volumeSlider.topAnchor, constant: -13),
-            button.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -13),
-            button.widthAnchor.constraint(equalToConstant: 115),
-        ])
-    }
-    
+
     // MARK: - 찍어보기 버튼 액션
     
     @objc func navToTakeChallengeViewController() {
@@ -388,7 +392,7 @@ class PlayerViewController: UIViewController, ModalViewControllerProtocol {
             
             if let sheet = modalVC.sheetPresentationController {
                 if #available(iOS 16.0, *) {
-                    sheet.detents = [.custom { _ in return 170 }]
+                    sheet.detents = [.custom { _ in return 220 }]
                 } else {
                     sheet.detents = [.medium()]
                 }
