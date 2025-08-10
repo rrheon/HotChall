@@ -189,16 +189,27 @@ class ChallCompareViewController: UIViewController {
             guard let self = self else { return }
 
             print("재촬영 버튼 클릭됨")
+
+            self.mainVideoPlayer?.queuePlayer?.pause()
+            self.challCompareSubView.videoPlayer.queuePlayer?.pause()
+
             guard let coordinator = self.coordinator else {
                 print("⚠️ coordinator가 nil입니다.")
                 return
             }
-            print("✅ coordinator 있음, 카메라 열기 시도")
-            // ✅ 변경: 2-파라미터 호출로 subVideoFilename 전달
-            coordinator.navToTakeChallengeViewController(
-                audioFileName: "",                      // 필요 시 적절한 오디오 파일명으로 교체
-                subVideoFilename: self.subVideoFilename
-            )
+
+            DispatchQueue.main.async {
+                CATransaction.begin()
+                CATransaction.setCompletionBlock { [weak self] in
+                    guard let self = self else { return }
+                    coordinator.navToTakeChallengeViewController(
+                        audioFileName: "",
+                        subVideoFilename: self.subVideoFilename
+                    )
+                }
+                self.navigationController?.popViewController(animated: true)
+                CATransaction.commit()
+            }
         })
         present(alert, animated: true)
     }
