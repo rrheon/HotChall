@@ -18,7 +18,7 @@ enum HotChallTop100Case {
 /// HotChall - front - HotChallTop100ViewController
 /// 핫챌 Top100 화면
 final class HotChallTop100ViewController: UIViewController {
-  weak var delegate: BaseCoordinator?
+  weak var delegate: ChallengeNavigationDelegate?
   
   let vcType: HotChallTop100Case
   var challengeName: String

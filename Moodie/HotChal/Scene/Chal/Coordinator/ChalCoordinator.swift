@@ -42,4 +42,7 @@ final class ChalCoordinator: BaseCoordinator {
         vc.coordinator = self
         navigationController.pushViewController(vc, animated: true)
     }
+    override func didFinishCameraRecording(url: URL) {
+        self.navToCompareViewController(url: url)
+    }
 }

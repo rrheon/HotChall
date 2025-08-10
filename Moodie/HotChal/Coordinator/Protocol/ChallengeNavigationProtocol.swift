@@ -10,34 +10,42 @@ import Foundation
 /// 챌린지 관련 화면이동 Delegate
 /// 챌린지 찍기, 보기, 배우기
 protocol ChallengeNavigationDelegate: CameraCoordinatorDelegate, CoordinatorFinishDelegate {
-  func navToTakeChallengeViewController()
-  func navToLearnChallengeViewController(with challenge: ChallengeVideo)
-  func navToShowChallengeViewController(with challenge: String)
+    func navToTakeChallengeViewController()
+    func navToLearnChallengeViewController(with challenge: ChallengeVideo)
+    func navToShowChallengeViewController(with challenge: String)
+    func navToTakeChallengeViewController(audioFileName: String)
 }
 
 extension ChallengeNavigationDelegate where Self: BaseCoordinator {
-  func navToTakeChallengeViewController() {
-    let cameraCoordinator = CameraCoordinator(navigationController)
-    cameraCoordinator.delegate = self
-    cameraCoordinator.finishDelegate = self
-    childCoordinators.append(cameraCoordinator)
-    cameraCoordinator.start()
-  }
-  
-  func navToLearnChallengeViewController(with challenge: ChallengeVideo){
-    let vc = PlayerViewController()
-    vc.challengeData = challenge
-    vc.hidesBottomBarWhenPushed = true
-    self.navigationController.pushViewController(vc, animated: true)
-  }
-  
-  func navToShowChallengeViewController(with challenge: String) {
-    let vc = ShowChallengePageViewController(
-      transitionStyle: .scroll,
-      navigationOrientation: .vertical
-    )
-    vc.coordinatorDelgate = self
-    vc.selectedVideo = challenge
-    navigationController.pushViewController(vc, animated: true)
-  }
+    func navToTakeChallengeViewController(audioFileName: String) {
+      let cameraCoordinator = CameraCoordinator(
+        navigationController: navigationController,
+        audioFileName: audioFileName
+      )
+      cameraCoordinator.delegate = self
+      cameraCoordinator.finishDelegate = self
+      childCoordinators.append(cameraCoordinator)
+      cameraCoordinator.start()
+    }
+    
+    func navToTakeChallengeViewController() {
+      navToTakeChallengeViewController(audioFileName: "")
+    }
+    
+    func navToLearnChallengeViewController(with challenge: ChallengeVideo){
+        let vc = PlayerViewController()
+        vc.challengeData = challenge
+        vc.hidesBottomBarWhenPushed = true
+        self.navigationController.pushViewController(vc, animated: true)
+    }
+    
+    func navToShowChallengeViewController(with challenge: String) {
+        let vc = ShowChallengePageViewController(
+            transitionStyle: .scroll,
+            navigationOrientation: .vertical
+        )
+        vc.coordinatorDelgate = self
+        vc.selectedVideo = challenge
+        navigationController.pushViewController(vc, animated: true)
+    }
 }
