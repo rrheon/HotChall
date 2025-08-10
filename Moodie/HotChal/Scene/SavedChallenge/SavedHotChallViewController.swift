@@ -29,6 +29,9 @@ final class SavedHotChallViewController: UIViewController {
     return view
   }()
   
+  private let noResultView: UIView = NoResultView(title: "저장된 챌린지가 없습니다.")
+
+  
   override func viewDidLoad() {
     super.viewDidLoad()
     
@@ -58,14 +61,20 @@ final class SavedHotChallViewController: UIViewController {
   /// 화면 구성
   private func makeUI(){
     view.addSubview(challengeCollectionView)
+    view.addSubview(noResultView)
+    noResultView.translatesAutoresizingMaskIntoConstraints = false
+    noResultView.isHidden = true
     
     let safeArea = view.safeAreaLayoutGuide
     NSLayoutConstraint.activate([
       challengeCollectionView.topAnchor.constraint(equalTo: safeArea.topAnchor, constant: 10),
       challengeCollectionView.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor, constant: 10),
       challengeCollectionView.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor, constant: -10),
-      challengeCollectionView.bottomAnchor.constraint(equalTo: safeArea.bottomAnchor)
-    ])
+      challengeCollectionView.bottomAnchor.constraint(equalTo: safeArea.bottomAnchor),
+      
+      noResultView.centerYAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerYAnchor),
+      noResultView.centerXAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerXAnchor)
+      ])
   }
   
   /// 셀 등록
@@ -88,7 +97,15 @@ final class SavedHotChallViewController: UIViewController {
     divideWithCategory = Dictionary(grouping: savedList) { $0.category ?? "" }
     categories = Array(divideWithCategory.keys).sorted()
     
-    challengeCollectionView.reloadData()
+    if savedList.count > 0 {
+      challengeCollectionView.reloadData()
+      noResultView.isHidden = true
+      challengeCollectionView.isHidden = false
+    }else {
+      noResultView.isHidden = false
+      challengeCollectionView.isHidden = true
+    }
+    
   }
   
   /// CollectionView 생성
@@ -209,7 +226,7 @@ extension SavedHotChallViewController: ChallengeHeaderViewActionDelegate{
 
 extension SavedHotChallViewController: ChallengePlayerViewDelegate {
   func navToTakeChallenge(with data: ChallengeVideo) {
-    delegate?.navToTakeChallengeViewController()
+    delegate?.navToTakeChallengeViewController(audioFileName: data.videoFilename ?? "")
   }
   
   func navToLearnChallenge(with data: ChallengeVideo) {

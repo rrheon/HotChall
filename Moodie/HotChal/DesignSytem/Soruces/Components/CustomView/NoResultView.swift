@@ -10,6 +10,7 @@ import UIKit
 
 /// 검색결과가 없는 경우의 View
 final class NoResultView: UIView {
+  private let title: String
   private let imageView: UIImageView = {
     let imageView = UIImageView(image: UIImage(named: "crying"))
     imageView.tintColor = .white
@@ -18,17 +19,19 @@ final class NoResultView: UIView {
     return imageView
   }()
   
-  private let noResultLabel: UILabel = {
+  private lazy var noResultLabel: UILabel = {
     let label = UILabel()
-    label.text = "검색결과가 없습니다"
+    label.text = self.title
     label.textColor = .white
     
     return label
   }()
   
   
-  override init(frame: CGRect) {
-    super.init(frame: frame)
+  init(title: String = "검색결과가 없습니다") {
+    self.title = title
+    
+    super.init(frame: .zero)
     
     setupLayout()
   }

@@ -146,6 +146,7 @@ final class PlayerManager: UIView {
             volumeSlider.heightAnchor.constraint(equalToConstant: sliderHeight),
             
             // 제목 + 업로더 정보 배경(투명)
+            infoBackgroundView.topAnchor.constraint(equalTo: self.topAnchor, constant: 10),
             infoBackgroundView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: margin),
             infoBackgroundView.trailingAnchor.constraint(lessThanOrEqualTo: trailingAnchor, constant: -margin),
             infoBackgroundView.bottomAnchor.constraint(equalTo: volumeSlider.topAnchor, constant: -spacing),

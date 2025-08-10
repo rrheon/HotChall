@@ -29,7 +29,7 @@ final class ChallCameraResultView: UIView {
         let button = UIButton(type: .system)
         button.setTitle("다시 찍기", for: .normal)
         button.setTitleColor(.white, for: .normal)
-        button.backgroundColor = UIColor.black.withAlphaComponent(0.6)
+        button.backgroundColor = UIColor.black.withAlphaComponent(0.4)
         button.layer.cornerRadius = 8
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
@@ -38,8 +38,8 @@ final class ChallCameraResultView: UIView {
     private let saveButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle("저장하기", for: .normal)
-        button.setTitleColor(.white, for: .normal)
-        button.backgroundColor = UIColor.systemBlue
+        button.setTitleColor(.black, for: .normal)
+        button.backgroundColor = UIColor.appPink
         button.layer.cornerRadius = 8
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
@@ -61,6 +61,7 @@ final class ChallCameraResultView: UIView {
         slider.maximumValue = 1
         slider.isContinuous = true
         slider.isEnabled = false // 처음엔 비활성화
+        slider.tintColor = .appPink
         slider.translatesAutoresizingMaskIntoConstraints = false
         return slider
     }()

@@ -147,7 +147,7 @@ final class ChallPlayerView: UIView {
   /// 버튼 타이틀 변경  - 저장하기 / 삭제하기
   /// - Parameter title: 변경할 타이틀
   func changeButton(title: String, image: String) {
-    let font = UIFont.systemFont(ofSize: 14)
+    let font = UIFont.boldSystemFont(ofSize: 14)
     let attributes: [NSAttributedString.Key: Any] = [.font: font]
     let newTitle = NSAttributedString(string: title, attributes: attributes)
     

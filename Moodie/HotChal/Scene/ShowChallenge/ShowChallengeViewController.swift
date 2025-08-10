@@ -170,7 +170,7 @@ final class ShowChallengeViewController: UIViewController {
     takeChallengeButton.addAction(UIAction { [weak self] _ in
       guard let self = self,
             let data = self.challengeData else { return }
-      delegate?.navToTakeChallengeViewController()
+      delegate?.navToTakeChallengeViewController(audioFileName: data.videoFilename ?? "")
     }, for: .touchUpInside)
   }
   
