@@ -20,9 +20,7 @@ class PlayerViewController: UIViewController, ModalViewControllerProtocol {
     private var loopStart: Double?
     private var loopEnd: Double?
     
-    var videoFilename: String?
-    var videoTitle: String?
-    var uploader: String?
+  var challengeData: ChallengeVideo?
     
     private var isPlaying = true {
         didSet {
@@ -90,8 +88,8 @@ class PlayerViewController: UIViewController, ModalViewControllerProtocol {
         setupConstraints()
         
         // 초기 텍스트 세팅
-        controlsView.titleLabel.text = videoTitle ?? "None Title"
-        controlsView.uploaderLabel.text = uploader ?? "Unknown Uploader"
+      controlsView.titleLabel.text = challengeData?.title ?? "None Title"
+      controlsView.uploaderLabel.text = challengeData?.uploader ?? "Unknown Uploader"
         
         // 기본 선택 속도 세팅
         selectedSpeed = 1.0
@@ -110,9 +108,9 @@ class PlayerViewController: UIViewController, ModalViewControllerProtocol {
     
     // MARK: - setupPlayer
     func setupPlayer() {
-        guard let filename = videoFilename,
+        guard let filename = challengeData?.videoFilename,
               let url = Bundle.main.url(forResource: filename, withExtension: nil) else {
-            print("❌ Invalid video filename: \(String(describing: videoFilename))")
+          print("❌ Invalid video filename: \(String(describing: challengeData?.videoFilename))")
             return
         }
         player = AVPlayer(url: url)
@@ -337,6 +335,18 @@ class PlayerViewController: UIViewController, ModalViewControllerProtocol {
       let saveChallengeButton = ChallengeButton(title: "즐겨찾기", imageName: "star")
       let takeChallengeButton = ChallengeButton(title: "찍어보기", imageName: "camera.shutter.button")
       let repeatChallengeButton = ChallengeButton(title: "반복설정", imageName: "repeat")
+      
+      saveChallengeButton.addAction(UIAction { [weak self] _ in
+        guard let self = self,
+              let data = self.challengeData else { return }
+        CoreDataManager.shared.saveChallenge(with: data) { result in
+          ChallengePlayerUIManager.shared.closeChallPlayer()
+          let comment = result ? "챌린지가 저장되었습니다." : "이미 저장된 챌린지입니다."
+          
+          ToastPopupManager.shared.showToast(message: comment, from: self)
+        }
+      }, for: .touchUpInside)
+
       
       takeChallengeButton.addTarget(self,
                                     action: #selector(navToTakeChallengeViewController),
