@@ -209,7 +209,10 @@ extension SavedHotChallViewController: ChallengeHeaderViewActionDelegate{
 
 extension SavedHotChallViewController: ChallengePlayerViewDelegate {
   func navToTakeChallenge(with data: ChallengeVideo) {
-    delegate?.navToTakeChallengeViewController()
+    delegate?.navToTakeChallengeViewController(
+      audioFileName: data.mp4FilenameWithoutExtension ?? "",
+      subVideoFilename: data.videoFilename
+    )
   }
   
   func navToLearnChallenge(with data: ChallengeVideo) {

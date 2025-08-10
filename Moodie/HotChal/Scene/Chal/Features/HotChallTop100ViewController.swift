@@ -147,7 +147,11 @@ extension HotChallTop100ViewController: UICollectionViewDelegateFlowLayout{
 
 extension HotChallTop100ViewController: ChallengePlayerViewDelegate {
     func navToTakeChallenge(with data: ChallengeVideo) {
-        delegate?.navToTakeChallengeViewController(audioFileName: data.videoFilename ?? "")
+        let audioName = data.mp4FilenameWithoutExtension ?? (data.videoFilename ?? "")
+        delegate?.navToTakeChallengeViewController(
+            audioFileName: audioName,
+            subVideoFilename: data.videoFilename
+        )
     }
   
   func navToLearnChallenge(with data: ChallengeVideo) {

@@ -9,11 +9,12 @@ import Foundation
 
 /// 챌린지 관련 화면이동 Delegate
 /// 챌린지 찍기, 보기, 배우기
-protocol ChallengeNavigationDelegate: CameraCoordinatorDelegate, CoordinatorFinishDelegate {
+protocol ChallengeNavigationDelegate: AnyObject, CameraCoordinatorDelegate, CoordinatorFinishDelegate {
     func navToTakeChallengeViewController()
     func navToLearnChallengeViewController(with challenge: ChallengeVideo)
     func navToShowChallengeViewController(with challenge: String)
     func navToTakeChallengeViewController(audioFileName: String)
+    func navToTakeChallengeViewController(audioFileName: String, subVideoFilename: String?)
 }
 
 extension ChallengeNavigationDelegate where Self: BaseCoordinator {
@@ -30,6 +31,10 @@ extension ChallengeNavigationDelegate where Self: BaseCoordinator {
     
     func navToTakeChallengeViewController() {
       navToTakeChallengeViewController(audioFileName: "")
+    }
+    
+    func navToTakeChallengeViewController(audioFileName: String, subVideoFilename: String?) {
+        navToTakeChallengeViewController(audioFileName: audioFileName)
     }
     
     func navToLearnChallengeViewController(with challenge: ChallengeVideo){

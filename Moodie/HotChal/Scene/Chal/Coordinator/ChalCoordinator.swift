@@ -4,6 +4,8 @@ import UIKit
 /// 핫첼 메인화면이동 코디네이터
 final class ChalCoordinator: BaseCoordinator {
     
+    private var lastSubVideoFilename: String?
+    
     override func start() {
         let chalMainViewController = HotChalMainViewController()
         chalMainViewController.delegate = self
@@ -20,6 +22,7 @@ final class ChalCoordinator: BaseCoordinator {
     }
     /// 챌린지 배우기 디테일 화면으로 이동
     func navToLearnChallengeViewController(with data: ChallengeVideo){
+        lastSubVideoFilename = data.videoFilename
         let vc = ChallCompareViewController()
         vc.subVideoFilename = data.videoFilename
         vc.coordinator = self
@@ -28,7 +31,8 @@ final class ChalCoordinator: BaseCoordinator {
     }
     
     // 챌린지 찍기 화면으로 이동
-    func navToTakeChallengeViewController(audioFileName: String) {
+    func navToTakeChallengeViewController(audioFileName: String, subVideoFilename: String?) {
+        lastSubVideoFilename = subVideoFilename
         let cameraCoordinator = CameraCoordinator(navigationController: navigationController, audioFileName: audioFileName)
         cameraCoordinator.delegate = self
         cameraCoordinator.finishDelegate = self
@@ -39,7 +43,9 @@ final class ChalCoordinator: BaseCoordinator {
     func navToCompareViewController(url: URL) {
         let vc = ChallCompareViewController()
         vc.videoURL = url
+        vc.subVideoFilename = lastSubVideoFilename
         vc.coordinator = self
+        vc.hidesBottomBarWhenPushed = true
         navigationController.pushViewController(vc, animated: true)
     }
     override func didFinishCameraRecording(url: URL) {
