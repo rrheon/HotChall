@@ -59,6 +59,20 @@ class PlayerViewController: UIViewController, ModalViewControllerProtocol {
         imageView.alpha = 0
         return imageView
     }()
+  
+  private let buttonStackView: UIStackView = {
+    let stackView = UIStackView()
+    stackView.axis = .vertical
+    stackView.distribution = .fillEqually
+    stackView.alignment = .fill
+    stackView.spacing = 10
+    stackView.backgroundColor = .backgroundColor.withAlphaComponent(0.8)
+    stackView.layer.cornerRadius = 8
+    stackView.isLayoutMarginsRelativeArrangement = true
+    stackView.layoutMargins = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
+    
+    return stackView
+  }()
     
     // MARK: - viewDidLoad
     override func viewDidLoad() {
@@ -72,8 +86,7 @@ class PlayerViewController: UIViewController, ModalViewControllerProtocol {
         addPeriodicTimeObserver()
         setupGestureRecognizers()
         setupVolumeIconTap()
-        setupNavigationButton()
-        setupLoopSettingButton()
+        setupPlayerButtons()
         setupConstraints()
         
         // 초기 텍스트 세팅
@@ -318,47 +331,28 @@ class PlayerViewController: UIViewController, ModalViewControllerProtocol {
     
     // MARK: - 버튼 설정
     
-    private func setupNavigationButton() {
-        let button = UIButton(type: .system)
-        button.setTitle("Try this Challenge!", for: .normal)
-        button.setTitleColor(.white, for: .normal)
-        button.backgroundColor = .appPink
-        button.layer.cornerRadius = 8
-        button.translatesAutoresizingMaskIntoConstraints = false
-        
-        button.addTarget(self, action: #selector(navToTakeChallengeViewController), for: .touchUpInside)
-        
-        view.addSubview(button)
-        
-        NSLayoutConstraint.activate([
-            button.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 5),
-            button.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -13),
-            button.widthAnchor.constraint(equalToConstant: 140),
-            button.heightAnchor.constraint(equalToConstant: 25)
-        ])
+    private func setupPlayerButtons() {
+      view.addSubview(buttonStackView)
+      buttonStackView.translatesAutoresizingMaskIntoConstraints = false
+      let saveChallengeButton = ChallengeButton(title: "즐겨찾기", imageName: "star")
+      let takeChallengeButton = ChallengeButton(title: "찍어보기", imageName: "camera.shutter.button")
+      let repeatChallengeButton = ChallengeButton(title: "반복설정", imageName: "repeat")
+      
+      takeChallengeButton.addTarget(self,
+                                    action: #selector(navToTakeChallengeViewController),
+                                    for: .touchUpInside)
+      
+      repeatChallengeButton.addTarget(self, action: #selector(handleShowModal), for: .touchUpInside)
+      
+      [saveChallengeButton,takeChallengeButton,repeatChallengeButton].forEach {
+        buttonStackView.addArrangedSubview($0)
+      }
+      NSLayoutConstraint.activate([
+        buttonStackView.centerYAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerYAnchor),
+        buttonStackView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -10)
+      ])
     }
-    
-    private func setupLoopSettingButton() {
-        let button: UIButton = {
-            let button = UIButton(type: .system)
-            button.addTarget(self, action: #selector(handleShowModal), for: .touchUpInside)
-            button.setTitle("반복설정", for: .normal)
-            button.setTitleColor(.white, for: .normal)
-            button.backgroundColor = .appPink
-            button.layer.cornerRadius = 8
-            button.translatesAutoresizingMaskIntoConstraints = false
-            return button
-        }()
-        
-        self.view.addSubview(button)
-        
-        NSLayoutConstraint.activate([
-            button.bottomAnchor.constraint(equalTo: controlsView.volumeSlider.topAnchor, constant: -13),
-            button.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -13),
-            button.widthAnchor.constraint(equalToConstant: 115),
-        ])
-    }
-    
+
     // MARK: - 찍어보기 버튼 액션
     
     @objc func navToTakeChallengeViewController() {
