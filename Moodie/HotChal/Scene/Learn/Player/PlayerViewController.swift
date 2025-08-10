@@ -342,7 +342,7 @@ class PlayerViewController: UIViewController, ModalViewControllerProtocol {
         let button: UIButton = {
             let button = UIButton(type: .system)
             button.addTarget(self, action: #selector(handleShowModal), for: .touchUpInside)
-            button.setTitle("Loop Setting", for: .normal)
+            button.setTitle("반복설정", for: .normal)
             button.setTitleColor(.white, for: .normal)
             button.backgroundColor = .appPink
             button.layer.cornerRadius = 8
@@ -388,7 +388,7 @@ class PlayerViewController: UIViewController, ModalViewControllerProtocol {
             
             if let sheet = modalVC.sheetPresentationController {
                 if #available(iOS 16.0, *) {
-                    sheet.detents = [.custom { _ in return 170 }]
+                    sheet.detents = [.custom { _ in return 220 }]
                 } else {
                     sheet.detents = [.medium()]
                 }

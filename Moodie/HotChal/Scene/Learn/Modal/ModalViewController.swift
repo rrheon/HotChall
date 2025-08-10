@@ -12,7 +12,7 @@ protocol ModalViewControllerProtocol {
 }
 
 
-class ModalViewController: UIViewController {
+final class ModalViewController: UIViewController {
     var delegate: ModalViewControllerProtocol? = nil
 
     private let startTimeField = UITextField()
@@ -21,104 +21,11 @@ class ModalViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .systemBackground
-        
-        startTimeField.placeholder = "start time(s)"
-        endTimeField.placeholder = "end time(s)"
-        
-        // 제목 라벨
-        let titleLabel = UILabel()
-        titleLabel.text = "Loop Setting"
-        titleLabel.font = UIFont.boldSystemFont(ofSize: 18)
-        titleLabel.textAlignment = .center
-        titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(titleLabel)
-
-        // 안내 문구 라벨
-        let infoButton = UIButton(type: .system)
-        infoButton.setImage(UIImage(systemName: "exclamationmark.bubble"), for: .normal)
-        infoButton.titleLabel?.font = UIFont.systemFont(ofSize: 15)
-        infoButton.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(infoButton)
-        
-        infoButton.addTarget(self, action: #selector(showTooltip), for: .touchUpInside)
-
-        // 텍스트필드 StackView (기존 방식 유지)
-        let timeInputStackView = UIStackView(arrangedSubviews: [startTimeField, endTimeField])
-        timeInputStackView.axis = .horizontal
-        timeInputStackView.spacing = 12
-        timeInputStackView.distribution = .fillEqually
-        timeInputStackView.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(timeInputStackView)
-
-        [startTimeField, endTimeField].forEach {
-            $0.borderStyle = .roundedRect
-            $0.keyboardType = .decimalPad
-            $0.textColor = .label
-            $0.backgroundColor = .clear
-            $0.textAlignment = .center
-        }
-        
-        view.addSubview(timeInputStackView)
-        
-        let closeButton = UIButton(type: .system)
-            closeButton.setTitle("☑️ Complete Setting", for: .normal)
-            closeButton.addTarget(self, action: #selector(close), for: .touchUpInside)
-            closeButton.translatesAutoresizingMaskIntoConstraints = false
-        
-        view.addSubview(closeButton)
-            
-        NSLayoutConstraint.activate([
-            // 제목
-            titleLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 20),
-            titleLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-            titleLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-                
-            //  텍스트 필드 스택
-            timeInputStackView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 50),
-            timeInputStackView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-            timeInputStackView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-            timeInputStackView.heightAnchor.constraint(equalToConstant: 44),
-            
-            // 안내문
-            infoButton.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 18),
-            infoButton.trailingAnchor.constraint(equalTo: titleLabel.trailingAnchor, constant: -90),
-                
-            // 설정완료 버튼
-            closeButton.topAnchor.constraint(equalTo: timeInputStackView.bottomAnchor, constant: 10),
-            closeButton.centerXAnchor.constraint(equalTo: view.centerXAnchor)
-            ])
-        }
-    
-    class TooltipView: UIView {
-        init(text: String) {
-            super.init(frame: .zero)
-            
-            let label = UILabel()
-            label.text = text
-            label.textColor = .black
-            label.font = UIFont.systemFont(ofSize: 12)
-            label.numberOfLines = 0
-            label.textAlignment = .center
-            
-            self.backgroundColor = UIColor.white.withAlphaComponent(0.8)
-            self.layer.cornerRadius = 8
-            self.translatesAutoresizingMaskIntoConstraints = false
-            
-            label.translatesAutoresizingMaskIntoConstraints = false
-            addSubview(label)
-            
-            NSLayoutConstraint.activate([
-                label.topAnchor.constraint(equalTo: topAnchor, constant: 8),
-                label.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -8),
-                label.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 8),
-                label.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -8),
-            ])
-        }
-        required init?(coder: NSCoder) {
-            fatalError("init(coder:) has not been implemented")
-        }
+      
+        setupLayout()
+        setupTextField()
     }
-    
+        
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         
@@ -132,7 +39,95 @@ class ModalViewController: UIViewController {
             sheet.preferredCornerRadius = 20
         }
     }
+  
+  // MARK: setupLayout
+
+  private func setupLayout(){
+    // 제목 라벨
+    let titleLabel = UILabel()
+    titleLabel.text = "반복설정"
+    titleLabel.font = UIFont.boldSystemFont(ofSize: 18)
+    titleLabel.textAlignment = .center
+    titleLabel.translatesAutoresizingMaskIntoConstraints = false
+    view.addSubview(titleLabel)
+
+    // 안내 문구 라벨
+    let infoButton = UIButton(type: .system)
+    infoButton.setImage(UIImage(systemName: "exclamationmark.bubble"), for: .normal)
+    infoButton.titleLabel?.font = UIFont.systemFont(ofSize: 12)
+    infoButton.tintColor = .appPink
+    infoButton.translatesAutoresizingMaskIntoConstraints = false
+    view.addSubview(infoButton)
     
+    infoButton.addTarget(self, action: #selector(showTooltip), for: .touchUpInside)
+
+    // 텍스트필드 StackView (기존 방식 유지)
+    let timeInputStackView = UIStackView(arrangedSubviews: [startTimeField, endTimeField])
+    timeInputStackView.axis = .horizontal
+    timeInputStackView.spacing = 12
+    timeInputStackView.distribution = .fillEqually
+    timeInputStackView.translatesAutoresizingMaskIntoConstraints = false
+    view.addSubview(timeInputStackView)
+
+    [startTimeField, endTimeField].forEach {
+        $0.borderStyle = .roundedRect
+        $0.keyboardType = .decimalPad
+        $0.textColor = .label
+        $0.backgroundColor = .clear
+        $0.textAlignment = .center
+    }
+    
+    view.addSubview(timeInputStackView)
+    
+        let closeButton = UIButton(configuration: .bordered())
+        closeButton.setTitle("설정 완료하기", for: .normal)
+        closeButton.titleLabel?.font = .boldSystemFont(ofSize: 20)
+        closeButton.backgroundColor = .appPink
+        closeButton.tintColor = .white
+
+        closeButton.layer.cornerRadius = 12
+        closeButton.layer.masksToBounds = false
+
+        closeButton.addTarget(self, action: #selector(close), for: .touchUpInside)
+        closeButton.translatesAutoresizingMaskIntoConstraints = false
+    
+    view.addSubview(closeButton)
+        
+    NSLayoutConstraint.activate([
+        // 제목
+        titleLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 30),
+        titleLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+        
+        //  텍스트 필드 스택
+        timeInputStackView.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 10),
+        timeInputStackView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+        timeInputStackView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+        timeInputStackView.heightAnchor.constraint(equalToConstant: 44),
+        
+        // 안내문
+        infoButton.topAnchor.constraint(equalTo: titleLabel.topAnchor),
+        infoButton.trailingAnchor.constraint(equalTo: titleLabel.trailingAnchor, constant: 40),
+            
+        // 설정완료 버튼
+        closeButton.topAnchor.constraint(equalTo: timeInputStackView.bottomAnchor, constant: 20),
+        closeButton.centerXAnchor.constraint(equalTo: view.centerXAnchor)
+        ])
+  }
+  
+  private func setupTextField(){
+    startTimeField.placeholder = "시작시간(초)"
+    endTimeField.placeholder = "종료시간(초)"
+    
+    [startTimeField, endTimeField].forEach {
+      $0.delegate = self
+      $0.layer.borderWidth = 1
+      $0.layer.cornerRadius = 8
+      $0.layer.borderColor = UIColor.darkGray.cgColor
+    }
+  }
+    
+  // MARK: func
+
     @objc func close() {
         let start = Double(startTimeField.text ?? "")
         let end = Double(endTimeField.text ?? "")
@@ -170,6 +165,31 @@ class ModalViewController: UIViewController {
             }
         }
     }
+}
+
+// MARK: TextField Delegate
+
+extension ModalViewController: UITextFieldDelegate {
+  func textFieldDidBeginEditing(_ textField: UITextField) {
+    textField.layer.borderColor = UIColor.white.cgColor
+  }
+  
+  func textFieldDidEndEditing(_ textField: UITextField) {
+    textField.layer.borderColor = UIColor.darkGray.cgColor
+  }
+  
+  func textField(
+    _ textField: UITextField,
+    shouldChangeCharactersIn range: NSRange,
+    replacementString string: String
+  ) -> Bool {
+    let maxLength = 2
+    let currentText = textField.text ?? ""
+    let newLength = (currentText.count ) + string.count - range.length
+
+    return newLength <= maxLength
+  }
+
 }
     
 @available(iOS 17.0, *)
