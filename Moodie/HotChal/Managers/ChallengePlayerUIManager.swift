@@ -17,6 +17,8 @@ final class ChallengePlayerUIManager: GetKeyWindowProtocol {
 
   /// 플레이어 UI 보여주기
   func showChallPlayer(from viewController: UIViewController, data: ChallengeVideo){
+    guard playerView?.superview == nil else { return }
+
     let playerView = ChallPlayerView(challenge: data)
     self.playerView = playerView
      
