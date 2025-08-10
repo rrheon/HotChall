@@ -192,15 +192,16 @@ final class CameraViewController: UIViewController {
             countdownLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             countdownLabel.centerYAnchor.constraint(equalTo: view.centerYAnchor),
 
-            progressView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 10),
-            progressView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-            progressView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-            progressView.heightAnchor.constraint(equalToConstant: 10),
-            
-            closeButton.topAnchor.constraint(equalTo: progressView.bottomAnchor, constant: 10),
+        
+            closeButton.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 10),
             closeButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
             closeButton.widthAnchor.constraint(equalToConstant: 40),
             closeButton.heightAnchor.constraint(equalToConstant: 40),
+            
+            progressView.topAnchor.constraint(equalTo: closeButton.bottomAnchor, constant: 10),
+            progressView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            progressView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+            progressView.heightAnchor.constraint(equalToConstant: 10),
             
             recordingTimeLabel.topAnchor.constraint(equalTo: progressView.bottomAnchor, constant: 4),
             recordingTimeLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor)
