@@ -127,13 +127,6 @@ final class SavedHotChallViewController: UIViewController {
   }
 }
 
-/// 화면 이동 Enum
-extension SavedHotChallViewController {
-  enum Event {
-    case favoriteDateil
-  }
-}
-
 // MARK: CollectionView extension
 
 extension SavedHotChallViewController: UICollectionViewDataSource {
@@ -202,7 +195,7 @@ extension SavedHotChallViewController {
     let vc = PopupViewController()
     vc.delegate = self
     vc.modalPresentationStyle = .overFullScreen
-    self.present(vc, animated: true)
+    self.present(vc, animated: false)
   }
 }
 
@@ -212,7 +205,7 @@ extension SavedHotChallViewController: ChallengeHeaderViewActionDelegate{
   }
 }
 
-// MARK: Challenge Player Delegate
+///  MARK: Challenge Player Delegate
 
 extension SavedHotChallViewController: ChallengePlayerViewDelegate {
   func navToTakeChallenge(with data: ChallengeVideo) {
@@ -220,14 +213,12 @@ extension SavedHotChallViewController: ChallengePlayerViewDelegate {
   }
   
   func navToLearnChallenge(with data: ChallengeVideo) {
-    print(#fileID, #function, #line, "- 챌린지 배우기 화면으로 이동")
-    delegate?.navToLearnChallengeViewController()
+    delegate?.navToLearnChallengeViewController(with: data)
   }
   
   func navToShowChallenge(with data: ChallengeVideo) {
-    print(#fileID, #function, #line, "- 챌린지 띄우기")
     guard let challenge = data.videoFilename else { return }
-    ChallengePlayerManager.shared.playLocalVideo(named: challenge, from: self)
+    delegate?.navToShowChallengeViewController(with: challenge)
   }
   
   func saveChallenge(with data: ChallengeVideo) {
@@ -245,9 +236,8 @@ extension SavedHotChallViewController: SavedChallengeDelegate {
   func didTapDeleteButton() {
     guard let uuid = selectedChallengeUUID else { return }
     CoreDataManager.shared.deleteSavedChallenge(with: uuid) {
-      print(#fileID, #function, #line, "- 챌린지 삭제")
       ChallengePlayerUIManager.shared.closeChallPlayer()
-      ToastPopupManager.shared.showToast(message: "챌린지가 삭제되었습니다.")
+      ToastPopupManager.shared.showToast(message: "챌린지가 삭제되었습니다.", from: self)
       self.reloadData()
     }
   }

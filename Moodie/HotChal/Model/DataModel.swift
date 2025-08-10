@@ -16,6 +16,7 @@ struct ChallengeVideo {
   let videoFilename: String?
   let mp4Filename: String?
   let category: String?
+  let viewCount: Int?
 }
 
 extension ChallengeVideo {
@@ -27,6 +28,7 @@ extension ChallengeVideo {
     self.videoFilename = coreDataObject.videoFilename
     self.mp4Filename = coreDataObject.mp4Filename
     self.category = coreDataObject.category
+    self.viewCount = Int(coreDataObject.viewCount)
   }
     var mp4FilenameWithoutExtension: String? {
         guard let mp4Filename = self.videoFilename else { return nil }

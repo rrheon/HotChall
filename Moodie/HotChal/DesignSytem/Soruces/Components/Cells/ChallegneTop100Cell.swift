@@ -15,7 +15,7 @@ final class ChallegneTop100Cell: UICollectionViewCell, ReuseIdentifiable {
    let challengeRankLabel: UILabel = {
     let label = UILabel()
     label.font = .boldSystemFont(ofSize: 18)
-    label.textColor = .darkGray
+     label.textColor = .appPink
     return label
   }()
   
@@ -25,7 +25,6 @@ final class ChallegneTop100Cell: UICollectionViewCell, ReuseIdentifiable {
     imageView.image = UIImage(named: "SodaPop4")
      imageView.contentMode = .scaleAspectFill
     imageView.clipsToBounds = true
-    imageView.backgroundColor = .yellow
     
     return imageView
   }()
@@ -33,7 +32,7 @@ final class ChallegneTop100Cell: UICollectionViewCell, ReuseIdentifiable {
   // 챌린지 타이틀라벨
   let challengeTitleLabel: UILabel = {
     let label = UILabel()
-    label.font = .systemFont(ofSize: 18, weight: .medium)
+    label.font = .systemFont(ofSize: 18, weight: .bold)
     label.textColor = .label
     
     return label
@@ -42,17 +41,14 @@ final class ChallegneTop100Cell: UICollectionViewCell, ReuseIdentifiable {
   // 챌린지 올린사람 라벨
   let challengeArtistLabel: UILabel = {
     let label = UILabel()
-    label.font = .systemFont(ofSize: 15, weight: .medium)
-    label.textColor = .label
+    label.font = .systemFont(ofSize: 14, weight: .medium)
+    label.textColor = .gray
     
     return label
   }()
   
   override init(frame: CGRect) {
     super.init(frame: frame)
- 
-    contentView.backgroundColor = .systemGray5
-    contentView.layer.cornerRadius = 5
     
     setupLayout()
   }
@@ -84,14 +80,14 @@ final class ChallegneTop100Cell: UICollectionViewCell, ReuseIdentifiable {
                                                     multiplier: 2),
       
       challengeTitleLabel.leadingAnchor.constraint(equalTo: challengeThumbnailView.trailingAnchor,
-                                                   constant: 10),
-      challengeTitleLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 18),
+                                                   constant: 30),
+      challengeTitleLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 10),
       challengeTitleLabel.trailingAnchor.constraint(lessThanOrEqualTo: contentView.trailingAnchor,
                                                     constant: -10),
       
       challengeArtistLabel.leadingAnchor.constraint(equalTo: challengeTitleLabel.leadingAnchor),
       challengeArtistLabel.topAnchor.constraint(equalTo: challengeTitleLabel.bottomAnchor,
-                                                constant: 4),
+                                                constant: 10),
     ])
   }
 }

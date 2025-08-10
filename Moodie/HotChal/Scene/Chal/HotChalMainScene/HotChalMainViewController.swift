@@ -9,14 +9,15 @@ import UIKit
 
 /// HotChall - front - HotChallMainViewController
 /// 핫챌 메인 화면
-class HotChalMainViewController: UIViewController {
+final class HotChalMainViewController: UIViewController {
   
   weak var delegate: ChalCoordinator?
   
   private let mainView: HotChalMainView = HotChalMainView()
   
-  override func viewWillAppear(_ animated: Bool) {
-    navigationController?.navigationBar.prefersLargeTitles = true
+  override func loadView() {
+    super.loadView()
+    self.view = mainView
   }
   
   /// viewDidLoad
@@ -31,11 +32,13 @@ class HotChalMainViewController: UIViewController {
     mainView.scrollView.delegate = self
   }
   
-  override func loadView() {
-    self.view = mainView
+  override func viewWillAppear(_ animated: Bool) {
+    super.viewWillAppear(animated)
+    navigationController?.navigationBar.prefersLargeTitles = true
   }
   
   override func viewWillDisappear(_ animated: Bool) {
+    super.viewWillDisappear(animated)
     ChallengePlayerUIManager.shared.closeChallPlayer()
   }
   
@@ -63,7 +66,7 @@ class HotChalMainViewController: UIViewController {
   /// 버튼 액션 추가하기
   private func addButtonActions(){
     mainView.topMoreButton.addAction(UIAction { [weak self] _ in
-      self?.delegate?.navToHotChallTop100ViewController(with: "핫챌 Top100")
+      self?.delegate?.navToHotChallTop100ViewController()
     } , for: .touchUpInside)
     
     // 카테고리 별 전체보기 버튼을 찾아서 버튼 액션 달아주기
@@ -72,10 +75,10 @@ class HotChalMainViewController: UIViewController {
       mainView.top2ChallengeView,
       mainView.top3ChallengeView
     ].forEach {
-      guard let challengeName: String = $0.titleLabel.text else { return }
+      guard let challengeName = $0.titleLabel.text else { return }
       
       $0.moreButton.addAction(UIAction { [weak self] _ in
-        self?.delegate?.navToHotChallTop100ViewController(with: challengeName)
+        self?.delegate?.navToHotChallTop100ViewController(type: .category, title: challengeName)
       }, for: .touchUpInside)
     }
   }
@@ -86,10 +89,15 @@ class HotChalMainViewController: UIViewController {
 extension HotChalMainViewController: UICollectionViewDataSource {
   
   func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-    if collectionView == mainView.topCollectionView {
-      return 3
-    } else {
-      return 5
+    let categoryDatas = MockupDataManager.shared.top3ChallengeVideosWithCategory
+
+    switch collectionView {
+    case mainView.topCollectionView: return 3
+    case mainView.top1ChallengeView.collectionView: return categoryDatas[0]?.count ?? 0
+    case mainView.top2ChallengeView.collectionView: return categoryDatas[1]?.count ?? 0
+    case mainView.top3ChallengeView.collectionView: return categoryDatas[2]?.count ?? 0
+    default:
+      return 0
     }
   }
   
@@ -97,28 +105,38 @@ extension HotChalMainViewController: UICollectionViewDataSource {
     _ collectionView: UICollectionView,
     cellForItemAt indexPath: IndexPath
   ) -> UICollectionViewCell {
-
-    switch collectionView {
-    // 메인 화면의 Top3 Cell
-    case mainView.topCollectionView:
+    let categoryDatas = MockupDataManager.shared.top3ChallengeVideosWithCategory
+    
+    // Top CollectionView
+    if collectionView == mainView.topCollectionView {
       guard let cell = collectionView.dequeueReusableCell(
         withReuseIdentifier: HotChallTopCell.reuseIdentifier,
         for: indexPath
       ) as? HotChallTopCell else { return UICollectionViewCell() }
-      cell.challengeData = (MockupDataManager.shared.challengeVideos[indexPath.item], indexPath.item)
+      
+      cell.challengeData = (MockupDataManager.shared.top3ChallengeVideos[indexPath.item], indexPath.item)
       
       return cell
-      
-    // Top3 카테고리에 대한 챌린지 Cell
-    default:
+    }
+    
+    // Top 1~3 CollectionViews 매핑
+    let collectionViews: [UICollectionView] = [
+      mainView.top1ChallengeView.collectionView,
+      mainView.top2ChallengeView.collectionView,
+      mainView.top3ChallengeView.collectionView
+    ]
+    
+    if let categoryIndex = collectionViews.firstIndex(of: collectionView) {
       guard let cell = collectionView.dequeueReusableCell(
         withReuseIdentifier: ChallengeCell.reuseIdentifier,
         for: indexPath
       ) as? ChallengeCell else { return UICollectionViewCell() }
-      cell.challengeData = MockupDataManager.shared.challengeVideos[indexPath.item]
       
+      cell.challengeData = categoryDatas[categoryIndex]?[indexPath.row]
       return cell
     }
+    
+    return UICollectionViewCell()
   }
 }
 
@@ -127,9 +145,28 @@ extension HotChalMainViewController: UICollectionViewDataSource {
 extension HotChalMainViewController: UICollectionViewDelegateFlowLayout{
   
   func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-    let challengeData: ChallengeVideo = MockupDataManager.shared.challengeVideos[indexPath.item]
-    ChallengePlayerUIManager.shared.showChallPlayer(from: self, data: challengeData)
+    var challengeData: ChallengeVideo?
+    
+    let categoryDatas = MockupDataManager.shared.top3ChallengeVideosWithCategory
+    
+    switch collectionView {
+    case mainView.topCollectionView:
+      challengeData = MockupDataManager.shared.top3ChallengeVideos[indexPath.row]
+    case mainView.top1ChallengeView.collectionView:
+      challengeData = categoryDatas[0]?[indexPath.row]
+    case mainView.top2ChallengeView.collectionView:
+      challengeData = categoryDatas[1]?[indexPath.row]
+    case mainView.top3ChallengeView.collectionView:
+      challengeData = categoryDatas[2]?[indexPath.row]
+    default:
+      break
+    }
+    
+    if let data = challengeData {
+      ChallengePlayerUIManager.shared.showChallPlayer(from: self, data: data)
+    }
   }
+
   
   func collectionView(
     _ collectionView: UICollectionView,
@@ -154,26 +191,22 @@ extension HotChalMainViewController: ChallengePlayerViewDelegate {
       delegate?.navToTakeChallengeViewController(audioFileName: data.mp4FilenameWithoutExtension ?? "")
   }
   
-    func navToLearnChallenge(with data: ChallengeVideo) {
-      print(#fileID, #function, #line, "- 챌린지 배우기 화면으로 이동")
-      delegate?.navToLearnChallengeViewController(with: data)
-    }
+  func navToLearnChallenge(with data: ChallengeVideo) {
+    delegate?.navToLearnChallengeViewController(with: data)
+  }
   
   func navToShowChallenge(with data: ChallengeVideo) {
-    print(#fileID, #function, #line, "- 챌린지 띄우기")
     guard let challenge = data.videoFilename else { return }
-//    ChallengePlayerManager.shared.playLocalVideo(named: challenge, from: self)
-    delegate?.navToShwoChallengeViewController()
+    //    ChallengePlayerManager.shared.playLocalVideo(named: challenge, from: self)
+    delegate?.navToShowChallengeViewController(with: challenge)
   }
   
   func saveChallenge(with data: ChallengeVideo) {
     CoreDataManager.shared.saveChallenge(with: data) { result in
-      print(#fileID, #function, #line, "- 챌린지 저장")
       ChallengePlayerUIManager.shared.closeChallPlayer()
       let comment = result ? "챌린지가 저장되었습니다." : "이미 저장된 챌린지입니다."
       
-      
-      ToastPopupManager.shared.showToast(message: comment)
+      ToastPopupManager.shared.showToast(message: comment, from: self)
     }
   }
 }

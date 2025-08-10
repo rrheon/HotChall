@@ -75,6 +75,7 @@ final class CoreDataManager {
       challenge.title = data.title
       challenge.uploader = data.uploader
       challenge.videoFilename = data.videoFilename
+      challenge.viewCount = Int16(data.viewCount ?? 0)
 
       do {
         try context.save()
@@ -97,7 +98,7 @@ final class CoreDataManager {
     
     do {
       guard let result = try? context.fetch(fetchRequest),
-            let object = result.first as? NSManagedObject else { return }
+            let object = result.first else { return }
       context.delete(object)
 
       try context.save()

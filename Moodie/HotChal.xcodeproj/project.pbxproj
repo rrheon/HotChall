@@ -6,13 +6,8 @@
 	objectVersion = 77;
 	objects = {
 
-/* Begin PBXBuildFile section */
-		EEDA8F752E407190006BDCC1 /* ChallengeVideoWithCoreData+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEDA8F722E407190006BDCC1 /* ChallengeVideoWithCoreData+CoreDataClass.swift */; };
-/* End PBXBuildFile section */
-
 /* Begin PBXFileReference section */
 		9322F5752E384AEB00222654 /* HotChal.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HotChal.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		EEDA8F722E407190006BDCC1 /* ChallengeVideoWithCoreData+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "ChallengeVideoWithCoreData+CoreDataClass.swift"; path = "HotChal/Model/ChallengeVideoWithCoreData+CoreDataClass.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -50,7 +45,6 @@
 		9322F56C2E384AEB00222654 = {
 			isa = PBXGroup;
 			children = (
-				EEDA8F722E407190006BDCC1 /* ChallengeVideoWithCoreData+CoreDataClass.swift */,
 				9322F5772E384AEB00222654 /* HotChal */,
 				9322F5762E384AEB00222654 /* Products */,
 			);
@@ -138,7 +132,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				EEDA8F752E407190006BDCC1 /* ChallengeVideoWithCoreData+CoreDataClass.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

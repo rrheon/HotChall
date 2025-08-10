@@ -39,7 +39,7 @@ final class PopupViewController: UIViewController {
   private let cancelButton: UIButton = {
     let button = UIButton(configuration: UIButton.Configuration.filled())
     button.setTitle("취소", for: .normal)
-    button.setTitleColor(.white, for: .normal)
+    button.setTitleColor(.black, for: .normal)
     button.tintColor = .lightGray
 
     return button
@@ -49,7 +49,7 @@ final class PopupViewController: UIViewController {
   private let deleteButton: UIButton = {
     let button = UIButton(configuration: UIButton.Configuration.filled())
     button.setTitle("삭제", for: .normal)
-    button.setTitleColor(.white, for: .normal)
+    button.setTitleColor(.black, for: .normal)
     button.tintColor = .appPink
 
     return button
@@ -97,7 +97,7 @@ final class PopupViewController: UIViewController {
       deletePopupLabel.topAnchor.constraint(equalTo: popupView.topAnchor, constant: 20),
       deletePopupLabel.centerXAnchor.constraint(equalTo: popupView.centerXAnchor),
 
-      buttonStackView.topAnchor.constraint(equalTo: deletePopupLabel.bottomAnchor, constant: 20),
+      buttonStackView.topAnchor.constraint(equalTo: deletePopupLabel.bottomAnchor, constant: 10),
       buttonStackView.leadingAnchor.constraint(equalTo: popupView.leadingAnchor, constant: 20),
       buttonStackView.trailingAnchor.constraint(equalTo: popupView.trailingAnchor, constant: -20),
       buttonStackView.bottomAnchor.constraint(equalTo: popupView.bottomAnchor, constant: -20),
@@ -107,6 +107,6 @@ final class PopupViewController: UIViewController {
   }
   
   @objc func dismissPopup(){
-    self.dismiss(animated: true)
+    self.dismiss(animated: false)
   }
 }

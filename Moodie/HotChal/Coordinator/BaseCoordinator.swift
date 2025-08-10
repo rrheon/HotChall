@@ -25,3 +25,14 @@ class BaseCoordinator: Coordinator {
         finishDelegate?.coordinatorDidFinish(childCoordinator: self)
     }
 }
+
+extension BaseCoordinator: ChallengeNavigationDelegate {
+  func cameraCoordinatorDidFinishWithVideo(url: URL) {
+//    navToCompareViewController(url: url)
+  }
+  
+  func coordinatorDidFinish(childCoordinator: any Coordinator) {
+    childCoordinators.removeAll { $0 === childCoordinator }
+
+  }
+}

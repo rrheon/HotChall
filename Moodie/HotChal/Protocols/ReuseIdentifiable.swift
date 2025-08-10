@@ -1,5 +1,5 @@
 //
-//  ReuseProtocol.swift
+//  ReuseIdentifiable.swift
 //  HotChal
 //
 //  Created by 최용헌 on 7/31/25.

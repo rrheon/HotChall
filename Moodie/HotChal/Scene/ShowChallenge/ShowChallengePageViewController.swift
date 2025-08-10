@@ -11,8 +11,11 @@ import UIKit
 /// 챌린지 보여주기 화면 PageViewController
 final class ShowChallengePageViewController: UIPageViewController {
   
+  weak var coordinatorDelgate: ChallengeNavigationDelegate?
+  
   private var challengeList: [ChallengeVideo] = MockupDataManager.shared.challengeVideos
-  private var currentIndex: Int = 0
+  private lazy var currentIndex: Int = 0
+  var selectedVideo: String?
   
   
   override func viewDidLoad() {
@@ -20,11 +23,28 @@ final class ShowChallengePageViewController: UIPageViewController {
     
     dataSource = self
     delegate = self
+    
+    if let selectedId = selectedVideo {
+        print("selectedVideo:", selectedId)
+        
+        for (i, challenge) in challengeList.enumerated() {
+            print("Index \(i):", challenge.videoFilename ?? "nil")
+        }
+        
+        if let foundIndex = challengeList.firstIndex(where: { $0.videoFilename == selectedId }) {
+            currentIndex = foundIndex
+        }
+        print("찾은 인덱스:", currentIndex)
+    }
+
+    
     setViewControllers([makePage(for: currentIndex)],
                        direction: .forward,
                        animated: false,
                        completion: nil)
+
   }
+  
   
   
   /// 화면 만들어주기
@@ -32,7 +52,7 @@ final class ShowChallengePageViewController: UIPageViewController {
   private func makePage(for index: Int) -> ShowChallengeViewController {
     let vc = ShowChallengeViewController()
     vc.challengeData = challengeList[index]
-    
+    vc.delegate = coordinatorDelgate
     return vc
   }
   
