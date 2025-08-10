@@ -9,7 +9,7 @@ import UIKit
 import AVFoundation
 import MediaPlayer
 
-class PlayerViewController: UIViewController, ModalViewControllerProtocol {
+final class PlayerViewController: UIViewController, ModalViewControllerProtocol {
     
     private let controlsView = PlayerManager()
     private var player: AVPlayer?
@@ -64,7 +64,7 @@ class PlayerViewController: UIViewController, ModalViewControllerProtocol {
     stackView.distribution = .fillEqually
     stackView.alignment = .fill
     stackView.spacing = 10
-    stackView.backgroundColor = .backgroundColor.withAlphaComponent(0.8)
+    stackView.backgroundColor = .backgroundColor.withAlphaComponent(0.6)
     stackView.layer.cornerRadius = 8
     stackView.isLayoutMarginsRelativeArrangement = true
     stackView.layoutMargins = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
@@ -160,10 +160,10 @@ class PlayerViewController: UIViewController, ModalViewControllerProtocol {
     
     func setupConstraints() {
         NSLayoutConstraint.activate([
+          controlsView.topAnchor.constraint(equalTo: buttonStackView.bottomAnchor, constant: 50),
             controlsView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             controlsView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            controlsView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
-            controlsView.heightAnchor.constraint(equalToConstant: 180)
+            controlsView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20)
         ])
     }
     
