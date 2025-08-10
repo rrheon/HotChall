@@ -11,7 +11,7 @@ import Foundation
 /// 챌린지 찍기, 보기, 배우기
 protocol ChallengeNavigationDelegate: CameraCoordinatorDelegate, CoordinatorFinishDelegate {
   func navToTakeChallengeViewController()
-  func navToLearnChallengeViewController()
+  func navToLearnChallengeViewController(with challenge: ChallengeVideo)
   func navToShowChallengeViewController(with challenge: String)
 }
 
@@ -24,9 +24,13 @@ extension ChallengeNavigationDelegate where Self: BaseCoordinator {
     cameraCoordinator.start()
   }
   
-  func navToLearnChallengeViewController() {
-    let vc = ChallCompareViewController()
-    navigationController.pushViewController(vc, animated: true)
+  func navToLearnChallengeViewController(with challenge: ChallengeVideo){
+    let vc = PlayerViewController()
+    vc.videoFilename = challenge.videoFilename
+    vc.videoTitle = challenge.title
+    vc.uploader = challenge.uploader
+    vc.hidesBottomBarWhenPushed = true
+    self.navigationController.pushViewController(vc, animated: true)
   }
   
   func navToShowChallengeViewController(with challenge: String) {

@@ -205,7 +205,7 @@ extension SavedHotChallViewController: ChallengeHeaderViewActionDelegate{
   }
 }
 
-// MARK: Challenge Player Delegate
+///  MARK: Challenge Player Delegate
 
 extension SavedHotChallViewController: ChallengePlayerViewDelegate {
   func navToTakeChallenge(with data: ChallengeVideo) {
@@ -213,7 +213,7 @@ extension SavedHotChallViewController: ChallengePlayerViewDelegate {
   }
   
   func navToLearnChallenge(with data: ChallengeVideo) {
-    delegate?.navToLearnChallengeViewController()
+    delegate?.navToLearnChallengeViewController(with: data)
   }
   
   func navToShowChallenge(with data: ChallengeVideo) {

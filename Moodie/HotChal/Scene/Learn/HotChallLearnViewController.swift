@@ -204,10 +204,7 @@ extension HotChallLearnViewController: ChallengePlayerViewDelegate {
   }
   
   func navToLearnChallenge(with data: ChallengeVideo) {
-      delegate?.navToLearnChallengeViewController(
-        filename: data.videoFilename ?? "",
-        title: data.title ?? "",
-        uploader: data.uploader ?? "")
+    delegate?.navToLearnChallengeViewController(with: data)
   }
   
   func navToShowChallenge(with data: ChallengeVideo) {
@@ -218,9 +215,8 @@ extension HotChallLearnViewController: ChallengePlayerViewDelegate {
   func saveChallenge(with data: ChallengeVideo) {
     CoreDataManager.shared.saveChallenge(with: data) { result in
       ChallengePlayerUIManager.shared.closeChallPlayer()
+      
       let comment = result ? "챌린지가 저장되었습니다." : "이미 저장된 챌린지입니다."
-      
-      
       ToastPopupManager.shared.showToast(message: comment, from: self)
     }
   }

@@ -151,7 +151,7 @@ extension HotChallTop100ViewController: ChallengePlayerViewDelegate {
   }
   
   func navToLearnChallenge(with data: ChallengeVideo) {
-//    delegate?.navToLearnChallengeViewController(with: data)
+    delegate?.navToLearnChallengeViewController(with: data)
   }
   
   func navToShowChallenge(with data: ChallengeVideo) {
