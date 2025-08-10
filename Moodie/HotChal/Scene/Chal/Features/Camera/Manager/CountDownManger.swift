@@ -44,4 +44,8 @@ final class CountdownManager {
         timer?.invalidate()
         timer = nil
     }
+    
+    deinit {
+        cancel()
+    }
 }
