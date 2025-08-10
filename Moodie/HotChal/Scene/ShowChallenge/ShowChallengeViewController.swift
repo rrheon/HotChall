@@ -70,15 +70,16 @@ final class ShowChallengeViewController: UIViewController {
   }()
   
   /// 챌린지 배우기 버튼
-  private lazy var learnChallengeButton: UIButton = makeChallengeButton(title: "배우기",
-                                                                        imageName: "figure.dance")
+  private lazy var learnChallengeButton: UIButton = ChallengeButton(title: "배우기",
+                                                                    imageName: "figure.dance")
   
   /// 챌린지 저장하기 버튼
-  private lazy var saveChallengeButton: UIButton = makeChallengeButton(title: "즐겨찾기",
-                                                               imageName: "star")
+  private lazy var saveChallengeButton: UIButton = ChallengeButton(title: "즐겨찾기",
+                                                                   imageName: "star")
   /// 챌린지 촬영하기하기 버튼
-  private lazy var takeChallengeButton: UIButton = makeChallengeButton(title: "찍어보기",
-                                                               imageName: "camera.shutter.button")
+  private lazy var takeChallengeButton: UIButton = ChallengeButton(title: "찍어보기",
+                                                                   imageName: "camera.shutter.button")
+  
   
   override func viewDidLoad() {
     super.viewDidLoad()
@@ -218,32 +219,6 @@ final class ShowChallengeViewController: UIViewController {
     titleLabel.text = item.title
     uploaderLabel.text = item.uploader
   }
-  
-  /// 플레이어 버튼 만들기
-  private func makeChallengeButton(title: String, imageName: String) -> UIButton {
-    var config = UIButton.Configuration.plain()
-    config.image = UIImage(systemName: imageName)
-    config.imagePadding = 10
-    config.baseForegroundColor = .appPink
-    
-    // 이미지 크기 줄이기
-    let imageSize = UIImage.SymbolConfiguration(pointSize: 18, weight: .bold)
-    config.preferredSymbolConfigurationForImage = imageSize
-    
-    // 텍스트 크기 줄이기
-    let font = UIFont.boldSystemFont(ofSize: 14)
-    let attributes: [NSAttributedString.Key: Any] = [ .font: font ]
-    config.attributedTitle = AttributedString(NSAttributedString(string: title, attributes: attributes))
-    
-    let button = UIButton(configuration: config)
-    button.semanticContentAttribute = .forceRightToLeft
-    button.configuration?.imagePlacement = .top
-    button.configuration?.imagePadding = 10
-    button.tintColor = .white
-    
-    return button
-  }
-  
 }
 
 // MARK: GetKeyWindow Protocol

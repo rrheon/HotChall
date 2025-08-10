@@ -31,18 +31,32 @@ final class ChallPlayerView: UIView {
   var challengeData: ChallengeVideo
   
   /// 챌린지 배우기 버튼
-  private lazy var learnChallengeButton: UIButton = makeChallengeButton(title: "배우기",
-                                                                        imageName: "figure.dance")
+  private lazy var learnChallengeButton: UIButton = ChallengeButton(
+    title: "배우기",
+    imageName: "figure.dance",
+    buttonColor: .black
+  )
   
   /// 챌린지 저장하기 버튼
-  lazy var saveChallengeButton: UIButton = makeChallengeButton(title: "즐겨찾기",
-                                                               imageName: "star")
+  private lazy var saveChallengeButton: UIButton = ChallengeButton(
+    title: "즐겨찾기",
+    imageName: "star",
+    buttonColor: .black
+  )
+  
   /// 챌린지 촬영하기하기 버튼
-  lazy var takeChallengeButton: UIButton = makeChallengeButton(title: "찍어보기",
-                                                               imageName: "camera.shutter.button")
+  private lazy var takeChallengeButton: UIButton = ChallengeButton(
+    title: "찍어보기",
+    imageName: "camera.shutter.button",
+    buttonColor: .black
+  )
+  
   /// 챌린지 보기 버튼
-  private lazy var showChallengeButton: UIButton = makeChallengeButton(title: "보기",
-                                                                       imageName: "play.rectangle")
+  private lazy var showChallengeButton: UIButton = ChallengeButton(
+    title: "보기",
+    imageName: "play.rectangle",
+    buttonColor: .black
+  )
   
   
   /// 플레이어 view 내리기 버튼
@@ -61,7 +75,6 @@ final class ChallPlayerView: UIView {
     super.init(frame: .zero)
     
     self.backgroundColor = .appPink
-    
     
     setupLayout()
     setupButtonActions()
@@ -130,33 +143,7 @@ final class ChallPlayerView: UIView {
     }, for: .touchUpInside)
   }
   
-  
-  /// 플레이어 버튼 만들기
-  private func makeChallengeButton(title: String, imageName: String) -> UIButton {
-    var config = UIButton.Configuration.plain()
-    config.image = UIImage(systemName: imageName)
-    config.imagePadding = 10
-    config.baseForegroundColor = .black
-    
-    // 이미지 크기 줄이기
-    let imageSize = UIImage.SymbolConfiguration(pointSize: 14, weight: .regular)
-    config.preferredSymbolConfigurationForImage = imageSize
-    
-    // 텍스트 크기 줄이기
-    let font = UIFont.systemFont(ofSize: 14)
-    let attributes: [NSAttributedString.Key: Any] = [ .font: font ]
-    config.attributedTitle = AttributedString(NSAttributedString(string: title, attributes: attributes))
-    
-    let button = UIButton(configuration: config)
-    button.semanticContentAttribute = .forceRightToLeft
-    button.configuration?.imagePlacement = .top
-    button.configuration?.imagePadding = 10
-    button.tintColor = .white
-    
-    return button
-  }
-  
-  
+
   /// 버튼 타이틀 변경  - 저장하기 / 삭제하기
   /// - Parameter title: 변경할 타이틀
   func changeButton(title: String, image: String) {
