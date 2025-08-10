@@ -180,6 +180,8 @@ extension HotChallLearnViewController: UICollectionViewDataSource {
 extension HotChallLearnViewController: UICollectionViewDelegateFlowLayout{
   
   func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+    view.endEditing(true)
+
     let challengeData: ChallengeVideo = challengeDatas[indexPath.item]
 
     ChallengePlayerUIManager.shared.showChallPlayer(from: self, data: challengeData)

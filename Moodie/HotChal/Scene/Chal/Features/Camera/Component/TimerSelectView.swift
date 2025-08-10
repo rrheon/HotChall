@@ -28,7 +28,7 @@ final class TimerSelectView: UIView {
         button.setTitle("시작", for: .normal)
         button.setTitleColor(.white, for: .normal)
         button.titleLabel?.font = .boldSystemFont(ofSize: 16)
-        button.backgroundColor = .systemBlue
+        button.backgroundColor = .appPink
         button.layer.cornerRadius = 8
         button.heightAnchor.constraint(equalToConstant: 48).isActive = true
         return button

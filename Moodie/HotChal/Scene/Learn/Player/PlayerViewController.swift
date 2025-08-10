@@ -10,7 +10,7 @@ import AVFoundation
 import MediaPlayer
 
 final class PlayerViewController: UIViewController, ModalViewControllerProtocol {
-    
+
     weak var coordinator: ChallengeNavigationDelegate?
     
     private let controlsView = PlayerManager()
@@ -162,7 +162,7 @@ final class PlayerViewController: UIViewController, ModalViewControllerProtocol 
     
     func setupConstraints() {
         NSLayoutConstraint.activate([
-          controlsView.topAnchor.constraint(equalTo: buttonStackView.bottomAnchor, constant: 50),
+          controlsView.topAnchor.constraint(greaterThanOrEqualTo: buttonStackView.bottomAnchor, constant: 10),
             controlsView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             controlsView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             controlsView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20)

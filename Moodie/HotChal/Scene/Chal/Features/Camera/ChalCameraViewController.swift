@@ -111,7 +111,7 @@ final class CameraViewController: UIViewController {
 
     // MARK: - Audio Setting
     private func audioSetting() {
-        if let mp4Url = Bundle.main.url(forResource: audioFileName, withExtension: "mp4") {
+        if let mp4Url = Bundle.main.url(forResource: audioFileName, withExtension: nil) {
             prepareAudio(url: mp4Url)
             Task {
                 let durationSec = await getVideoDuration(url: mp4Url)
