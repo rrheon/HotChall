@@ -11,6 +11,8 @@ import MediaPlayer
 
 final class PlayerViewController: UIViewController, ModalViewControllerProtocol {
     
+    weak var coordinator: ChallengeNavigationDelegate?
+    
     private let controlsView = PlayerManager()
     private var player: AVPlayer?
     private var playerLayer: AVPlayerLayer?
@@ -366,8 +368,10 @@ final class PlayerViewController: UIViewController, ModalViewControllerProtocol 
     // MARK: - 찍어보기 버튼 액션
     
     @objc func navToTakeChallengeViewController() {
-        let vc = CameraViewController()
-        self.navigationController?.pushViewController(vc, animated: true)
+        let audioName = challengeData?.mp4FilenameWithoutExtension ?? ""
+        let subFilename = challengeData?.videoFilename
+        coordinator?.navToTakeChallengeViewController(audioFileName: audioName,
+                                                      subVideoFilename: subFilename)
     }
     
     // MARK: - 모달 관련

@@ -9,15 +9,21 @@ import Foundation
 
 /// 챌린지 관련 화면이동 Delegate
 /// 챌린지 찍기, 보기, 배우기
-protocol ChallengeNavigationDelegate: CameraCoordinatorDelegate, CoordinatorFinishDelegate {
-  func navToTakeChallengeViewController(audioFileName: String)
-  func navToLearnChallengeViewController(with challenge: ChallengeVideo)
-  func navToShowChallengeViewController(with challenge: String)
+
+protocol ChallengeNavigationDelegate: AnyObject, CameraCoordinatorDelegate, CoordinatorFinishDelegate {
+    func navToTakeChallengeViewController()
+    func navToLearnChallengeViewController(with challenge: ChallengeVideo)
+    func navToShowChallengeViewController(with challenge: String)
+    func navToTakeChallengeViewController(audioFileName: String)
+    func navToTakeChallengeViewController(audioFileName: String, subVideoFilename: String?)
 }
 
 extension ChallengeNavigationDelegate where Self: BaseCoordinator {
-  func navToTakeChallengeViewController(audioFileName: String) {
-      let cameraCoordinator = CameraCoordinator(navigationController: navigationController, audioFileName: audioFileName)
+    func navToTakeChallengeViewController(audioFileName: String) {
+      let cameraCoordinator = CameraCoordinator(
+        navigationController: navigationController,
+        audioFileName: audioFileName
+      )
       cameraCoordinator.delegate = self
       cameraCoordinator.finishDelegate = self
       childCoordinators.append(cameraCoordinator)
@@ -41,4 +47,12 @@ extension ChallengeNavigationDelegate where Self: BaseCoordinator {
     vc.selectedVideo = challenge
     navigationController.pushViewController(vc, animated: true)
   }
+    
+    func navToTakeChallengeViewController() {
+      navToTakeChallengeViewController(audioFileName: "")
+    }
+    
+    func navToTakeChallengeViewController(audioFileName: String, subVideoFilename: String?) {
+        navToTakeChallengeViewController(audioFileName: audioFileName)
+    }
 }

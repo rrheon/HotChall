@@ -12,7 +12,7 @@ import Photos
 class ChallCompareViewController: UIViewController {
 
     var subVideoFilename: String?
-    var coordinator: ChalCoordinator?
+    weak var coordinator: ChallengeNavigationDelegate?
     var videoURL: URL?
 
     private var mainVideoPlayer: ChallCompareLoopedVideoPlayer!
@@ -60,6 +60,9 @@ class ChallCompareViewController: UIViewController {
         setupActions()
 
         mainVideoPlayer = ChallCompareLoopedVideoPlayer(containerView: challCompareMainView, isMuted: false, isMain: true)
+        
+           print("🎯 subVideoFilename:", subVideoFilename ?? "nil")
+           print("🎯 videoURL:", videoURL?.absoluteString ?? "nil")
 
         if let url = videoURL {
             mainVideoPlayer.setupVideo(url) { [weak self] _ in
@@ -69,17 +72,32 @@ class ChallCompareViewController: UIViewController {
             playCameraResultVideo(url: nil)
         }
 
-        if let filename = subVideoFilename {
+        if let filename = subVideoFilename, !filename.isEmpty {
             challCompareSubView.setupVideo(named: filename) { [weak self] aspectRatio in
                 guard let self = self else { return }
                 let width: CGFloat = 140
                 let height = width * aspectRatio
                 let safeFrame = self.view.safeAreaLayoutGuide.layoutFrame
-                self.challCompareSubView.frame = CGRect(x: safeFrame.maxX - width - 10,
-                                                        y: safeFrame.minY + 10,
-                                                        width: width,
-                                                        height: height)
+                self.challCompareSubView.frame = CGRect(
+                    x: safeFrame.maxX - width - 10,
+                    y: safeFrame.minY + 10,
+                    width: width,
+                    height: height
+                )
             }
+        } else {
+            // [FIX] 파일명이 없더라도 서브뷰가 0사이즈가 되지 않도록 기본 프레임 지정
+            let width: CGFloat = 140
+            let height: CGFloat = 200
+            let safeFrame = self.view.safeAreaLayoutGuide.layoutFrame
+            self.challCompareSubView.frame = CGRect(
+                x: safeFrame.maxX - width - 10,
+                y: safeFrame.minY + 10,
+                width: width,
+                height: height
+            )
+            // 필요하면 숨김 처리 가능
+            // self.challCompareSubView.isHidden = true
         }
     }
 
@@ -171,11 +189,26 @@ class ChallCompareViewController: UIViewController {
             guard let self = self else { return }
 
             print("재촬영 버튼 클릭됨")
-            if self.coordinator == nil {
+
+            self.mainVideoPlayer?.queuePlayer?.pause()
+            self.challCompareSubView.videoPlayer.queuePlayer?.pause()
+
+            guard let coordinator = self.coordinator else {
                 print("⚠️ coordinator가 nil입니다.")
-            } else {
-                print("✅ coordinator 있음, 카메라 열기 시도")
-//                self.coordinator?.navToTakeChallengeViewController()
+                return
+            }
+
+            DispatchQueue.main.async {
+                CATransaction.begin()
+                CATransaction.setCompletionBlock { [weak self] in
+                    guard let self = self else { return }
+                    coordinator.navToTakeChallengeViewController(
+                        audioFileName: "",
+                        subVideoFilename: self.subVideoFilename
+                    )
+                }
+                self.navigationController?.popViewController(animated: true)
+                CATransaction.commit()
             }
         })
         present(alert, animated: true)

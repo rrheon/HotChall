@@ -202,7 +202,11 @@ extension HotChallLearnViewController: UICollectionViewDelegateFlowLayout{
 
 extension HotChallLearnViewController: ChallengePlayerViewDelegate {
   func navToTakeChallenge(with data: ChallengeVideo) {
-    delegate?.navToTakeChallengeViewController(audioFileName: data.videoFilename ?? "")
+
+    delegate?.navToTakeChallengeViewController(
+      audioFileName: data.mp4FilenameWithoutExtension ?? "",
+      subVideoFilename: data.videoFilename
+    )
   }
   
   func navToLearnChallenge(with data: ChallengeVideo) {

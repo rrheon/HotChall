@@ -18,7 +18,7 @@ enum HotChallTop100Case {
 /// HotChall - front - HotChallTop100ViewController
 /// 핫챌 Top100 화면
 final class HotChallTop100ViewController: UIViewController {
-  weak var delegate: BaseCoordinator?
+  weak var delegate: ChallengeNavigationDelegate?
   
   let vcType: HotChallTop100Case
   var challengeName: String
@@ -147,7 +147,12 @@ extension HotChallTop100ViewController: UICollectionViewDelegateFlowLayout{
 
 extension HotChallTop100ViewController: ChallengePlayerViewDelegate {
     func navToTakeChallenge(with data: ChallengeVideo) {
-    delegate?.navToTakeChallengeViewController(audioFileName: data.videoFilename ?? "")
+
+        let audioName = data.mp4FilenameWithoutExtension ?? (data.videoFilename ?? "")
+        delegate?.navToTakeChallengeViewController(
+            audioFileName: audioName,
+            subVideoFilename: data.videoFilename
+        )
     }
   
   func navToLearnChallenge(with data: ChallengeVideo) {
