@@ -10,7 +10,7 @@ import AVFoundation
 import MediaPlayer
 
 final class PlayerViewController: UIViewController, ModalViewControllerProtocol {
-    
+
     weak var coordinator: ChallengeNavigationDelegate?
     
     private let controlsView = PlayerManager()

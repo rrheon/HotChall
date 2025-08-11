@@ -11,7 +11,6 @@ import Foundation
 /// 챌린지 찍기, 보기, 배우기
 
 protocol ChallengeNavigationDelegate: AnyObject, CameraCoordinatorDelegate, CoordinatorFinishDelegate {
-    func navToTakeChallengeViewController()
     func navToLearnChallengeViewController(with challenge: ChallengeVideo)
     func navToShowChallengeViewController(with challenge: String)
     func navToTakeChallengeViewController(audioFileName: String)
@@ -30,23 +29,6 @@ extension ChallengeNavigationDelegate where Self: BaseCoordinator {
       cameraCoordinator.start()
   }
   
-  
-  func navToLearnChallengeViewController(with challenge: ChallengeVideo){
-    let vc = PlayerViewController()
-    vc.challengeData = challenge
-    vc.hidesBottomBarWhenPushed = true
-    self.navigationController.pushViewController(vc, animated: true)
-  }
-  
-  func navToShowChallengeViewController(with challenge: String) {
-    let vc = ShowChallengePageViewController(
-      transitionStyle: .scroll,
-      navigationOrientation: .vertical
-    )
-    vc.coordinatorDelgate = self
-    vc.selectedVideo = challenge
-    navigationController.pushViewController(vc, animated: true)
-  }
     
     func navToTakeChallengeViewController() {
       navToTakeChallengeViewController(audioFileName: "")
@@ -54,5 +36,23 @@ extension ChallengeNavigationDelegate where Self: BaseCoordinator {
     
     func navToTakeChallengeViewController(audioFileName: String, subVideoFilename: String?) {
         navToTakeChallengeViewController(audioFileName: audioFileName)
+    }
+
+    
+    func navToLearnChallengeViewController(with challenge: ChallengeVideo){
+        let vc = PlayerViewController()
+        vc.challengeData = challenge
+        vc.hidesBottomBarWhenPushed = true
+        self.navigationController.pushViewController(vc, animated: true)
+    }
+    
+    func navToShowChallengeViewController(with challenge: String) {
+        let vc = ShowChallengePageViewController(
+            transitionStyle: .scroll,
+            navigationOrientation: .vertical
+        )
+        vc.coordinatorDelgate = self
+        vc.selectedVideo = challenge
+        navigationController.pushViewController(vc, animated: true)
     }
 }
