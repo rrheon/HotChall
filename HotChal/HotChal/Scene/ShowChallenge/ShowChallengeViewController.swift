@@ -70,15 +70,12 @@ final class ShowChallengeViewController: UIViewController {
   }()
   
   /// 챌린지 배우기 버튼
-  private lazy var learnChallengeButton: UIButton = ChallengeButton(title: "배우기",
-                                                                    imageName: "figure.dance")
+ private lazy var learnChallengeButton: UIButton = ChallengeButton(type: .learnChallenge)
   
   /// 챌린지 저장하기 버튼
-  private lazy var saveChallengeButton: UIButton = ChallengeButton(title: "즐겨찾기",
-                                                                   imageName: "star")
+    private lazy var saveChallengeButton: UIButton = ChallengeButton(type: .saveChallenge)
   /// 챌린지 촬영하기하기 버튼
-  private lazy var takeChallengeButton: UIButton = ChallengeButton(title: "찍어보기",
-                                                                   imageName: "camera.shutter.button")
+    private lazy var takeChallengeButton: UIButton = ChallengeButton(type: .takeChallenge)
   
   
   override func viewDidLoad() {

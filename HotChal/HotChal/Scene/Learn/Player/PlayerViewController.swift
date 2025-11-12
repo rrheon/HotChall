@@ -334,9 +334,9 @@ final class PlayerViewController: UIViewController, ModalViewControllerProtocol 
     private func setupPlayerButtons() {
       view.addSubview(buttonStackView)
       buttonStackView.translatesAutoresizingMaskIntoConstraints = false
-      let saveChallengeButton = ChallengeButton(title: "즐겨찾기", imageName: "star")
-      let takeChallengeButton = ChallengeButton(title: "찍어보기", imageName: "camera.shutter.button")
-      let repeatChallengeButton = ChallengeButton(title: "반복설정", imageName: "repeat")
+        let saveChallengeButton = ChallengeButton(type: .saveChallenge)
+        let takeChallengeButton = ChallengeButton(type: .takeChallenge)
+        let repeatChallengeButton = ChallengeButton(type: .repeatChallenge)
       
       saveChallengeButton.addAction(UIAction { [weak self] _ in
         guard let self = self,

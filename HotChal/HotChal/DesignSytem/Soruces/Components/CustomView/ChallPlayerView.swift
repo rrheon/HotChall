@@ -32,29 +32,25 @@ final class ChallPlayerView: UIView {
   
   /// 챌린지 배우기 버튼
   private lazy var learnChallengeButton: UIButton = ChallengeButton(
-    title: "배우기",
-    imageName: "figure.dance",
+    type: .learnChallenge,
     buttonColor: .black
   )
   
   /// 챌린지 저장하기 버튼
   private lazy var saveChallengeButton: UIButton = ChallengeButton(
-    title: "즐겨찾기",
-    imageName: "star",
+    type: .saveChallenge,
     buttonColor: .black
   )
   
   /// 챌린지 촬영하기하기 버튼
   private lazy var takeChallengeButton: UIButton = ChallengeButton(
-    title: "찍어보기",
-    imageName: "camera.shutter.button",
+    type: .takeChallenge,
     buttonColor: .black
   )
   
   /// 챌린지 보기 버튼
   private lazy var showChallengeButton: UIButton = ChallengeButton(
-    title: "보기",
-    imageName: "play.rectangle",
+    type: .showChallenge,
     buttonColor: .black
   )
   
