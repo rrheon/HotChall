@@ -14,14 +14,14 @@ protocol ChallengePlayerViewDelegate: AnyObject {
   func navToShowChallenge(with data: ChallengeVideo)
   func navToTakeChallenge(with data: ChallengeVideo)
   func saveChallenge(with data: ChallengeVideo)
-  func closePlayerUI()
+  //  func closePlayerUI()
 }
-
-extension ChallengePlayerViewDelegate {
-  func closePlayerUI(){
-    ChallengePlayerUIManager.shared.closeChallPlayer()
-  }
-}
+//
+//extension ChallengePlayerViewDelegate {
+//  func closePlayerUI(){
+//    ChallengePlayerUIManager.shared.closeChallPlayer()
+//  }
+//}
 
 /// 챌린지 영상 플레이어 UIView
 final class ChallPlayerView: UIView {
@@ -66,6 +66,7 @@ final class ChallPlayerView: UIView {
   }()
   
   init(challenge: ChallengeVideo) {
+    print("ChallPlayerView init")
     self.challengeData = challenge
     
     super.init(frame: .zero)
@@ -80,6 +81,9 @@ final class ChallPlayerView: UIView {
     fatalError("init(coder:) has not been implemented")
   }
   
+  deinit {
+    print("ChallPlayerView deinit")
+  }
   
   /// UI 설정
   private func setupLayout(){
@@ -114,32 +118,36 @@ final class ChallPlayerView: UIView {
     
     learnChallengeButton.addAction(UIAction { [weak self] _ in
       guard let self = self else { return }
+      self.closeChallPlayer()
       self.delegate?.navToLearnChallenge(with: challengeData)
       
     }, for: .touchUpInside)
     
     saveChallengeButton.addAction(UIAction { [weak self] _ in
       guard let self = self else { return }
+      self.closeChallPlayer()
       self.delegate?.saveChallenge(with: challengeData)
     }, for: .touchUpInside)
     
     takeChallengeButton.addAction(UIAction { [weak self] _ in
       guard let self = self else { return }
+      self.closeChallPlayer()
       self.delegate?.navToTakeChallenge(with: challengeData)
     }, for: .touchUpInside)
     
     showChallengeButton.addAction(UIAction { [weak self] _ in
       guard let self = self else { return }
+      self.closeChallPlayer()
       self.delegate?.navToShowChallenge(with: challengeData)
     }, for: .touchUpInside)
     
     closePlayerButton.addAction(UIAction { [weak self] _ in
       guard let self = self else { return }
-      self.delegate?.closePlayerUI()
+      self.closeChallPlayer()
     }, for: .touchUpInside)
   }
   
-
+  
   /// 버튼 타이틀 변경  - 저장하기 / 삭제하기
   /// - Parameter title: 변경할 타이틀
   func changeButton(title: String, image: String) {
@@ -156,5 +164,14 @@ final class ChallPlayerView: UIView {
     saveChallengeButton.configuration = config
   }
   
+  func closeChallPlayer() {
+    guard self.superview != nil else { return }
+    
+    UIView.animate(withDuration: 0.3, animations: {
+      self.alpha = 0
+    }) { _ in
+      self.removeFromSuperview()
+    }
+  }
   
 }

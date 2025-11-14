@@ -8,22 +8,18 @@
 import UIKit
 
 /// 플레이어 매니저
-final class ChallengePlayerUIManager: GetKeyWindowProtocol {
-  static let shared = ChallengePlayerUIManager()
+class ChallengePlayerCoordinator: BaseCoordinator,
+                                  GetKeyWindowProtocol {
   
-  private init() {}
+  private weak var playerView: ChallPlayerView?
   
-  var playerView: ChallPlayerView?
-
   /// 플레이어 UI 보여주기
   func showChallPlayer(from viewController: UIViewController, data: ChallengeVideo){
-    guard playerView?.superview == nil else { return }
-      
     let playerView = ChallPlayerView(challenge: data)
     self.playerView = playerView
-     
+    
     guard let keyWindow = getKeyWindow() else { return }
-  
+    
     let buttonTitle = viewController is SavedHotChallViewController ? "삭제하기" : "즐겨찾기"
     let buttonImage = viewController is SavedHotChallViewController ? "trash" : "star"
     playerView.changeButton(title: buttonTitle, image: buttonImage)
@@ -40,14 +36,13 @@ final class ChallengePlayerUIManager: GetKeyWindowProtocol {
         playerView.centerXAnchor.constraint(equalTo: keyWindow.centerXAnchor),
         playerView.leadingAnchor.constraint(equalTo: keyWindow.leadingAnchor),
         playerView.trailingAnchor.constraint(equalTo: keyWindow.trailingAnchor),
-        playerView.bottomAnchor.constraint(equalTo: keyWindow.bottomAnchor, constant: -tabBarHeight)
+        playerView.bottomAnchor.constraint(equalTo: keyWindow.bottomAnchor,
+                                           constant: -tabBarHeight)
       ])
-      
     }
     
-    
     playerView.alpha = 0
-
+    
     UIView.animate(withDuration: 0.3) {
       self.playerView?.alpha = 1
       self.playerView?.transform = .identity
@@ -57,14 +52,17 @@ final class ChallengePlayerUIManager: GetKeyWindowProtocol {
     playerView.challengeData = data
   }
   
+  
+  /// 챌린지 플레이어 닫기
   func closeChallPlayer() {
-    guard playerView?.superview != nil else { return }
-
-      UIView.animate(withDuration: 0.3, animations: {
-        self.playerView?.alpha = 0
-      }) { _ in
-        self.playerView?.removeFromSuperview()
-      }
+    guard playerView != nil else { return }
+    
+    UIView.animate(withDuration: 0.3, animations: {
+      self.playerView?.alpha = 0
+    }) { _ in
+      self.playerView?.removeFromSuperview()
+      self.playerView = nil
+    }
   }
-
 }
+
