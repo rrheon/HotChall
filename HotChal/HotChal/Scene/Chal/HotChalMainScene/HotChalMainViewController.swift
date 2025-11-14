@@ -11,7 +11,7 @@ import UIKit
 /// 핫챌 메인 화면
 final class HotChalMainViewController: UIViewController {
   
-  weak var delegate: ChalCoordinator?
+  weak var coordinator: ChalCoordinator?
   
   private let mainView: HotChalMainView = HotChalMainView()
   
@@ -39,11 +39,11 @@ final class HotChalMainViewController: UIViewController {
   
   override func viewWillDisappear(_ animated: Bool) {
     super.viewWillDisappear(animated)
-    ChallengePlayerUIManager.shared.closeChallPlayer()
+    coordinator?.closeChallPlayer()
   }
   
   func scrollViewDidScroll(_ scrollView: UIScrollView) {
-    ChallengePlayerUIManager.shared.closeChallPlayer()
+    coordinator?.closeChallPlayer()
   }
   
   /// 셀 delegate 및 dataSource 설정
@@ -66,7 +66,7 @@ final class HotChalMainViewController: UIViewController {
   /// 버튼 액션 추가하기
   private func addButtonActions(){
     mainView.topMoreButton.addAction(UIAction { [weak self] _ in
-      self?.delegate?.navToHotChallTop100ViewController()
+      self?.coordinator?.navToHotChallTop100ViewController()
     } , for: .touchUpInside)
     
     // 카테고리 별 전체보기 버튼을 찾아서 버튼 액션 달아주기
@@ -78,7 +78,7 @@ final class HotChalMainViewController: UIViewController {
       guard let challengeName = $0.titleLabel.text else { return }
       
       $0.moreButton.addAction(UIAction { [weak self] _ in
-        self?.delegate?.navToHotChallTop100ViewController(type: .category, title: challengeName)
+        self?.coordinator?.navToHotChallTop100ViewController(type: .category, title: challengeName)
       }, for: .touchUpInside)
     }
   }
@@ -163,7 +163,8 @@ extension HotChalMainViewController: UICollectionViewDelegateFlowLayout{
     }
     
     if let data = challengeData {
-      ChallengePlayerUIManager.shared.showChallPlayer(from: self, data: data)
+//      ChallengePlayerUIManager.shared.showChallPlayer(from: self, data: data)
+      coordinator?.showChallPlayer(from: self, data: data)
     }
   }
 
@@ -189,25 +190,24 @@ extension HotChalMainViewController: UICollectionViewDelegateFlowLayout{
 extension HotChalMainViewController: ChallengePlayerViewDelegate {
   func navToTakeChallenge(with data: ChallengeVideo) {
 
-    delegate?.navToTakeChallengeViewController(
+    coordinator?.navToTakeChallengeViewController(
       audioFileName: data.videoFilename ?? "",
       subVideoFilename: data.videoFilename
     )
   }
   
   func navToLearnChallenge(with data: ChallengeVideo) {
-    delegate?.navToLearnChallengeViewController(with: data)
+    coordinator?.navToLearnChallengeViewController(with: data)
   }
   
   func navToShowChallenge(with data: ChallengeVideo) {
     guard let challenge = data.videoFilename else { return }
     //    ChallengePlayerManager.shared.playLocalVideo(named: challenge, from: self)
-    delegate?.navToShowChallengeViewController(with: challenge)
+    coordinator?.navToShowChallengeViewController(with: challenge)
   }
   
   func saveChallenge(with data: ChallengeVideo) {
     CoreDataManager.shared.saveChallenge(with: data) { result in
-      ChallengePlayerUIManager.shared.closeChallPlayer()
       let comment = result ? "챌린지가 저장되었습니다." : "이미 저장된 챌린지입니다."
       
       ToastPopupManager.shared.showToast(message: comment, from: self)

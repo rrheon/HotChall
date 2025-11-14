@@ -10,7 +10,7 @@ import UIKit
 /// 챌린지 배우기 화면
 final class HotChallLearnViewController: UIViewController {
   
-  weak var delegate: HotChallLearnCoordinator?
+  weak var coordinator: HotChallLearnCoordinator?
   
   var searchTimer: Timer?
 
@@ -64,17 +64,17 @@ final class HotChallLearnViewController: UIViewController {
   
   override func viewWillDisappear(_ animated: Bool) {
     super.viewWillDisappear(animated)
-    ChallengePlayerUIManager.shared.closeChallPlayer()
+    coordinator?.closeChallPlayer()
   }
   
   func scrollViewDidScroll(_ scrollView: UIScrollView) {
-    ChallengePlayerUIManager.shared.closeChallPlayer()
+    coordinator?.closeChallPlayer()
   }
   
   override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-    ChallengePlayerUIManager.shared.closeChallPlayer()
-
+    super.touchesBegan(touches, with: event)
     view.endEditing(true)
+    coordinator?.closeChallPlayer()
   }
   
   // collectionView 설정
@@ -184,8 +184,7 @@ extension HotChallLearnViewController: UICollectionViewDelegateFlowLayout{
 
     let challengeData: ChallengeVideo = challengeDatas[indexPath.item]
 
-    ChallengePlayerUIManager.shared.showChallPlayer(from: self, data: challengeData)
-
+    coordinator?.showChallPlayer(from: self, data: challengeData)
   }
   
   func collectionView(
@@ -202,24 +201,23 @@ extension HotChallLearnViewController: UICollectionViewDelegateFlowLayout{
 
 extension HotChallLearnViewController: ChallengePlayerViewDelegate {
   func navToTakeChallenge(with data: ChallengeVideo) {
-    delegate?.navToTakeChallengeViewController(
+    coordinator?.navToTakeChallengeViewController(
       audioFileName: data.mp4FilenameWithoutExtension ?? "",
       subVideoFilename: data.videoFilename
     )
   }
   
   func navToLearnChallenge(with data: ChallengeVideo) {
-    delegate?.navToLearnChallengeViewController(with: data)
+    coordinator?.navToLearnChallengeViewController(with: data)
   }
   
   func navToShowChallenge(with data: ChallengeVideo) {
     guard let challenge = data.videoFilename else { return }
-    delegate?.navToShowChallengeViewController(with: challenge)
+    coordinator?.navToShowChallengeViewController(with: challenge)
   }
   
   func saveChallenge(with data: ChallengeVideo) {
     CoreDataManager.shared.saveChallenge(with: data) { result in
-      ChallengePlayerUIManager.shared.closeChallPlayer()
       
       let comment = result ? "챌린지가 저장되었습니다." : "이미 저장된 챌린지입니다."
       ToastPopupManager.shared.showToast(message: comment, from: self)
@@ -265,8 +263,6 @@ extension HotChallLearnViewController: UISearchBarDelegate {
   }
   
   func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
-    ChallengePlayerUIManager.shared.closeChallPlayer()
-
     view.endEditing(true)
   }
 }

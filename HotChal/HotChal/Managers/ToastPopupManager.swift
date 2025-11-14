@@ -13,7 +13,7 @@ final class ToastPopupManager: GetKeyWindowProtocol {
   static let shared = ToastPopupManager()
   
   private init() {}
-  
+    
   /// Toast Popup 띄우기
   /// - Parameters:
   ///   - message: Toast Popup 메세지(기본값 = 통신 실패 메세지)
