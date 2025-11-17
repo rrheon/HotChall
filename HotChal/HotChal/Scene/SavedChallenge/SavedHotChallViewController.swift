@@ -15,7 +15,7 @@ final class SavedHotChallViewController: UIViewController {
   
   private lazy var categories: [String] = []
   
-  weak var delegate: SavedChallengeCoordinator?
+  weak var coordinator: SavedChallengeCoordinator?
   
   var selectedChallengeUUID: UUID? = nil
   
@@ -50,11 +50,11 @@ final class SavedHotChallViewController: UIViewController {
   }
   
   override func viewWillDisappear(_ animated: Bool) {
-    ChallengePlayerUIManager.shared.closeChallPlayer()
+    coordinator?.closeChallPlayer()
   }
   
   func scrollViewDidScroll(_ scrollView: UIScrollView) {
-    ChallengePlayerUIManager.shared.closeChallPlayer()
+    coordinator?.closeChallPlayer()
   }
   
   
@@ -200,7 +200,7 @@ extension SavedHotChallViewController: UICollectionViewDelegate {
     let category = categories[indexPath.section]
     guard let data: ChallengeVideo = divideWithCategory[category]?[indexPath.item] else { return }
 
-    ChallengePlayerUIManager.shared.showChallPlayer(from: self, data: data)
+    coordinator?.showChallPlayer(from: self, data: data)
 
   }
 }
@@ -218,7 +218,7 @@ extension SavedHotChallViewController {
 
 extension SavedHotChallViewController: ChallengeHeaderViewActionDelegate{
   func didTapShowAllContent(category: String) {
-    delegate?.navToHotChallTop100ViewController(with: category)
+    coordinator?.navToHotChallTop100ViewController(with: category)
   }
 }
 
@@ -227,19 +227,19 @@ extension SavedHotChallViewController: ChallengeHeaderViewActionDelegate{
 extension SavedHotChallViewController: ChallengePlayerViewDelegate {
   func navToTakeChallenge(with data: ChallengeVideo) {
 
-    delegate?.navToTakeChallengeViewController(
+    coordinator?.navToTakeChallengeViewController(
       audioFileName: data.mp4FilenameWithoutExtension ?? "",
       subVideoFilename: data.videoFilename
     )
   }
   
   func navToLearnChallenge(with data: ChallengeVideo) {
-    delegate?.navToLearnChallengeViewController(with: data)
+    coordinator?.navToLearnChallengeViewController(with: data)
   }
   
   func navToShowChallenge(with data: ChallengeVideo) {
     guard let challenge = data.videoFilename else { return }
-    delegate?.navToShowChallengeViewController(with: challenge)
+    coordinator?.navToShowChallengeViewController(with: challenge)
   }
   
   func saveChallenge(with data: ChallengeVideo) {
@@ -257,7 +257,6 @@ extension SavedHotChallViewController: SavedChallengeDelegate {
   func didTapDeleteButton() {
     guard let uuid = selectedChallengeUUID else { return }
     CoreDataManager.shared.deleteSavedChallenge(with: uuid) {
-      ChallengePlayerUIManager.shared.closeChallPlayer()
       ToastPopupManager.shared.showToast(message: "챌린지가 삭제되었습니다.", from: self)
       self.reloadData()
     }
