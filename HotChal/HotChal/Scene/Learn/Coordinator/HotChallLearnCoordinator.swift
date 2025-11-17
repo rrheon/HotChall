@@ -21,14 +21,16 @@ final class HotChallLearnCoordinator: ChallengePlayerCoordinator {
     
   }
     
+  #warning("중복되는거 같은데 확인필요")
     func navToTakeChallengeViewController(audioFileName: String, subVideoFilename: String?) {
         lastSubVideoFilename = subVideoFilename
-        let cameraCoordinator = CameraCoordinator(navigationController: navigationController,
-                                                  audioFileName: audioFileName)
-        cameraCoordinator.delegate = self
-        cameraCoordinator.finishDelegate = self
-        childCoordinators.append(cameraCoordinator)
-        cameraCoordinator.start()
+        super.navToTakeChallengeViewController(audioFileName: audioFileName)
+//        let cameraCoordinator = CameraCoordinator(navigationController: navigationController,
+//                                                  audioFileName: audioFileName)
+//        cameraCoordinator.delegate = self
+//        cameraCoordinator.finishDelegate = self
+//        childCoordinators.append(cameraCoordinator)
+//        cameraCoordinator.start()
       }
 
       // (하위호환) 1-파라미터

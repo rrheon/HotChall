@@ -6,6 +6,13 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		EE17A5F82ECAF6DB005FC40E /* ReactorKit in Frameworks */ = {isa = PBXBuildFile; productRef = EE17A5F72ECAF6DB005FC40E /* ReactorKit */; };
+		EE17A5FB2ECAF6F2005FC40E /* RxCocoa in Frameworks */ = {isa = PBXBuildFile; productRef = EE17A5FA2ECAF6F2005FC40E /* RxCocoa */; };
+		EE17A5FD2ECAF6F2005FC40E /* RxRelay in Frameworks */ = {isa = PBXBuildFile; productRef = EE17A5FC2ECAF6F2005FC40E /* RxRelay */; };
+		EE17A5FF2ECAF6F2005FC40E /* RxSwift in Frameworks */ = {isa = PBXBuildFile; productRef = EE17A5FE2ECAF6F2005FC40E /* RxSwift */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		9322F5752E384AEB00222654 /* HotChal.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HotChal.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -36,6 +43,10 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				EE17A5FD2ECAF6F2005FC40E /* RxRelay in Frameworks */,
+				EE17A5FB2ECAF6F2005FC40E /* RxCocoa in Frameworks */,
+				EE17A5FF2ECAF6F2005FC40E /* RxSwift in Frameworks */,
+				EE17A5F82ECAF6DB005FC40E /* ReactorKit in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -78,6 +89,10 @@
 			);
 			name = HotChal;
 			packageProductDependencies = (
+				EE17A5F72ECAF6DB005FC40E /* ReactorKit */,
+				EE17A5FA2ECAF6F2005FC40E /* RxCocoa */,
+				EE17A5FC2ECAF6F2005FC40E /* RxRelay */,
+				EE17A5FE2ECAF6F2005FC40E /* RxSwift */,
 			);
 			productName = Moodie;
 			productReference = 9322F5752E384AEB00222654 /* HotChal.app */;
@@ -107,6 +122,10 @@
 			);
 			mainGroup = 9322F56C2E384AEB00222654;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				EE17A5F62ECAF6DB005FC40E /* XCRemoteSwiftPackageReference "ReactorKit" */,
+				EE17A5F92ECAF6F2005FC40E /* XCRemoteSwiftPackageReference "RxSwift" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 9322F5762E384AEB00222654 /* Products */;
 			projectDirPath = "";
@@ -347,6 +366,48 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		EE17A5F62ECAF6DB005FC40E /* XCRemoteSwiftPackageReference "ReactorKit" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/ReactorKit/ReactorKit.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 3.2.0;
+			};
+		};
+		EE17A5F92ECAF6F2005FC40E /* XCRemoteSwiftPackageReference "RxSwift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/ReactiveX/RxSwift.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 6.9.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		EE17A5F72ECAF6DB005FC40E /* ReactorKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = EE17A5F62ECAF6DB005FC40E /* XCRemoteSwiftPackageReference "ReactorKit" */;
+			productName = ReactorKit;
+		};
+		EE17A5FA2ECAF6F2005FC40E /* RxCocoa */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = EE17A5F92ECAF6F2005FC40E /* XCRemoteSwiftPackageReference "RxSwift" */;
+			productName = RxCocoa;
+		};
+		EE17A5FC2ECAF6F2005FC40E /* RxRelay */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = EE17A5F92ECAF6F2005FC40E /* XCRemoteSwiftPackageReference "RxSwift" */;
+			productName = RxRelay;
+		};
+		EE17A5FE2ECAF6F2005FC40E /* RxSwift */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = EE17A5F92ECAF6F2005FC40E /* XCRemoteSwiftPackageReference "RxSwift" */;
+			productName = RxSwift;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 9322F56D2E384AEB00222654 /* Project object */;
 }
