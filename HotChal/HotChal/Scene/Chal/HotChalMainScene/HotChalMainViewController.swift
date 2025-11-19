@@ -155,30 +155,30 @@ extension HotChalMainViewController: UICollectionViewDelegateFlowLayout{
 
 // MARK: Challenge Player Delegate
 // ChallengeNavigationDelegate 가 있는데 이건 또 뭐냐
-extension HotChalMainViewController: ChallengePlayerViewDelegate {
-  func navToTakeChallenge(with data: ChallengeVideo) {
-
-    coordinator?.navToTakeChallengeViewController(
-      audioFileName: data.videoFilename ?? "",
-      subVideoFilename: data.videoFilename
-    )
-  }
-  
-  func navToLearnChallenge(with data: ChallengeVideo) {
-    coordinator?.navToLearnChallengeViewController(with: data)
-  }
-  
-  func navToShowChallenge(with data: ChallengeVideo) {
-    guard let challenge = data.videoFilename else { return }
-    coordinator?.navToShowChallengeViewController(with: challenge)
-  }
-  
-  func saveChallenge(with data: ChallengeVideo) {
-    CoreDataManager.shared.saveChallenge(with: data) { result in
-      let comment = result ? "챌린지가 저장되었습니다." : "이미 저장된 챌린지입니다."
-      
-      ToastPopupManager.shared.showToast(message: comment, from: self)
-    }
-  }
-}
-
+//extension HotChalMainViewController: ChallengePlayerViewDelegate {
+//  func navToTakeChallenge(with data: ChallengeVideo) {
+//
+//    coordinator?.navToTakeChallengeViewController(
+//      audioFileName: data.videoFilename ?? "",
+//      subVideoFilename: data.videoFilename
+//    )
+//  }
+//  
+//  func navToLearnChallenge(with data: ChallengeVideo) {
+//    coordinator?.navToLearnChallengeViewController(with: data)
+//  }
+//  
+//  func navToShowChallenge(with data: ChallengeVideo) {
+//    guard let challenge = data.videoFilename else { return }
+//    coordinator?.navToShowChallengeViewController(with: challenge)
+//  }
+//  
+//  func saveChallenge(with data: ChallengeVideo) {
+//    CoreDataManager.shared.saveChallenge(with: data) { result in
+//      let comment = result ? "챌린지가 저장되었습니다." : "이미 저장된 챌린지입니다."
+//      
+//      ToastPopupManager.shared.showToast(message: comment, from: self)
+//    }
+//  }
+//}
+//

@@ -225,32 +225,32 @@ extension SavedHotChallViewController: ChallengeHeaderViewActionDelegate{
 ///  MARK: Challenge Player Delegate
 #warning("중복확인필요")
  // ChallengeNavigationDelegate
-extension SavedHotChallViewController: ChallengePlayerViewDelegate {
-  func navToTakeChallenge(with data: ChallengeVideo) {
-
-    coordinator?.navToTakeChallengeViewController(
-      audioFileName: data.mp4FilenameWithoutExtension ?? "",
-      subVideoFilename: data.videoFilename
-    )
-  }
-  
-  func navToLearnChallenge(with data: ChallengeVideo) {
-    coordinator?.navToLearnChallengeViewController(with: data)
-  }
-  
-  func navToShowChallenge(with data: ChallengeVideo) {
-    guard let challenge = data.videoFilename else { return }
-    coordinator?.navToShowChallengeViewController(with: challenge)
-  }
-  
-  func saveChallenge(with data: ChallengeVideo) {
-  
-    guard let uuid = data.id else { return }
-    selectedChallengeUUID = uuid
-    showDeletePopup()
-
-  }
-}
+//extension SavedHotChallViewController: ChallengePlayerViewDelegate {
+//  func navToTakeChallenge(with data: ChallengeVideo) {
+//
+//    coordinator?.navToTakeChallengeViewController(
+//      audioFileName: data.mp4FilenameWithoutExtension ?? "",
+//      subVideoFilename: data.videoFilename
+//    )
+//  }
+//  
+//  func navToLearnChallenge(with data: ChallengeVideo) {
+//    coordinator?.navToLearnChallengeViewController(with: data)
+//  }
+//  
+//  func navToShowChallenge(with data: ChallengeVideo) {
+//    guard let challenge = data.videoFilename else { return }
+//    coordinator?.navToShowChallengeViewController(with: challenge)
+//  }
+//  
+//  func saveChallenge(with data: ChallengeVideo) {
+//  
+//    guard let uuid = data.id else { return }
+//    selectedChallengeUUID = uuid
+//    showDeletePopup()
+//
+//  }
+//}
 
 // MARK: 저장된 챌린지 삭제 Delegate
 

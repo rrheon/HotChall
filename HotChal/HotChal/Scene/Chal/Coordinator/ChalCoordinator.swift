@@ -28,44 +28,44 @@ final class ChalCoordinator: ChallengePlayerCoordinator {
     self.navigationController.pushViewController(vc, animated: true)
   }
   
-  /// 챌린지 배우기 디테일 화면으로 이동
-  func navToLearnChallengeViewController(with data: ChallengeVideo) {
-    let vc = PlayerViewController()
-    vc.challengeData = data
-    vc.hidesBottomBarWhenPushed = true
-    vc.coordinator = self
-    self.navigationController.pushViewController(vc, animated: true)
-  }
-  
-  // 챌린지 찍기 화면으로 이동
-  // 이게 지금 lastSubVideo에 넣는 걸 코디네이터에서 하면 안되지
-  func navToTakeChallengeViewController(
-    audioFileName: String,
-    subVideoFilename: String?
-  ) {
-    lastSubVideoFilename = subVideoFilename
-    super.navToTakeChallengeViewController(audioFileName: audioFileName)
-    
-//    let cameraCoordinator = CameraCoordinator(navigationController: navigationController,
-//                                              audioFileName: audioFileName)
-//    cameraCoordinator.delegate = self
-//    cameraCoordinator.finishDelegate = self
-//    childCoordinators.append(cameraCoordinator)
-//    cameraCoordinator.start()
-  }
-  
-  
-  /// 찍은 챌린지 비교해보기 화면으로 이동
-  func navToCompareViewController(url: URL) {
-    let vc = ChallCompareViewController()
-    vc.videoURL = url
-    vc.subVideoFilename = lastSubVideoFilename
-    vc.coordinator = self
-    vc.hidesBottomBarWhenPushed = true
-    navigationController.pushViewController(vc, animated: true)
-  }
-  
-  override func didFinishCameraRecording(url: URL) {
-    self.navToCompareViewController(url: url)
-  }
+//  /// 챌린지 배우기 디테일 화면으로 이동
+//  func navToLearnChallengeViewController(with data: ChallengeVideo) {
+//    let vc = PlayerViewController()
+//    vc.challengeData = data
+//    vc.hidesBottomBarWhenPushed = true
+//    vc.coordinator = self
+//    self.navigationController.pushViewController(vc, animated: true)
+//  }
+//  
+//  // 챌린지 찍기 화면으로 이동
+//  // 이게 지금 lastSubVideo에 넣는 걸 코디네이터에서 하면 안되지
+//  func navToTakeChallengeViewController(
+//    audioFileName: String,
+//    subVideoFilename: String?
+//  ) {
+//    lastSubVideoFilename = subVideoFilename
+//    super.navToTakeChallengeViewController(audioFileName: audioFileName)
+//    
+////    let cameraCoordinator = CameraCoordinator(navigationController: navigationController,
+////                                              audioFileName: audioFileName)
+////    cameraCoordinator.delegate = self
+////    cameraCoordinator.finishDelegate = self
+////    childCoordinators.append(cameraCoordinator)
+////    cameraCoordinator.start()
+//  }
+//  
+//  
+//  /// 찍은 챌린지 비교해보기 화면으로 이동
+//  func navToCompareViewController(url: URL) {
+//    let vc = ChallCompareViewController()
+//    vc.videoURL = url
+//    vc.subVideoFilename = lastSubVideoFilename
+//    vc.coordinator = self
+//    vc.hidesBottomBarWhenPushed = true
+//    navigationController.pushViewController(vc, animated: true)
+//  }
+//  
+//  override func didFinishCameraRecording(url: URL) {
+//    self.navToCompareViewController(url: url)
+//  }
 }
