@@ -13,10 +13,10 @@ final class HotChalMainReactor: Reactor {
   // 사용자와의 interaction
   enum Action {
     case setupInititalDatas
-    case tapTopItem(IndexPath)
-    case tapCategoryItem(Int, IndexPath)
-    case tapMoreTopButton
-    case tapMoreCategoryButton
+    case tapTopItem(Int)
+    case tapCategoryItem(categoryIndex: Int, itemIndex: Int)
+    case tapMoreTopButton(String)
+    case tapMoreCategoryButton(String)
   }
   
   // 데이터 가공
@@ -25,6 +25,7 @@ final class HotChalMainReactor: Reactor {
     case setCategoryVideos([[ChallengeVideo]])
     case setLoading(Bool)
     case setSelectedChallenge(ChallengeVideo)
+    case setNavigation(HotChalMainNavigationEvent)
   }
   
   // 화면에 보여줄 정보
@@ -33,8 +34,9 @@ final class HotChalMainReactor: Reactor {
     
     var top3Challenge: [ChallengeVideo] = []
     var categoryVideos: [[ChallengeVideo]] = []
-    
+
     var selectedChallenge: ChallengeVideo? = nil
+    var navigation: HotChalMainNavigationEvent? = nil
   }
   
   var initialState: State
@@ -59,17 +61,18 @@ final class HotChalMainReactor: Reactor {
       ])
     
     case .tapTopItem(let indexPath):
-      let item = currentState.top3Challenge[indexPath.row]
+      let item = currentState.top3Challenge[indexPath]
       return .just(.setSelectedChallenge(item))
     
-    case .tapCategoryItem(let categoryIndex, let indexPath):
-      let item = currentState.categoryVideos[categoryIndex][indexPath.row]
+    case let .tapCategoryItem(categoryIndex, itemIndex):
+      let item = currentState.categoryVideos[categoryIndex][itemIndex]
       return .just(.setSelectedChallenge(item))
     
-    case .tapMoreTopButton:
-      return .empty()
-    case .tapMoreCategoryButton:
-      return .empty()
+    case .tapMoreTopButton(let title):
+      return .just(.setNavigation(.navTotop100VC(type: .normal, title: title)))
+      
+    case .tapMoreCategoryButton(let title):
+      return .just(.setNavigation(.navTotop100VC(type: .category, title: title)))
     }
   }
   
@@ -86,6 +89,8 @@ final class HotChalMainReactor: Reactor {
       newState.isLoading = isLoading
     case .setSelectedChallenge(let item):
       newState.selectedChallenge = item
+    case .setNavigation(let nav):
+      newState.navigation = nav
     }
     
     return newState

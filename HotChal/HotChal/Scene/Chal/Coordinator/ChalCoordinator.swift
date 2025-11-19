@@ -1,6 +1,12 @@
 
 import UIKit
 
+
+/// 핫챌 메인화면이동 이벤트목록
+enum HotChalMainNavigationEvent: Equatable {
+  case navTotop100VC(type: HotChallTop100Case, title: String)
+}
+
 /// 핫첼 메인화면이동 코디네이터
 final class ChalCoordinator: ChallengePlayerCoordinator {
   
