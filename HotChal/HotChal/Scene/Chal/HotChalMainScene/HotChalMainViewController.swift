@@ -6,30 +6,40 @@
 //
 
 import UIKit
+import RxSwift
+import RxCocoa
 
 /// HotChall - front - HotChallMainViewController
 /// 핫챌 메인 화면
 final class HotChalMainViewController: UIViewController {
   
   weak var coordinator: ChalCoordinator?
+  var reactor: HotChalMainReactor? = nil
+  private let disposeBag: DisposeBag = DisposeBag()
   
   private let mainView: HotChalMainView = HotChalMainView()
-  
+  private lazy var categoryViews: [HotChallTop3CategoryView] = [
+      mainView.top1ChallengeView,
+      mainView.top2ChallengeView,
+      mainView.top3ChallengeView
+  ]
+
   override func loadView() {
     super.loadView()
     self.view = mainView
   }
-  
-  /// viewDidLoad
+
+  // MARK: viewDidLoad
+
   override func viewDidLoad() {
     super.viewDidLoad()
     
     self.title = "핫챌 Top3"
 
     setupMainViewCell()
-    addButtonActions()
     
     mainView.scrollView.delegate = self
+    bind(wtih: reactor ?? HotChalMainReactor())
   }
   
   override func viewWillAppear(_ animated: Bool) {
@@ -48,127 +58,85 @@ final class HotChalMainViewController: UIViewController {
   
   /// 셀 delegate 및 dataSource 설정
   private func setupMainViewCell() {
-    
     mainView.topCollectionView.delegate = self
-    mainView.topCollectionView.dataSource = self
-    
-    [
-      mainView.top1ChallengeView.collectionView,
-      mainView.top2ChallengeView.collectionView,
-      mainView.top3ChallengeView.collectionView
-    ].forEach {
-      $0.delegate = self
-      $0.dataSource = self
-    }
+    categoryViews.forEach { $0.collectionView.delegate = self }
   }
   
-  
-  /// 버튼 액션 추가하기
-  private func addButtonActions(){
-    mainView.topMoreButton.addAction(UIAction { [weak self] _ in
-      self?.coordinator?.navToHotChallTop100ViewController()
-    } , for: .touchUpInside)
-    
-    // 카테고리 별 전체보기 버튼을 찾아서 버튼 액션 달아주기
-    [
-      mainView.top1ChallengeView,
-      mainView.top2ChallengeView,
-      mainView.top3ChallengeView
-    ].forEach {
-      guard let challengeName = $0.titleLabel.text else { return }
-      
-      $0.moreButton.addAction(UIAction { [weak self] _ in
-        self?.coordinator?.navToHotChallTop100ViewController(type: .category, title: challengeName)
-      }, for: .touchUpInside)
-    }
-  }
-}
+  // MARK: bind
 
-// MARK: - UICollectionViewDataSource
+  private func bind(wtih reactor: HotChalMainReactor) {
+    // 초기 데이터
+    Observable.just(())
+      .map { HotChalMainReactor.Action.setupInititalDatas }
+      .bind(to: reactor.action)
+      .disposed(by: disposeBag)
+    
+    // action
+    mainView.topCollectionView.rx.itemSelected
+      .map { HotChalMainReactor.Action.tapTopItem($0.row) }
+      .bind(to: reactor.action)
+      .disposed(by: disposeBag)
+    
+    mainView.topMoreButton.rx.tap
+      .map { HotChalMainReactor.Action.tapMoreTopButton("핫챌 Top20") }
+      .bind(to: reactor.action)
+      .disposed(by: disposeBag)
+    
+    for (index, view) in categoryViews.enumerated() {
+      view.moreButton.rx.tap
+        .map { HotChalMainReactor.Action.tapMoreCategoryButton(view.titleLabel.text ?? "") }
+        .bind(to: reactor.action)
+        .disposed(by: disposeBag)
+      
+      view.collectionView.rx.itemSelected
+        .map { HotChalMainReactor.Action.tapCategoryItem(categoryIndex: index, itemIndex: $0.row) }
+        .bind(to: reactor.action)
+        .disposed(by: disposeBag)
+    }
+    
+    // state
+    reactor.state.map { $0.top3Challenge }
+      .bind(to: mainView.topCollectionView.rx.items(
+        cellIdentifier: HotChallTopCell.reuseIdentifier,
+        cellType: HotChallTopCell.self)) { row, product, cell in
+          cell.challengeData = (product, row)
+        }
+        .disposed(by: disposeBag)
 
-extension HotChalMainViewController: UICollectionViewDataSource {
-  
-  func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-    let categoryDatas = MockupDataManager.shared.top3ChallengeVideosWithCategory
+    for (index, view) in categoryViews.enumerated() {
+      reactor.state.map { $0.categoryVideos[index] }
+        .bind(to: view.collectionView.rx.items(
+          cellIdentifier: ChallengeCell.reuseIdentifier,
+          cellType: ChallengeCell.self)) { _ , video, cell in
+            cell.challengeData = video
+          }
+          .disposed(by: self.disposeBag)
+    }
+    
+    reactor.state.map { $0.navigation }
+      .distinctUntilChanged()
+      .compactMap { $0 }
+      .withUnretained(self)
+      .subscribe(onNext: { (_, event) in
+          switch event {
+          case let .navTotop100VC(type, title):
+              self.coordinator?.navToHotChallTop100ViewController(type: type, title: title)
+          }
+      })
+      .disposed(by: disposeBag)
 
-    switch collectionView {
-    case mainView.topCollectionView: return 3
-    case mainView.top1ChallengeView.collectionView: return categoryDatas[0]?.count ?? 0
-    case mainView.top2ChallengeView.collectionView: return categoryDatas[1]?.count ?? 0
-    case mainView.top3ChallengeView.collectionView: return categoryDatas[2]?.count ?? 0
-    default:
-      return 0
-    }
-  }
-  
-  func collectionView(
-    _ collectionView: UICollectionView,
-    cellForItemAt indexPath: IndexPath
-  ) -> UICollectionViewCell {
-    let categoryDatas = MockupDataManager.shared.top3ChallengeVideosWithCategory
-    
-    // Top CollectionView
-    if collectionView == mainView.topCollectionView {
-      guard let cell = collectionView.dequeueReusableCell(
-        withReuseIdentifier: HotChallTopCell.reuseIdentifier,
-        for: indexPath
-      ) as? HotChallTopCell else { return UICollectionViewCell() }
-      
-      cell.challengeData = (MockupDataManager.shared.top3ChallengeVideos[indexPath.item], indexPath.item)
-      
-      return cell
-    }
-    
-    // Top 1~3 CollectionViews 매핑
-    let collectionViews: [UICollectionView] = [
-      mainView.top1ChallengeView.collectionView,
-      mainView.top2ChallengeView.collectionView,
-      mainView.top3ChallengeView.collectionView
-    ]
-    
-    if let categoryIndex = collectionViews.firstIndex(of: collectionView) {
-      guard let cell = collectionView.dequeueReusableCell(
-        withReuseIdentifier: ChallengeCell.reuseIdentifier,
-        for: indexPath
-      ) as? ChallengeCell else { return UICollectionViewCell() }
-      
-      cell.challengeData = categoryDatas[categoryIndex]?[indexPath.row]
-      return cell
-    }
-    
-    return UICollectionViewCell()
+    reactor.state.compactMap { $0.selectedChallenge }
+      .withUnretained(self)
+      .subscribe(onNext: { _, video in
+        self.coordinator?.showChallPlayer(from: self, data: video)
+      })
+      .disposed(by: disposeBag)
   }
 }
 
 // MARK: CollectionView DelegateFlowLayout
 
 extension HotChalMainViewController: UICollectionViewDelegateFlowLayout{
-  
-  func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-    var challengeData: ChallengeVideo?
-    
-    let categoryDatas = MockupDataManager.shared.top3ChallengeVideosWithCategory
-    
-    switch collectionView {
-    case mainView.topCollectionView:
-      challengeData = MockupDataManager.shared.top3ChallengeVideos[indexPath.row]
-    case mainView.top1ChallengeView.collectionView:
-      challengeData = categoryDatas[0]?[indexPath.row]
-    case mainView.top2ChallengeView.collectionView:
-      challengeData = categoryDatas[1]?[indexPath.row]
-    case mainView.top3ChallengeView.collectionView:
-      challengeData = categoryDatas[2]?[indexPath.row]
-    default:
-      break
-    }
-    
-    if let data = challengeData {
-//      ChallengePlayerUIManager.shared.showChallPlayer(from: self, data: data)
-      coordinator?.showChallPlayer(from: self, data: data)
-    }
-  }
-
-  
   func collectionView(
     _ collectionView: UICollectionView,
     layout collectionViewLayout: UICollectionViewLayout,
@@ -186,7 +154,7 @@ extension HotChalMainViewController: UICollectionViewDelegateFlowLayout{
 }
 
 // MARK: Challenge Player Delegate
-
+// ChallengeNavigationDelegate 가 있는데 이건 또 뭐냐
 extension HotChalMainViewController: ChallengePlayerViewDelegate {
   func navToTakeChallenge(with data: ChallengeVideo) {
 
@@ -202,7 +170,6 @@ extension HotChalMainViewController: ChallengePlayerViewDelegate {
   
   func navToShowChallenge(with data: ChallengeVideo) {
     guard let challenge = data.videoFilename else { return }
-    //    ChallengePlayerManager.shared.playLocalVideo(named: challenge, from: self)
     coordinator?.navToShowChallengeViewController(with: challenge)
   }
   

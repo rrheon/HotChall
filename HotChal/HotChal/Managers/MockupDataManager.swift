@@ -30,7 +30,7 @@ final class MockupDataManager {
 
   lazy var top3Categories = top3ChallengeVideos.map { $0.category }
   
-  lazy var top3ChallengeVideosWithCategory: [Int : [ChallengeVideo]] = [:]
+  lazy var top3ChallengeVideosWithCategory: [[ChallengeVideo]] = []
   
   lazy var sortedWithViewCountChallengeVideos: [ChallengeVideo] = []
 
@@ -49,7 +49,7 @@ final class MockupDataManager {
     for (num, category) in top3Categories.enumerated() {
       let challenges = challengeVideos.filter { $0.category == category }
       
-      top3ChallengeVideosWithCategory.updateValue(challenges, forKey: num)
+      top3ChallengeVideosWithCategory.append(challenges)
     }
     
     recommendChallengeVideos = Array(challengeVideos.shuffled().prefix(10))

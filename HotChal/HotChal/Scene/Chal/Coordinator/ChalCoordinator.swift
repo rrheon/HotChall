@@ -1,6 +1,12 @@
 
 import UIKit
 
+
+/// 핫챌 메인화면이동 이벤트목록
+enum HotChalMainNavigationEvent: Equatable {
+  case navTotop100VC(type: HotChallTop100Case, title: String)
+}
+
 /// 핫첼 메인화면이동 코디네이터
 final class ChalCoordinator: ChallengePlayerCoordinator {
   
@@ -9,6 +15,7 @@ final class ChalCoordinator: ChallengePlayerCoordinator {
   override func start() {
     let chalMainViewController = HotChalMainViewController()
     chalMainViewController.coordinator = self
+    chalMainViewController.reactor = HotChalMainReactor()
     self.navigationController.viewControllers = [chalMainViewController]
   }
   
@@ -31,18 +38,20 @@ final class ChalCoordinator: ChallengePlayerCoordinator {
   }
   
   // 챌린지 찍기 화면으로 이동
+  // 이게 지금 lastSubVideo에 넣는 걸 코디네이터에서 하면 안되지
   func navToTakeChallengeViewController(
     audioFileName: String,
     subVideoFilename: String?
   ) {
     lastSubVideoFilename = subVideoFilename
+    super.navToTakeChallengeViewController(audioFileName: audioFileName)
     
-    let cameraCoordinator = CameraCoordinator(navigationController: navigationController,
-                                              audioFileName: audioFileName)
-    cameraCoordinator.delegate = self
-    cameraCoordinator.finishDelegate = self
-    childCoordinators.append(cameraCoordinator)
-    cameraCoordinator.start()
+//    let cameraCoordinator = CameraCoordinator(navigationController: navigationController,
+//                                              audioFileName: audioFileName)
+//    cameraCoordinator.delegate = self
+//    cameraCoordinator.finishDelegate = self
+//    childCoordinators.append(cameraCoordinator)
+//    cameraCoordinator.start()
   }
   
   

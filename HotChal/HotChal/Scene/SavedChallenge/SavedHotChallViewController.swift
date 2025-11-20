@@ -223,7 +223,8 @@ extension SavedHotChallViewController: ChallengeHeaderViewActionDelegate{
 }
 
 ///  MARK: Challenge Player Delegate
-
+#warning("중복확인필요")
+ // ChallengeNavigationDelegate
 extension SavedHotChallViewController: ChallengePlayerViewDelegate {
   func navToTakeChallenge(with data: ChallengeVideo) {
 
