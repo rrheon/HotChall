@@ -8,11 +8,8 @@
 import UIKit
 
 /// 플레이어 매니저
-class ChallengePlayerCoordinator: BaseCoordinator, GetKeyWindowProtocol {
-  // 여기서 플레이어뷰의 이동 델리게이트를 처리하는게 맞는듯
-  // 문제 : 플레이어 프로토콜이 2개임 ChallengeNavigationDelegate, ChallengePlayerViewDelegate
-  // 하나로 합치고 여기에서 playerview로 델리게이트를 넣어주고 extension으로 빼서 공통된 화면이동을 처리하기
-  // 챌린지플레이어 코디네이터라는 클래스의 의미에도 맞을듯
+class ChallengePlayerCoordinator: BaseCoordinator, GetKeyWindowProtocol, ChallengeNavigationDelegate {
+  
   private weak var playerView: ChallPlayerView?
   
   /// 플레이어 UI 보여주기
