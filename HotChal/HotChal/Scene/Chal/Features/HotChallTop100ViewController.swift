@@ -127,12 +127,8 @@ extension HotChallTop100ViewController: UICollectionViewDelegateFlowLayout{
     didSelectItemAt indexPath: IndexPath
   ) {
     let challengeData: ChallengeVideo = challengeDatas[indexPath.item]
-    
     coordinator?.showChallPlayer(from: self, data: challengeData)
-    
-
-//    delegate?.showcha(from: self, data: challengeData)
-  }
+    }
   
   func collectionView(
     _ collectionView: UICollectionView,
@@ -149,30 +145,6 @@ extension HotChallTop100ViewController: UICollectionViewDelegateFlowLayout{
 
 // MARK: Challenge Player Delegate
 
-//extension HotChallTop100ViewController: ChallengePlayerViewDelegate {
-//    func navToTakeChallenge(with data: ChallengeVideo) {
-//
-//        let audioName = data.mp4FilenameWithoutExtension ?? (data.videoFilename ?? "")
-//        coordinator?.navToTakeChallengeViewController(
-//            audioFileName: audioName,
-//            subVideoFilename: data.videoFilename
-//        )
-//    }
-//  
-//  func navToLearnChallenge(with data: ChallengeVideo) {
-//    coordinator?.navToLearnChallengeViewController(with: data)
-//  }
-//  
-//  func navToShowChallenge(with data: ChallengeVideo) {
-//    guard let challenge = data.videoFilename else { return }
-//    coordinator?.navToShowChallengeViewController(with: challenge)
-//  }
-//  
-//  func saveChallenge(with data: ChallengeVideo) {
-//    CoreDataManager.shared.saveChallenge(with: data) { result in
-//      let comment = result ? "챌린지가 저장되었습니다." : "이미 저장된 챌린지입니다."
-//      
-//      ToastPopupManager.shared.showToast(message: comment, from: self)
-//    }
-//  }
-//}
+extension HotChallTop100ViewController: ChallengePlayerViewDelegate {
+  var challengeNavigationDelegate: ChallengeNavigationDelegate? { coordinator }
+}
