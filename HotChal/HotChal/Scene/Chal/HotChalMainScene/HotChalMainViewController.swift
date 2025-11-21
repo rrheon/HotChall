@@ -114,7 +114,6 @@ final class HotChalMainViewController: UIViewController {
     }
     
     reactor.state.map { $0.navigation }
-      .distinctUntilChanged()
       .compactMap { $0 }
       .withUnretained(self)
       .subscribe(onNext: { (_, event) in

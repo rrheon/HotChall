@@ -69,7 +69,7 @@ final class HotChalMainReactor: Reactor {
       return .just(.setSelectedChallenge(item))
     
     case .tapMoreTopButton(let title):
-      return .just(.setNavigation(.navTotop100VC(type: .normal, title: title)))
+      return .just(.setNavigation(.navTotop100VC(type: .top100, title: title)))
       
     case .tapMoreCategoryButton(let title):
       return .just(.setNavigation(.navTotop100VC(type: .category, title: title)))
