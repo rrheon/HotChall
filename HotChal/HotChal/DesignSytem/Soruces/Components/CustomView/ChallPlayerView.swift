@@ -7,27 +7,10 @@
 
 import UIKit
 
-
-/// 플레이어 액션 Delegate
-protocol ChallengePlayerViewDelegate: AnyObject {
-  func navToLearnChallenge(with data: ChallengeVideo)
-  func navToShowChallenge(with data: ChallengeVideo)
-  func navToTakeChallenge(with data: ChallengeVideo)
-  func saveChallenge(with data: ChallengeVideo)
-  //  func closePlayerUI()
-}
-//
-//extension ChallengePlayerViewDelegate {
-//  func closePlayerUI(){
-//    ChallengePlayerUIManager.shared.closeChallPlayer()
-//  }
-//}
-
 /// 챌린지 영상 플레이어 UIView
 final class ChallPlayerView: UIView {
   
   weak var delegate: ChallengePlayerViewDelegate?
-  
   var challengeData: ChallengeVideo
   
   /// 챌린지 배우기 버튼
@@ -115,12 +98,10 @@ final class ChallPlayerView: UIView {
   
   /// 버튼의 액션 설정
   private func setupButtonActions(){
-    
     learnChallengeButton.addAction(UIAction { [weak self] _ in
       guard let self = self else { return }
       self.closeChallPlayer()
       self.delegate?.navToLearnChallenge(with: challengeData)
-      
     }, for: .touchUpInside)
     
     saveChallengeButton.addAction(UIAction { [weak self] _ in

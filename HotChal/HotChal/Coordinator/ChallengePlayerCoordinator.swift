@@ -8,8 +8,7 @@
 import UIKit
 
 /// 플레이어 매니저
-class ChallengePlayerCoordinator: BaseCoordinator,
-                                  GetKeyWindowProtocol {
+class ChallengePlayerCoordinator: BaseCoordinator, GetKeyWindowProtocol, ChallengeNavigationDelegate {
   
   private weak var playerView: ChallPlayerView?
   

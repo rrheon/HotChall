@@ -28,32 +28,32 @@ final class SavedChallengeCoordinator: ChallengePlayerCoordinator {
     self.navigationController.pushViewController(vc, animated: true)
   }
     
-    func navToTakeChallengeViewController(audioFileName: String, subVideoFilename: String?) {
-        lastSubVideoFilename = subVideoFilename
-        let cameraCoordinator = CameraCoordinator(navigationController: navigationController,
-                                                  audioFileName: audioFileName)
-        cameraCoordinator.delegate = self
-        cameraCoordinator.finishDelegate = self
-        childCoordinators.append(cameraCoordinator)
-        cameraCoordinator.start()
-      }
+//    func navToTakeChallengeViewController(audioFileName: String, subVideoFilename: String?) {
+//        lastSubVideoFilename = subVideoFilename
+//        let cameraCoordinator = CameraCoordinator(navigationController: navigationController,
+//                                                  audioFileName: audioFileName)
+//        cameraCoordinator.delegate = self
+//        cameraCoordinator.finishDelegate = self
+//        childCoordinators.append(cameraCoordinator)
+//        cameraCoordinator.start()
+//      }
+//
+//      // (하위호환) 1-파라미터
+//      func navToTakeChallengeViewController(audioFileName: String) {
+//        navToTakeChallengeViewController(audioFileName: audioFileName, subVideoFilename: nil)
+//      }
+//
+//      // 촬영 후 비교화면으로 이동
+//      func navToCompareViewController(url: URL) {
+//        let vc = ChallCompareViewController()
+//        vc.videoURL = url
+//        vc.subVideoFilename = lastSubVideoFilename // ✅ 핵심
+//        vc.coordinator = self
+//        vc.hidesBottomBarWhenPushed = true
+//        navigationController.pushViewController(vc, animated: true)
+//      }
 
-      // (하위호환) 1-파라미터
-      func navToTakeChallengeViewController(audioFileName: String) {
-        navToTakeChallengeViewController(audioFileName: audioFileName, subVideoFilename: nil)
-      }
-
-      // 촬영 후 비교화면으로 이동
-      func navToCompareViewController(url: URL) {
-        let vc = ChallCompareViewController()
-        vc.videoURL = url
-        vc.subVideoFilename = lastSubVideoFilename // ✅ 핵심
-        vc.coordinator = self
-        vc.hidesBottomBarWhenPushed = true
-        navigationController.pushViewController(vc, animated: true)
-      }
-
-      override func didFinishCameraRecording(url: URL) {
-        navToCompareViewController(url: url)
-      }
+//      override func didFinishCameraRecording(url: URL) {
+//        navToCompareViewController(url: url)
+//      }
     }
