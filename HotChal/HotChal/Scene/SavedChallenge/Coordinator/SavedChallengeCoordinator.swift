@@ -10,15 +10,12 @@ import UIKit
 
 /// 저장된 챌린지 코디네이터
 final class SavedChallengeCoordinator: ChallengePlayerCoordinator {
-    
-    private var lastSubVideoFilename: String?
   
   override func start() {
     let favoriteViewController = SavedHotChallViewController()
     favoriteViewController.coordinator = self
     
     self.navigationController.viewControllers = [favoriteViewController]
-    
   }
   
   /// 핫챌 Top100 VC로 이동하기
@@ -27,33 +24,12 @@ final class SavedChallengeCoordinator: ChallengePlayerCoordinator {
     vc.coordinator = self
     self.navigationController.pushViewController(vc, animated: true)
   }
-    
-//    func navToTakeChallengeViewController(audioFileName: String, subVideoFilename: String?) {
-//        lastSubVideoFilename = subVideoFilename
-//        let cameraCoordinator = CameraCoordinator(navigationController: navigationController,
-//                                                  audioFileName: audioFileName)
-//        cameraCoordinator.delegate = self
-//        cameraCoordinator.finishDelegate = self
-//        childCoordinators.append(cameraCoordinator)
-//        cameraCoordinator.start()
-//      }
-//
-//      // (하위호환) 1-파라미터
-//      func navToTakeChallengeViewController(audioFileName: String) {
-//        navToTakeChallengeViewController(audioFileName: audioFileName, subVideoFilename: nil)
-//      }
-//
-//      // 촬영 후 비교화면으로 이동
-//      func navToCompareViewController(url: URL) {
-//        let vc = ChallCompareViewController()
-//        vc.videoURL = url
-//        vc.subVideoFilename = lastSubVideoFilename // ✅ 핵심
-//        vc.coordinator = self
-//        vc.hidesBottomBarWhenPushed = true
-//        navigationController.pushViewController(vc, animated: true)
-//      }
-
-//      override func didFinishCameraRecording(url: URL) {
-//        navToCompareViewController(url: url)
-//      }
-    }
+  
+  /// 삭제 팝업 표시
+  func presentDeleteChallengeVC(from vc: UIViewController){
+    let popupVC = PopupViewController()
+    popupVC.delegate = vc as? any SavedChallengeDelegate
+    popupVC.modalPresentationStyle = .overFullScreen
+    vc.present(popupVC, animated: false)
+  }
+}
