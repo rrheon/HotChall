@@ -15,7 +15,7 @@ protocol ChallengePlayerViewDelegate: AnyObject {
   func navToLearnChallenge(with data: ChallengeVideo)
   func navToShowChallenge(with data: ChallengeVideo)
   func navToTakeChallenge(with data: ChallengeVideo)
-  func saveChallenge(with data: ChallengeVideo)
+  func manageChallengeSaveStatus(with data: ChallengeVideo)
 }
 
 extension ChallengePlayerViewDelegate where Self: UIViewController {
@@ -35,7 +35,7 @@ extension ChallengePlayerViewDelegate where Self: UIViewController {
     )
   }
   
-  func saveChallenge(with data: ChallengeVideo) {
+  func manageChallengeSaveStatus(with data: ChallengeVideo) {
     CoreDataManager.shared.saveChallenge(with: data) { result in
       let comment = result ? "챌린지가 저장되었습니다." : "이미 저장된 챌린지입니다."
       ToastPopupManager.shared.showToast(message: comment, from: self)
