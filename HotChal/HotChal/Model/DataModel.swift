@@ -8,7 +8,7 @@
 import Foundation
 
 /// 챌린지 영상 모델
-struct ChallengeVideo {
+struct ChallengeVideo: Equatable {
   let id: UUID?
   let thumbnailImage: String?
   let title: String?
