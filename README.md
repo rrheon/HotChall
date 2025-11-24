@@ -6,7 +6,7 @@
 
 챌린지를 배우고, 찍어보고, 비교까지 할 수 있는 숏폼 기반 챌린지 플랫폼
 
-![iOS](https://img.shields.io/badge/iOS-17.0+-blue.svg)
+![iOS](https://img.shields.io/badge/iOS-16.0+-blue.svg)
 ![Xcode](https://img.shields.io/badge/Xcode-16.0+-green.svg)
 ![Swift](https://img.shields.io/badge/Swift-5.9-orange.svg)
 
@@ -20,8 +20,6 @@
 * [기획 및 디자인](#-기획-및-디자인)
 * [핵심 기능](#-핵심-기능)
 * [기술 스택](#️-기술-스택)
-* [아키텍처](#-아키텍처)
-* [프로젝트 구조](#-프로젝트-구조)
 * [로드맵](#-로드맵)
 * [개발팀](#-개발팀)
 
@@ -81,32 +79,6 @@
 * **Persistence**: CoreData
 * **Tooling**: Swift Package Manager
 
----
-
-## 🧱 아키텍처
-
-```
-HotChallenge
-├── App
-│   ├── HotChallengeApp.swift
-│   ├── AppDelegate.swift
-│   └── SceneDelegate.swift
-├── Scene
-│   ├── Home (챌린지 보기 화면)
-│   ├── Learn (배워보기)
-│   ├── Record (촬영)
-│   ├── Compare (비교)
-│   └── Saved (즐겨찾기)
-├── Models
-│   └── Challenge, VideoItem, SavedChallenge
-├── ViewModels
-│   └── 각 화면별 ViewModel
-├── Services
-│   ├── CoreDataManager
-│   ├── VideoPlayerManager
-│   └── FileManagerService
-└── Utils & Extensions
-```
 ---
 
 ## 🗺 로드맵
