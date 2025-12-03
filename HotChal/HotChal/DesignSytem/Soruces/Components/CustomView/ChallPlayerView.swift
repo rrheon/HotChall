@@ -107,7 +107,7 @@ final class ChallPlayerView: UIView {
     saveChallengeButton.addAction(UIAction { [weak self] _ in
       guard let self = self else { return }
       self.closeChallPlayer()
-      self.delegate?.saveChallenge(with: challengeData)
+      self.delegate?.manageChallengeSaveStatus(with: challengeData)
     }, for: .touchUpInside)
     
     takeChallengeButton.addAction(UIAction { [weak self] _ in

@@ -21,7 +21,6 @@ final class HotChallTop100Reactor: Reactor {
   }
   
   struct State {
-    var isLoad: Bool = false
     var challengeName: String? = nil
     var challengeDatas: [ChallengeVideo] = []
     var selectedChallenge: ChallengeVideo? = nil
