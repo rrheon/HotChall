@@ -18,6 +18,6 @@ final class HotChallLearnCoordinator: ChallengePlayerCoordinator {
     HotChallLearnViewController.coordinator = self
     
     self.navigationController.viewControllers = [HotChallLearnViewController]
-    
   }
+
 }

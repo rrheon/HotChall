@@ -89,7 +89,6 @@ final class HotChallTop100ViewController: UIViewController {
       .disposed(by: disposeBag)
     
     reactor.state.compactMap { $0.selectedChallenge }
-      .distinctUntilChanged()
       .subscribe(onNext: { challenge in
         self.coordinator?.showChallPlayer(from: self, data: challenge)
       })

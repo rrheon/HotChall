@@ -7,6 +7,8 @@
 
 import UIKit
 
+
+/// 반복설정 화면 (설명화면 - ! 버튼)
 final class TooltipView: UIView {
   
   init(text: String) {

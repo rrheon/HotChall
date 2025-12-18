@@ -8,6 +8,8 @@
 import UIKit
 import AVFoundation
 import Photos
+import RxSwift
+import RxCocoa
 
 class ChallCompareViewController: UIViewController {
 
@@ -15,8 +17,10 @@ class ChallCompareViewController: UIViewController {
     weak var coordinator: ChallengeNavigationDelegate?
     var videoURL: URL?
 
+    var reactor: ChallCompareReactor? = nil
+    private let disposeBag: DisposeBag = DisposeBag()
+
     private var mainVideoPlayer: ChallCompareLoopedVideoPlayer!
-    private var isPlaying = true
 
     private let challCompareMainView = makeView(backgroundColor: .systemBackground)
     private let challCompareSubView = ChallComparSubView()
@@ -26,7 +30,7 @@ class ChallCompareViewController: UIViewController {
     private let deleteButton = makeButton(icon: "camera", title: "다시찍기", color: .appCharcoal)
     private let shareButton = makeButton(icon: "square.and.arrow.up", title: "공유하기", color: .appCharcoal)
     private let savedButton = makeButton(icon: "square.and.arrow.down", title: "저장하기", color: .appCharcoal)
-    
+
     private let backButton: UIButton = {
         let button = UIButton(type: .system)
         let config = UIImage.SymbolConfiguration(pointSize: 14, weight: .bold)
@@ -57,12 +61,11 @@ class ChallCompareViewController: UIViewController {
 
         setupViews()
         setupConstraints()
-        setupActions()
 
         mainVideoPlayer = ChallCompareLoopedVideoPlayer(containerView: challCompareMainView, isMuted: false, isMain: true)
-        
-           print("🎯 subVideoFilename:", subVideoFilename ?? "nil")
-           print("🎯 videoURL:", videoURL?.absoluteString ?? "nil")
+
+        print("🎯 subVideoFilename:", subVideoFilename ?? "nil")
+        print("🎯 videoURL:", videoURL?.absoluteString ?? "nil")
 
         if let url = videoURL {
             mainVideoPlayer.setupVideo(url) { [weak self] _ in
@@ -96,9 +99,11 @@ class ChallCompareViewController: UIViewController {
                 width: width,
                 height: height
             )
-            // 필요하면 숨김 처리 가능
-            // self.challCompareSubView.isHidden = true
         }
+
+        let reactor = reactor ?? ChallCompareReactor()
+        self.reactor = reactor
+        bind(with: reactor)
     }
 
     override func viewDidLayoutSubviews() {
@@ -106,7 +111,6 @@ class ChallCompareViewController: UIViewController {
         mainVideoPlayer.updateFrame()
         challCompareSubView.videoPlayer.updateFrame()
         backButton.layer.cornerRadius = backButton.bounds.width / 2
-
     }
 
     private func setupViews() {
@@ -141,7 +145,7 @@ class ChallCompareViewController: UIViewController {
 
             shareButton.centerYAnchor.constraint(equalTo: bottomBarView.centerYAnchor, constant: -13),
             shareButton.leadingAnchor.constraint(equalTo: pauseButton.trailingAnchor, constant: 24),
-            
+
             backButton.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 10),
             backButton.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
             backButton.widthAnchor.constraint(equalToConstant: 30),
@@ -149,26 +153,100 @@ class ChallCompareViewController: UIViewController {
         ])
     }
 
-    private func setupActions() {
-        pauseButton.addTarget(self, action: #selector(togglePlayPause), for: .touchUpInside)
-        deleteButton.addTarget(self, action: #selector(deleteButtonTapped), for: .touchUpInside)
-        shareButton.addTarget(self, action: #selector(shareButtonTapped), for: .touchUpInside)
-        savedButton.addTarget(self, action: #selector(saveButtonTapped), for: .touchUpInside)
-        backButton.addTarget(self, action: #selector(backButtonTapped), for: .touchUpInside)
+    // MARK: bind
 
-        challCompareMainView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(swapVideoLayers)))
-        challCompareSubView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(swapVideoLayers)))
+    private func bind(with reactor: ChallCompareReactor) {
+        // 초기 데이터 로드
+        Observable.just(())
+            .map { [weak self] in
+                ChallCompareReactor.Action.setupInitialData(
+                    videoURL: self?.videoURL,
+                    subVideoFilename: self?.subVideoFilename
+                )
+            }
+            .bind(to: reactor.action)
+            .disposed(by: disposeBag)
+
+        // 재생/일시정지 버튼
+        pauseButton.rx.tap
+            .map { ChallCompareReactor.Action.togglePlayPause }
+            .bind(to: reactor.action)
+            .disposed(by: disposeBag)
+
+        // 다시찍기 버튼
+        deleteButton.rx.tap
+            .subscribe(onNext: { [weak self] in
+                self?.showRetakeAlert()
+            })
+            .disposed(by: disposeBag)
+
+        // 공유하기 버튼
+        shareButton.rx.tap
+            .map { ChallCompareReactor.Action.requestShare }
+            .bind(to: reactor.action)
+            .disposed(by: disposeBag)
+
+        // 저장하기 버튼
+        savedButton.rx.tap
+            .subscribe(onNext: { [weak self] in
+                self?.saveButtonTapped()
+            })
+            .disposed(by: disposeBag)
+
+        // 뒤로가기 버튼
+        backButton.rx.tap
+            .subscribe(onNext: { [weak self] in
+                self?.navigationController?.popViewController(animated: true)
+            })
+            .disposed(by: disposeBag)
+
+        // 비디오 스왑 제스처
+        let mainTap = UITapGestureRecognizer()
+        challCompareMainView.addGestureRecognizer(mainTap)
+        mainTap.rx.event
+            .subscribe(onNext: { [weak self] _ in
+                self?.swapVideoLayers()
+            })
+            .disposed(by: disposeBag)
+
+        let subTap = UITapGestureRecognizer()
+        challCompareSubView.addGestureRecognizer(subTap)
+        subTap.rx.event
+            .subscribe(onNext: { [weak self] _ in
+                self?.swapVideoLayers()
+            })
+            .disposed(by: disposeBag)
+
+        // State 바인딩 - 재생 상태
+        reactor.state.map { $0.isPlaying }
+            .distinctUntilChanged()
+            .subscribe(onNext: { [weak self] isPlaying in
+                self?.updatePlayPauseUI(isPlaying: isPlaying)
+                self?.mainVideoPlayer.togglePlayPause()
+                self?.challCompareSubView.videoPlayer.togglePlayPause()
+            })
+            .disposed(by: disposeBag)
+
+        // State 바인딩 - 네비게이션
+        reactor.state.compactMap { $0.navigation }
+            .subscribe(onNext: { [weak self] event in
+                self?.handleNavigation(event)
+            })
+            .disposed(by: disposeBag)
+
+        // State 바인딩 - 알림
+        reactor.state
+            .filter { $0.alertTitle != nil && $0.alertMessage != nil }
+            .subscribe(onNext: { [weak self] state in
+                if let title = state.alertTitle, let message = state.alertMessage {
+                    self?.showAlert(title: title, message: message)
+                    reactor.action.onNext(.clearAlert)
+                }
+            })
+            .disposed(by: disposeBag)
     }
 
-    @objc private func backButtonTapped() {
-        navigationController?.popViewController(animated: true)
-    }
-
-    @objc private func togglePlayPause() {
-        mainVideoPlayer.togglePlayPause()
-        challCompareSubView.videoPlayer.togglePlayPause()
-        isPlaying.toggle()
-
+    private func updatePlayPauseUI(isPlaying: Bool) {
         let iconName = isPlaying ? "pause" : "play"
         let title = isPlaying ? "일시정지" : "재생"
 
@@ -181,47 +259,48 @@ class ChallCompareViewController: UIViewController {
         }
     }
 
-    @objc private func deleteButtonTapped() {
-        let alert = UIAlertController(title: "다시 촬영하시겠습니까?", message: "저장하지 않은 영상은 삭제됩니다", preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "취소", style: .cancel))
+    private func handleNavigation(_ event: ChallCompareReactor.ChallCompareNavigationEvent) {
+        switch event {
+        case .retake(let subVideoFilename):
+            mainVideoPlayer?.queuePlayer?.pause()
+            challCompareSubView.videoPlayer.queuePlayer?.pause()
 
-        alert.addAction(UIAlertAction(title: "재촬영", style: .destructive) { [weak self] _ in
-            guard let self = self else { return }
-
-            print("재촬영 버튼 클릭됨")
-
-            self.mainVideoPlayer?.queuePlayer?.pause()
-            self.challCompareSubView.videoPlayer.queuePlayer?.pause()
-
-            guard let coordinator = self.coordinator else {
-                print("⚠️ coordinator가 nil입니다.")
-                return
-            }
+            guard let coordinator = coordinator else { return }
 
             DispatchQueue.main.async {
                 CATransaction.begin()
                 CATransaction.setCompletionBlock { [weak self] in
-                    guard let self = self else { return }
+                    guard self != nil else { return }
                     coordinator.navToTakeChallengeViewController(
                         audioFileName: "",
-                        subVideoFilename: self.subVideoFilename
+                        subVideoFilename: subVideoFilename
                     )
                 }
                 self.navigationController?.popViewController(animated: true)
                 CATransaction.commit()
             }
+
+        case .share(let videoURL):
+            let activityVC = UIActivityViewController(activityItems: [videoURL], applicationActivities: nil)
+            activityVC.popoverPresentationController?.sourceView = shareButton
+            present(activityVC, animated: true)
+
+        case .back:
+            navigationController?.popViewController(animated: true)
+        }
+    }
+
+    private func showRetakeAlert() {
+        let alert = UIAlertController(title: "다시 촬영하시겠습니까?", message: "저장하지 않은 영상은 삭제됩니다", preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "취소", style: .cancel))
+
+        alert.addAction(UIAlertAction(title: "재촬영", style: .destructive) { [weak self] _ in
+            self?.reactor?.action.onNext(.requestRetake)
         })
         present(alert, animated: true)
     }
 
-    @objc private func shareButtonTapped() {
-        guard let videoURL = videoURL else { return }
-        let activityVC = UIActivityViewController(activityItems: [videoURL], applicationActivities: nil)
-        activityVC.popoverPresentationController?.sourceView = shareButton
-        present(activityVC, animated: true)
-    }
-
-    @objc private func saveButtonTapped() {
+    private func saveButtonTapped() {
         guard let url = videoURL else {
             showAlert(title: "오류", message: "저장할 영상이 없습니다.")
             return
@@ -258,7 +337,7 @@ class ChallCompareViewController: UIViewController {
         present(alertVC, animated: true)
     }
 
-    @objc private func swapVideoLayers() {
+    private func swapVideoLayers() {
         let tempMain = mainVideoPlayer!
         let tempSub = challCompareSubView.videoPlayer
 

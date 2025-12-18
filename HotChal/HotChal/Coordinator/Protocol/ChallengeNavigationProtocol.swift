@@ -40,7 +40,7 @@ extension ChallengeNavigationDelegate where Self: BaseCoordinator {
   func navToLearnChallengeViewController(with challenge: ChallengeVideo){
     let vc = PlayerViewController()
     vc.challengeData = challenge
-    vc.coordinator = self
+    vc.coordinator = self as? ChallengePlayerCoordinator
     vc.hidesBottomBarWhenPushed = true
     self.navigationController.pushViewController(vc, animated: true)
   }

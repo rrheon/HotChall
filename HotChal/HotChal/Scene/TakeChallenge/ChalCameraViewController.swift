@@ -1,5 +1,7 @@
 import UIKit
 import AVFoundation
+import RxSwift
+import RxCocoa
 
 protocol CameraViewControllerDelegate: AnyObject {
     func cameraViewControllerDidFinishRecording(videoURL: URL)
@@ -9,19 +11,22 @@ protocol CameraViewControllerDelegate: AnyObject {
 final class CameraViewController: UIViewController {
 
     weak var delegate: CameraViewControllerDelegate?
-    
+
     var audioFileName: String?
-    
+
+    var reactor: CameraReactor? = nil
+    private let disposeBag = DisposeBag()
+
     // MARK: - Services & Managers
     private let cameraService = CameraService()
     private lazy var recordingService = RecordingService(session: cameraService.session)
     private let countdownManager = CountdownManager()
     private var progressManager: RecordingProgressManager!
-    
+
     // 오디오 재생용
     private var audioPlayer: AVAudioPlayer?
     private var songDuration: Int = 15
-    
+
     // MARK: - UI Components
     private var resultView: ChallCameraResultView?
     private let recordButton = RecordButton()
@@ -47,7 +52,7 @@ final class CameraViewController: UIViewController {
         progress.layer.cornerRadius = 4
         return progress
     }()
-    
+
     private let recordingTimeLabel: UILabel = {
         let label = UILabel()
         label.font = .monospacedDigitSystemFont(ofSize: 16, weight: .medium)
@@ -58,7 +63,7 @@ final class CameraViewController: UIViewController {
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
-    
+
     private let cameraControlStackView: UIStackView = {
         let stack = UIStackView()
         stack.axis = .vertical
@@ -75,7 +80,7 @@ final class CameraViewController: UIViewController {
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
     }()
-    
+
     private let closeButton: UIButton = {
         let button = UIButton(type: .system)
         let config = UIImage.SymbolConfiguration(pointSize: 24, weight: .bold)
@@ -85,11 +90,11 @@ final class CameraViewController: UIViewController {
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
-    
+
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+
         recordButton.delegate = self
         countdownManager.delegate = self
         recordingService.delegate = self
@@ -97,8 +102,12 @@ final class CameraViewController: UIViewController {
         audioSetting()
         requestCameraPermission()
         setupUI()
+
+        let reactor = reactor ?? CameraReactor()
+        self.reactor = reactor
+        bind(with: reactor)
     }
-    
+
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         navigationController?.setNavigationBarHidden(true, animated: animated)
@@ -119,6 +128,7 @@ final class CameraViewController: UIViewController {
                     self.songDuration = Int(durationSec)
                     self.progressManager = RecordingProgressManager(maxDuration: TimeInterval(self.songDuration))
                     self.progressManager.delegate = self
+                    self.reactor?.action.onNext(.setupAudio(duration: self.songDuration))
                 }
             }
         } else {
@@ -126,6 +136,7 @@ final class CameraViewController: UIViewController {
             self.progressManager.delegate = self
         }
     }
+
     // MARK: - Permissions
     private func requestCameraPermission() {
         CameraPermissionService.requestCameraAndMicPermissions { [weak self] granted in
@@ -164,8 +175,7 @@ final class CameraViewController: UIViewController {
         view.backgroundColor = .black
         view.addSubview(recordingTimeLabel)
         view.addSubview(closeButton)
-        closeButton.addTarget(self, action: #selector(onCloseButtonTapped), for: .touchUpInside)
-        
+
         [recordButton, countdownLabel, progressView, cameraControlWrapperView].forEach { view.addSubview($0) }
         [flipCameraButton, timerCameraButton].forEach { cameraControlStackView.addArrangedSubview($0) }
         cameraControlWrapperView.addSubview(cameraControlStackView)
@@ -192,17 +202,17 @@ final class CameraViewController: UIViewController {
             countdownLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             countdownLabel.centerYAnchor.constraint(equalTo: view.centerYAnchor),
 
-        
+
             closeButton.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 10),
             closeButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
             closeButton.widthAnchor.constraint(equalToConstant: 40),
             closeButton.heightAnchor.constraint(equalToConstant: 40),
-            
+
             progressView.topAnchor.constraint(equalTo: closeButton.bottomAnchor, constant: 10),
             progressView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
             progressView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
             progressView.heightAnchor.constraint(equalToConstant: 10),
-            
+
             recordingTimeLabel.topAnchor.constraint(equalTo: progressView.bottomAnchor, constant: 4),
             recordingTimeLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor)
         ])
@@ -211,36 +221,114 @@ final class CameraViewController: UIViewController {
     private func configureFlipButton() {
         flipCameraButton.setImage(UIImage(systemName: "arrow.triangle.2.circlepath.camera"), for: .normal)
         flipCameraButton.tintColor = .white
-        flipCameraButton.addTarget(self, action: #selector(onCameraPositionChangedPressed), for: .touchUpInside)
     }
 
     private func configureTimerButton() {
         timerCameraButton.setImage(UIImage(systemName: "gauge.with.needle"), for: .normal)
         timerCameraButton.tintColor = .white
-        timerCameraButton.addTarget(self, action: #selector(onTimerButtonPressed), for: .touchUpInside)
-    }
-    
-    private func showResultView(url: URL) {
-        let resultView = ChallCameraResultView(videoURL: url)
-        resultView.delegate = self
-        resultView.translatesAutoresizingMaskIntoConstraints = false
-
-        view.addSubview(resultView)
-        NSLayoutConstraint.activate([
-            resultView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            resultView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            resultView.topAnchor.constraint(equalTo: view.topAnchor),
-            resultView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
-        ])
-        self.resultView = resultView
-    }
-    
-    // MARK: - Actions
-    @objc private func onCameraPositionChangedPressed() {
-        cameraService.switchCamera()
     }
 
-    @objc private func onTimerButtonPressed() {
+    // MARK: - Bind
+
+    private func bind(with reactor: CameraReactor) {
+        // 카메라 전환 버튼
+        flipCameraButton.rx.tap
+            .map { CameraReactor.Action.flipCamera }
+            .bind(to: reactor.action)
+            .disposed(by: disposeBag)
+
+        // 타이머 버튼
+        timerCameraButton.rx.tap
+            .map { CameraReactor.Action.showTimerSettings }
+            .bind(to: reactor.action)
+            .disposed(by: disposeBag)
+
+        // 닫기 버튼
+        closeButton.rx.tap
+            .map { CameraReactor.Action.close }
+            .bind(to: reactor.action)
+            .disposed(by: disposeBag)
+
+        // State 바인딩 - 진행률
+        reactor.state.map { $0.progress }
+            .distinctUntilChanged()
+            .subscribe(onNext: { [weak self] progress in
+                self?.progressView.setProgress(progress, animated: false)
+            })
+            .disposed(by: disposeBag)
+
+        // State 바인딩 - 남은 시간
+        reactor.state.map { $0.remainingTime }
+            .distinctUntilChanged()
+            .subscribe(onNext: { [weak self] seconds in
+                let minutes = seconds / 60
+                let secs = seconds % 60
+                self?.recordingTimeLabel.text = String(format: "%02d:%02d", minutes, secs)
+            })
+            .disposed(by: disposeBag)
+
+        // State 바인딩 - 녹화 상태
+        reactor.state.map { $0.recordingState }
+            .distinctUntilChanged { lhs, rhs in
+                switch (lhs, rhs) {
+                case (.idle, .idle): return true
+                case (.recording, .recording): return true
+                case (.countdown(let l), .countdown(let r)): return l == r
+                case (.result(let l), .result(let r)): return l == r
+                default: return false
+                }
+            }
+            .subscribe(onNext: { [weak self] state in
+                self?.handleRecordingStateChange(state)
+            })
+            .disposed(by: disposeBag)
+
+        // State 바인딩 - 네비게이션
+        reactor.state.compactMap { $0.navigation }
+            .subscribe(onNext: { [weak self] event in
+                self?.handleNavigation(event)
+            })
+            .disposed(by: disposeBag)
+    }
+
+    private func handleRecordingStateChange(_ state: CameraReactor.RecordingState) {
+        switch state {
+        case .idle:
+            countdownLabel.alpha = 0
+            countdownLabel.text = ""
+            setUIForRecording(isRecording: false)
+
+        case .countdown(let remaining):
+            countdownLabel.alpha = 1
+            countdownLabel.text = "\(remaining)"
+            recordButton.setState(.countdown)
+
+        case .recording:
+            countdownLabel.alpha = 0
+            setUIForRecording(isRecording: true)
+
+        case .result(let url):
+            showResultView(url: url)
+        }
+    }
+
+    private func handleNavigation(_ event: CameraReactor.CameraNavigationEvent) {
+        switch event {
+        case .flipCamera:
+            cameraService.switchCamera()
+
+        case .showTimerBottomSheet:
+            showTimerBottomSheet()
+
+        case .close:
+            delegate?.cameraViewControllerDidCancel()
+
+        case .saveVideo(let url):
+            delegate?.cameraViewControllerDidFinishRecording(videoURL: url)
+        }
+    }
+
+    private func showTimerBottomSheet() {
         let timerView = TimerSelectView()
         let bottomSheet = BaseBottomSheetViewController(
             title: "타이머 설정",
@@ -258,36 +346,50 @@ final class CameraViewController: UIViewController {
         present(bottomSheet, animated: true)
     }
 
+    private func showResultView(url: URL) {
+        let resultView = ChallCameraResultView(videoURL: url)
+        resultView.delegate = self
+        resultView.translatesAutoresizingMaskIntoConstraints = false
+
+        view.addSubview(resultView)
+        NSLayoutConstraint.activate([
+            resultView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            resultView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            resultView.topAnchor.constraint(equalTo: view.topAnchor),
+            resultView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+        ])
+        self.resultView = resultView
+    }
+
+    // MARK: - Recording Control
+
     private func startRecording() {
         let fileURL = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString + ".mov")
         recordingService.startRecording(to: fileURL)
         recordButton.setState(.recording)
-        
+
         progressManager.start()
-        
+
         audioPlayer?.currentTime = 0
         audioPlayer?.play()
-        
-        setUIForRecording(isRecording: true)
+
+        reactor?.action.onNext(.startRecording)
     }
 
     private func stopRecording() {
         recordingService.stopRecording()
         progressManager.stop()
-        
+
         audioPlayer?.stop()
-        
+
         progressView.setProgress(0.0, animated: false)
         recordButton.setState(.ready)
-        
+
         recordingTimeLabel.text = String(format: "%02d:00", songDuration)
-        setUIForRecording(isRecording: false)
+
+        reactor?.action.onNext(.stopRecording)
     }
 
-    @objc private func onCloseButtonTapped() {
-        delegate?.cameraViewControllerDidCancel()
-    }
-    
     private func setUIForRecording(isRecording: Bool) {
         closeButton.isHidden = isRecording
         recordingTimeLabel.isHidden = !isRecording
@@ -295,16 +397,16 @@ final class CameraViewController: UIViewController {
     }
 
     private func getVideoDuration(url: URL) async -> Double {
-            let asset = AVAsset(url: url)
-            do {
-                let duration = try await asset.load(.duration)
-                return CMTimeGetSeconds(duration)
-            } catch {
-                print("영상 길이 못찾음: \(error)")
-                return 0
-            }
+        let asset = AVAsset(url: url)
+        do {
+            let duration = try await asset.load(.duration)
+            return CMTimeGetSeconds(duration)
+        } catch {
+            print("영상 길이 못찾음: \(error)")
+            return 0
         }
-    
+    }
+
     private func prepareAudio(url: URL) {
         do {
             audioPlayer = try AVAudioPlayer(contentsOf: url)
@@ -327,37 +429,34 @@ extension CameraViewController: RecordButtonDelegate {
 
     func recordButtonDidTapCancelDuringCountdown(_ button: RecordButton) {
         countdownManager.cancel()
-        countdownLabel.alpha = 0
-        countdownLabel.text = ""
+        reactor?.action.onNext(.cancelCountdown)
         stopRecording()
     }
 }
 
 extension CameraViewController: CountdownManagerDelegate {
     func countdownDidStart() {
-        countdownLabel.alpha = 1
-        recordButton.setState(.countdown)
+        reactor?.action.onNext(.startCountdown(seconds: 3))
     }
 
     func countdownDidUpdate(remaining: Int) {
-        countdownLabel.text = "\(remaining)"
+        reactor?.action.onNext(.countdownTick(remaining: remaining))
     }
 
     func countdownDidFinish() {
-        countdownLabel.alpha = 0
+        reactor?.action.onNext(.countdownFinished)
         startRecording()
     }
 }
 
 extension CameraViewController: RecordingProgressManagerDelegate {
     func progressDidUpdate(_ progress: Float) {
-        progressView.setProgress(progress, animated: false)
+        let remaining = Int(Double(songDuration) * Double(1 - progress))
+        reactor?.action.onNext(.progressUpdate(progress: progress, remainingSeconds: remaining))
     }
-    
+
     func timeRemainingDidUpdate(_ seconds: Int) {
-        let minutes = seconds / 60
-        let secs = seconds % 60
-        recordingTimeLabel.text = String(format: "%02d:%02d", minutes, secs)
+        // Reactor에서 처리
     }
 
     func progressDidFinish() {
@@ -368,7 +467,7 @@ extension CameraViewController: RecordingProgressManagerDelegate {
 extension CameraViewController: RecordingManagerDelegate {
     func recordingDidFinish(url: URL) {
         if progressManager.isCompleted {
-            showResultView(url: url)
+            reactor?.action.onNext(.recordingFinished(url: url))
         }
     }
 }
@@ -377,9 +476,10 @@ extension CameraViewController: ChallCameraResultViewDelegate {
     func cameraResultViewClose(_ view: ChallCameraResultView) {
         view.removeFromSuperview()
         resultView = nil
+        reactor?.action.onNext(.closeResultView)
     }
 
     func cameraResultViewSave(_ view: ChallCameraResultView, didTapSaveWith videoURL: URL) {
-        delegate?.cameraViewControllerDidFinishRecording(videoURL: videoURL)
+        reactor?.action.onNext(.saveVideo)
     }
 }
