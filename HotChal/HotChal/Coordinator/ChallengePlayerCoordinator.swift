@@ -53,6 +53,23 @@ class ChallengePlayerCoordinator: BaseCoordinator, GetKeyWindowProtocol, Challen
     }
   }
   
+  func handleShowModal(from vc: UIViewController & ModalViewControllerProtocol) {
+    let modalVC = ModalViewController()
+    modalVC.delegate = vc
+    modalVC.modalPresentationStyle = .pageSheet
+    
+    if let sheet = modalVC.sheetPresentationController {
+      if #available(iOS 16.0, *) {
+        sheet.detents = [.custom { _ in return 220 }]
+      } else {
+        sheet.detents = [.medium()]
+      }
+      sheet.prefersGrabberVisible = true
+      sheet.preferredCornerRadius = 20
+    }
+    vc.present(modalVC, animated: true)
+  }
+  
   // MARK: - Helpers
   
   
