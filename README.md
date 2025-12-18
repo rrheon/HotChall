@@ -4,7 +4,6 @@
 <div align="center">
 <img width="250" height="250" alt="ChatGPT Image 2025년 7월 30일 오후 04_13_52" src="https://github.com/user-attachments/assets/de39e92d-7c36-4604-8a4a-7e5ac2b54526" />
 
-챌린지를 배우고, 찍어보고, 비교까지 할 수 있는 숏폼 기반 챌린지 플랫폼
 
 ![iOS](https://img.shields.io/badge/iOS-16.0+-blue.svg)
 ![Xcode](https://img.shields.io/badge/Xcode-16.0+-green.svg)
@@ -14,88 +13,162 @@
 
 ---
 
-## 📑 목차
+사용자들에게 요즘 뜨는 챌린지를 보여주고, 챌린지를 저장하여 배워볼 수 있는 iOS 앱
 
-* [소개](#-소개)
-* [기획 및 디자인](#-기획-및-디자인)
-* [핵심 기능](#-핵심-기능)
-* [기술 스택](#️-기술-스택)
-* [로드맵](#-로드맵)
-* [개발팀](#-개발팀)
+## 주요 기능
 
----
+- **핫챌 Top3**: 조회수 기준 인기 챌린지 확인
+- **Top100 리스트**: 카테고리별 챌린지 목록
+- **챌린지 배우기**: 영상 플레이어로 동작 학습
+- **챌린지 촬영**: 카메라로 챌린지 촬영 및 비교
+- **즐겨찾기**: CoreData로 챌린지 저장/관리
 
-## 🧩 소개
+## 기술 스택
 
-**HotChall**는 요즘 시대의 핵심 문화인 챌린지를 보다 쉽고 효율적으로 배우며 찍을 수 있도록 만든 앱입니다.
+| 분류 | 기술 |
+|------|------|
+| Architecture | ReactorKit, Coordinator Pattern |
+| UI | UIKit (Code-based) |
+| Reactive | RxSwift, RxCocoa |
+| Storage | CoreData |
+| Media | AVFoundation |
+| Layout | Auto Layout (NSLayoutConstraint) |
 
-* **문제**: 챌린지를 따라 하고 싶지만, 배경 지식 부족 / 편리한 촬영·비교 도구 부족
-* **해결**: 숏폼 기반 학습·촬영·비교 기능을 원앱으로 제공
-* **가치**: 사용자 스스로 챌린지를 배우고, 촬영하고, 비교하고, 저장하는 전 과정을 지원
+## 아키텍처
 
----
+### Coordinator Pattern
 
+화면 전환 로직을 분리하여 ViewController 간 의존성을 최소화합니다.
 
-# 기획 및 디자인
+```
+AppCoordinator
+└── TabCoordinator
+    ├── ChalCoordinator (핫챌 메인)
+    ├── HotChallLearnCoordinator (배우기)
+    └── SavedChallengeCoordinator (즐겨찾기)
+```
+
+### ReactorKit Pattern
+
+단방향 데이터 흐름으로 예측 가능한 상태 관리를 구현합니다.
+
+```
+Action (사용자 입력)
+    ↓
+Mutation (상태 변경)
+    ↓
+State (화면 표시)
+```
+
+**구현된 Reactor**:
+- HotChalMainReactor
+- HotChallTop100Reactor
+- HotChallLearnReactor
+- SavedHotChallReactor
+- ShowChallengeReactor
+- PlayerViewReactor
+- CameraReactor
+- ChallCompareReactor
+- ModalReactor
+
+## 프로젝트 구조
+
+```
+HotChal/
+├── Coordinator/           # 화면 전환 관리
+│   ├── AppCoordinator
+│   ├── TabBarCoordinator
+│   └── Protocol/
+│
+├── Scene/                 # 각 화면별 구현
+│   ├── Chal/             # 핫챌 메인, Top100
+│   ├── Learn/            # 배우기, 플레이어
+│   ├── SavedChallenge/   # 즐겨찾기
+│   ├── ShowChallenge/    # 챌린지 상세
+│   ├── TakeChallenge/    # 촬영
+│   └── CompareChallenge/ # 영상 비교
+│
+├── Model/                 # 데이터 모델
+├── Managers/              # 싱글톤 매니저
+├── Protocols/             # 커스텀 프로토콜
+├── DesignSystem/          # UI 컴포넌트
+└── Resources/             # 미디어 리소스
+```
+
+## 화면 흐름
+
+```
+┌──────────────────────────────────────┐
+│            TabBarController          │
+├──────────┬───────────┬───────────────┤
+│ 핫챌Top3  │   배우기    │   즐겨찾기      │
+└────┬─────┴─────┬─────┴───────┬───────┘
+     │           │             │
+     ▼           ▼             ▼
+┌─────────┐ ┌─────────┐ ┌─────────────┐
+│ Top3    │ │   검색   │ │   저장된      │
+│ 챌린지    │ |   추천   │ │   챌린지      │
+└────┬────┘ └────┬────┘ └──────┬──────┘
+     │           │             │
+     └───────────┴──────┬──────┘
+                        ▼
+              ┌─────────────────┐
+              │ ChallPlayerView │ (Bottom Sheet)
+              │ [배우기] [저장]    │
+              │ [촬영]  [보기]    │
+              └────────┬────────┘
+                       │
+           ┌─────────┬───────┬─────┬
+           ▼         ▼       ▼     ▼  
+       ┌──────┐ ┌──────┐ ┌──────┐ ┌──────--┐
+       │Save  │ │Camera│ │Show  │ │Compare │
+       │Data  │ │View  │ │Detail│ │View    │
+       └──────┘ └──────┘ └──────┘ └──────--┘ 
+```
+
+## 데이터 모델
+
+### ChallengeVideo
+
+```swift
+struct ChallengeVideo: Equatable {
+    let id: UUID?
+    let thumbnailImage: String?
+    let title: String?
+    let uploader: String?
+    let videoFilename: String?
+    let mp4Filename: String?
+    let category: String?
+    let viewCount: Int?
+}
+```
+
+## 주요 컴포넌트
+
+### 카메라 시스템
+
+- **CameraService**: AVCaptureSession 관리, 전/후면 전환
+- **RecordingService**: 영상 녹화, 파일 저장
+- **CountDownManager**: 카운트다운 타이머
+- **RecordingProgressManager**: 녹화 진행도 추적
+
+### 디자인 시스템
+
+- **Cells**: HotChallTopCell, ChallengeCell, ChallegneTop100Cell
+- **Views**: ChallPlayerView, NoResultView
+- **Components**: AlertView, PopupViewController, BottomSheetViewController
+
+## 기획 및 디자인
+
 - [핫챌 Figma 디자인 보드](https://www.figma.com/board/bvRxmZ7fbM5mWddMPjCkCP/%ED%95%AB%EC%B1%8C-HotChall-?node-id=73-1539&t=qa2e9EdL0HZyhKFV-0)
 
----
-## ⚡ 핵심 기능
+## 작동환경
 
-### 1. 숏츠 형식으로 챌린지 보기
-
-* UIPageViewController 기반 위아래 스와이프
-* AVPlayer로 틱톡·릴스 스타일 자동재생
-
-### 2. 챌린지 저장 기능
-
-* CoreData 기반 즐겨찾기 기능
-* 다시 보고 싶은 챌린지를 저장하여 관리
-
-### 3. 챌린지 찍어보기
-
-* 선택한 챌린지 영상을 기반으로 촬영
-* 촬영본과 원본 비교 보기
-* 결과 영상 저장 및 공유 가능
-
-### 4. 챌린지 배워보기
-
-* 원하는 구간만 반복하는 구간 반복 기능
-* 배속 재생
-
-### 5. 챌린지 비교하기
-
-* 촬영 영상과 본 영상을 동시에 비교
-* 서브뷰 전환을 통해 직관적 비교 가능
-
----
-
-## 🛠️ 기술 스택
-
-* **Language**: Swift 5.9
-* **Framework**: UIKit, AVFoundation, AVPlayer, CoreData
-* **Architecture**: MVC
-* **Media**: AVPlayer, AVAsset
-* **Persistence**: CoreData
-* **Tooling**: Swift Package Manager
-
----
-
-## 🗺 로드맵
-
-### v1.0 (완료)
-
-* 숏폼 챌린지 보기
-* 즐겨찾기
-* 촬영 & 비교
-* 구간 반복 / 배속 기능
+- Xcode 16.0+
+- iOS 16.0+
 
 
-### v1.1 (진행 중)
 
-* MVC 패턴에서 Reactorkit으로 전환
-
----
 
 ## 👥 개발팀
 
