@@ -84,7 +84,12 @@ final class PlayerViewReactor: Reactor {
   
   init(challengeData: ChallengeVideo? = nil) {
     self.initialState = State(challengeData: challengeData)
+  print("배우기 리액터 생성")
   }
+  deinit {
+    print("배우기 리액터 해재")
+  }
+  
   
   // MARK: Mutate
 

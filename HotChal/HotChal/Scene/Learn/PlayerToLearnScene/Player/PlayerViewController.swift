@@ -19,7 +19,7 @@ final class PlayerViewController: UIViewController, ModalViewControllerProtocol,
   
   // MARK: - Properties
   
-  weak var coordinator: HotChallLearnCoordinator?
+  weak var coordinator: ChallengePlayerCoordinator?
   var disposeBag = DisposeBag()
   
   private let controlsView = PlayerManager()
@@ -417,14 +417,7 @@ final class PlayerViewController: UIViewController, ModalViewControllerProtocol,
       }
     }, for: .touchUpInside)
     
-    takeChallengeButton.addTarget(self,
-                                  action: #selector(navToTakeChallengeViewController),
-                                  for: .touchUpInside)
-    
-    repeatChallengeButton.addAction(UIAction { _ in
-      self.coordinator?.handleShowModal(from: self)
-    }, for: .touchUpInside)
-    
+
     [saveChallengeButton, takeChallengeButton, repeatChallengeButton].forEach {
       buttonStackView.addArrangedSubview($0)
     }
@@ -433,6 +426,15 @@ final class PlayerViewController: UIViewController, ModalViewControllerProtocol,
       buttonStackView.centerYAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerYAnchor),
       buttonStackView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -10)
     ])
+    
+    takeChallengeButton.addTarget(self,
+                                  action: #selector(navToTakeChallengeViewController),
+                                  for: .touchUpInside)
+    
+    repeatChallengeButton.addAction(UIAction { _ in
+      self.coordinator?.handleShowModal(from: self)
+    }, for: .touchUpInside)
+    
   }
   
   // MARK: - Button Actions
