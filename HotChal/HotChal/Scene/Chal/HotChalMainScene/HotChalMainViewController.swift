@@ -114,19 +114,18 @@ final class HotChalMainViewController: UIViewController {
     }
     
     reactor.state.map { $0.navigation }
-      .compactMap { $0 }
-      .withUnretained(self)
-      .subscribe(onNext: { (_, event) in
+      .subscribe(onNext: { event in
           switch event {
           case let .navTotop100VC(type, title):
               self.coordinator?.navToHotChallTop100ViewController(type: type, title: title)
+          case .none:
+            return
           }
       })
       .disposed(by: disposeBag)
 
     reactor.state.compactMap { $0.selectedChallenge }
-      .withUnretained(self)
-      .subscribe(onNext: { _, video in
+      .subscribe(onNext: { video in
         self.coordinator?.showChallPlayer(from: self, data: video)
       })
       .disposed(by: disposeBag)
