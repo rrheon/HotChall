@@ -45,8 +45,6 @@ final class ShowChallengePageViewController: UIPageViewController {
 
   }
   
-  
-  
   /// 화면 만들어주기
   /// - Parameter index: 몇 번째 데이터인지 확인을 위한 index
   private func makePage(for index: Int) -> ShowChallengeViewController {
@@ -76,8 +74,6 @@ extension ShowChallengePageViewController: UIPageViewControllerDataSource {
     guard currentIndex < challengeList.count - 1 else { return nil }
     return makePage(for: currentIndex + 1)
   }
-  
-
 }
 
 // MARK: PageViewControllerDelegate
