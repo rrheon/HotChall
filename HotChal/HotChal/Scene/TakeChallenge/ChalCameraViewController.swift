@@ -17,15 +17,13 @@ final class CameraViewController: UIViewController {
     var reactor: CameraReactor? = nil
     private let disposeBag = DisposeBag()
 
-    // MARK: - Services & Managers
+    // MARK: - Services (하드웨어 관련만 유지)
     private let cameraService = CameraService()
     private lazy var recordingService = RecordingService(session: cameraService.session)
-    private let countdownManager = CountdownManager()
-    private var progressManager: RecordingProgressManager!
 
     // 오디오 재생용
     private var audioPlayer: AVAudioPlayer?
-    private var songDuration: Int = 15
+    private var audioURL: URL?  // 원본 오디오 URL (녹화 후 합성용)
 
     // MARK: - UI Components
     private var resultView: ChallCameraResultView?
@@ -91,21 +89,68 @@ final class CameraViewController: UIViewController {
         return button
     }()
 
+    // MARK: - Loading Overlay (저장 중 표시)
+    private lazy var loadingOverlayView: UIView = {
+        let overlay = UIView()
+        overlay.backgroundColor = UIColor.black.withAlphaComponent(0.7)
+        overlay.translatesAutoresizingMaskIntoConstraints = false
+        overlay.isHidden = true
+
+        // 컨테이너
+        let container = UIView()
+        container.backgroundColor = UIColor.white.withAlphaComponent(0.15)
+        container.layer.cornerRadius = 16
+        container.translatesAutoresizingMaskIntoConstraints = false
+        overlay.addSubview(container)
+
+        // 스피너
+        let spinner = UIActivityIndicatorView(style: .large)
+        spinner.color = .white
+        spinner.startAnimating()
+        spinner.translatesAutoresizingMaskIntoConstraints = false
+        container.addSubview(spinner)
+
+        // 라벨
+        let label = UILabel()
+        label.text = "저장 중..."
+        label.textColor = .white
+        label.font = .systemFont(ofSize: 16, weight: .medium)
+        label.textAlignment = .center
+        label.translatesAutoresizingMaskIntoConstraints = false
+        container.addSubview(label)
+
+        NSLayoutConstraint.activate([
+            container.centerXAnchor.constraint(equalTo: overlay.centerXAnchor),
+            container.centerYAnchor.constraint(equalTo: overlay.centerYAnchor),
+            container.widthAnchor.constraint(equalToConstant: 140),
+            container.heightAnchor.constraint(equalToConstant: 120),
+
+            spinner.centerXAnchor.constraint(equalTo: container.centerXAnchor),
+            spinner.topAnchor.constraint(equalTo: container.topAnchor, constant: 24),
+
+            label.centerXAnchor.constraint(equalTo: container.centerXAnchor),
+            label.topAnchor.constraint(equalTo: spinner.bottomAnchor, constant: 16),
+        ])
+
+        return overlay
+    }()
+
     // MARK: - Lifecycle
-    override func viewDidLoad() {
+  override func viewDidLoad() {
         super.viewDidLoad()
 
         recordButton.delegate = self
-        countdownManager.delegate = self
         recordingService.delegate = self
 
-        audioSetting()
         requestCameraPermission()
         setupUI()
 
         let reactor = reactor ?? CameraReactor()
         self.reactor = reactor
         bind(with: reactor)
+
+        // Reactor에 오디오 파일 찾기 요청
+        reactor.action.onNext(.findAudioFile(fileName: audioFileName))
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -119,22 +164,10 @@ final class CameraViewController: UIViewController {
     }
 
     // MARK: - Audio Setting
-    private func audioSetting() {
-        if let mp4Url = Bundle.main.url(forResource: audioFileName, withExtension: "mp4") {
-            prepareAudio(url: mp4Url)
-            Task {
-                let durationSec = await getVideoDuration(url: mp4Url)
-                await MainActor.run {
-                    self.songDuration = Int(durationSec)
-                    self.progressManager = RecordingProgressManager(maxDuration: TimeInterval(self.songDuration))
-                    self.progressManager.delegate = self
-                    self.reactor?.action.onNext(.setupAudio(duration: self.songDuration))
-                }
-            }
-        } else {
-            self.progressManager = RecordingProgressManager(maxDuration: TimeInterval(self.songDuration))
-            self.progressManager.delegate = self
-        }
+    /// Reactor에서 audioURL을 받아 AVAudioPlayer 설정
+    private func setupAudioPlayer(with url: URL) {
+        self.audioURL = url
+        prepareAudio(url: url)
     }
 
     // MARK: - Permissions
@@ -180,6 +213,9 @@ final class CameraViewController: UIViewController {
         [flipCameraButton, timerCameraButton].forEach { cameraControlStackView.addArrangedSubview($0) }
         cameraControlWrapperView.addSubview(cameraControlStackView)
 
+        // 로딩 오버레이 추가 (가장 위에 표시되도록 마지막에 추가)
+        view.addSubview(loadingOverlayView)
+
         configureFlipButton()
         configureTimerButton()
 
@@ -202,7 +238,6 @@ final class CameraViewController: UIViewController {
             countdownLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             countdownLabel.centerYAnchor.constraint(equalTo: view.centerYAnchor),
 
-
             closeButton.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 10),
             closeButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
             closeButton.widthAnchor.constraint(equalToConstant: 40),
@@ -214,7 +249,13 @@ final class CameraViewController: UIViewController {
             progressView.heightAnchor.constraint(equalToConstant: 10),
 
             recordingTimeLabel.topAnchor.constraint(equalTo: progressView.bottomAnchor, constant: 4),
-            recordingTimeLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor)
+            recordingTimeLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+
+            // 로딩 오버레이 전체 화면
+            loadingOverlayView.topAnchor.constraint(equalTo: view.topAnchor),
+            loadingOverlayView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            loadingOverlayView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            loadingOverlayView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
         ])
     }
 
@@ -230,7 +271,8 @@ final class CameraViewController: UIViewController {
 
     // MARK: - Bind
 
-    private func bind(with reactor: CameraReactor) {
+  @available(iOS 18.0, *)
+  private func bind(with reactor: CameraReactor) {
         // 카메라 전환 버튼
         flipCameraButton.rx.tap
             .map { CameraReactor.Action.flipCamera }
@@ -252,6 +294,7 @@ final class CameraViewController: UIViewController {
         // State 바인딩 - 진행률
         reactor.state.map { $0.progress }
             .distinctUntilChanged()
+            .observe(on: MainScheduler.instance)
             .subscribe(onNext: { [weak self] progress in
                 self?.progressView.setProgress(progress, animated: false)
             })
@@ -260,6 +303,7 @@ final class CameraViewController: UIViewController {
         // State 바인딩 - 남은 시간
         reactor.state.map { $0.remainingTime }
             .distinctUntilChanged()
+            .observe(on: MainScheduler.instance)
             .subscribe(onNext: { [weak self] seconds in
                 let minutes = seconds / 60
                 let secs = seconds % 60
@@ -269,24 +313,30 @@ final class CameraViewController: UIViewController {
 
         // State 바인딩 - 녹화 상태
         reactor.state.map { $0.recordingState }
-            .distinctUntilChanged { lhs, rhs in
-                switch (lhs, rhs) {
-                case (.idle, .idle): return true
-                case (.recording, .recording): return true
-                case (.countdown(let l), .countdown(let r)): return l == r
-                case (.result(let l), .result(let r)): return l == r
-                default: return false
-                }
-            }
+            .distinctUntilChanged()
+            .observe(on: MainScheduler.instance)
             .subscribe(onNext: { [weak self] state in
                 self?.handleRecordingStateChange(state)
             })
             .disposed(by: disposeBag)
 
         // State 바인딩 - 네비게이션
-        reactor.state.compactMap { $0.navigation }
+        reactor.state.map { $0.navigation }
+            .distinctUntilChanged()
+            .compactMap { $0 }
+            .observe(on: MainScheduler.instance)
             .subscribe(onNext: { [weak self] event in
                 self?.handleNavigation(event)
+            })
+            .disposed(by: disposeBag)
+
+        // State 바인딩 - 오디오 URL (Reactor에서 파일 찾은 후)
+        reactor.state.map { $0.audioURL }
+            .distinctUntilChanged()
+            .compactMap { $0 }
+            .observe(on: MainScheduler.instance)
+            .subscribe(onNext: { [weak self] url in
+                self?.setupAudioPlayer(with: url)
             })
             .disposed(by: disposeBag)
     }
@@ -297,6 +347,7 @@ final class CameraViewController: UIViewController {
             countdownLabel.alpha = 0
             countdownLabel.text = ""
             setUIForRecording(isRecording: false)
+            recordButton.setState(.ready)
 
         case .countdown(let remaining):
             countdownLabel.alpha = 1
@@ -306,13 +357,21 @@ final class CameraViewController: UIViewController {
         case .recording:
             countdownLabel.alpha = 0
             setUIForRecording(isRecording: true)
+            recordButton.setState(.recording)
+
+        case .paused:
+            // 일시정지 상태 - UI는 녹화 중과 유사하지만 버튼에 재생 아이콘 표시
+            countdownLabel.alpha = 0
+            setUIForRecording(isRecording: true)
+            recordButton.setState(.paused)  // 재생 아이콘 표시
 
         case .result(let url):
             showResultView(url: url)
         }
     }
 
-    private func handleNavigation(_ event: CameraReactor.CameraNavigationEvent) {
+  @available(iOS 18.0, *)
+  private func handleNavigation(_ event: CameraReactor.CameraNavigationEvent) {
         switch event {
         case .flipCamera:
             cameraService.switchCamera()
@@ -325,6 +384,22 @@ final class CameraViewController: UIViewController {
 
         case .saveVideo(let url):
             delegate?.cameraViewControllerDidFinishRecording(videoURL: url)
+
+        case .startRecordingFromCountdown:
+            // 카운트다운 완료 후 실제 녹화 시작
+            startCameraRecording()
+
+        case .stopRecordingFromProgress:
+            // 진행률 100% 도달 - 녹화 중지
+            stopCameraRecording()
+
+        case .pauseRecording:
+            // 녹화 일시정지
+            pauseCameraRecording()
+
+        case .resumeRecording:
+            // 녹화 재개
+            resumeCameraRecording()
         }
     }
 
@@ -339,7 +414,8 @@ final class CameraViewController: UIViewController {
         timerView.onStart = { [weak self] selected in
             guard let self = self else { return }
             bottomSheet.dismiss(animated: true) {
-                self.countdownManager.start(seconds: selected)
+                // Reactor에 카운트다운 시작 요청
+                self.reactor?.action.onNext(.startCountdown(seconds: selected))
             }
         }
 
@@ -361,33 +437,43 @@ final class CameraViewController: UIViewController {
         self.resultView = resultView
     }
 
-    // MARK: - Recording Control
+    // MARK: - Recording Control (카메라 하드웨어 제어만)
 
-    private func startRecording() {
+    /// 실제 카메라 녹화 시작 (하드웨어 제어)
+    private func startCameraRecording() {
         let fileURL = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString + ".mov")
         recordingService.startRecording(to: fileURL)
-        recordButton.setState(.recording)
 
-        progressManager.start()
-
-        audioPlayer?.currentTime = 0
-        audioPlayer?.play()
-
-        reactor?.action.onNext(.startRecording)
+        // 오디오 재생 시작
+        if let player = audioPlayer {
+            player.currentTime = 0
+            let success = player.play()
+            print("🔊 오디오 재생 시작: \(success), duration: \(player.duration)초")
+        } else {
+            print("⚠️ audioPlayer가 nil입니다")
+        }
     }
 
-    private func stopRecording() {
+    /// 실제 카메라 녹화 중지 (하드웨어 제어)
+    private func stopCameraRecording() {
         recordingService.stopRecording()
-        progressManager.stop()
-
         audioPlayer?.stop()
+    }
 
-        progressView.setProgress(0.0, animated: false)
-        recordButton.setState(.ready)
+    /// 녹화 일시정지 (하드웨어 제어)
+  @available(iOS 18.0, *)
+  private func pauseCameraRecording() {
+        recordingService.pauseRecording()
+        audioPlayer?.pause()
+        print("⏸️ 녹화 일시정지")
+    }
 
-        recordingTimeLabel.text = String(format: "%02d:00", songDuration)
-
-        reactor?.action.onNext(.stopRecording)
+    /// 녹화 재개 (하드웨어 제어)
+  @available(iOS 18.0, *)
+  private func resumeCameraRecording() {
+        recordingService.resumeRecording()
+        audioPlayer?.play()
+        print("▶️ 녹화 재개")
     }
 
     private func setUIForRecording(isRecording: Bool) {
@@ -396,82 +482,92 @@ final class CameraViewController: UIViewController {
         cameraControlWrapperView.isHidden = isRecording
     }
 
-    private func getVideoDuration(url: URL) async -> Double {
-        let asset = AVAsset(url: url)
-        do {
-            let duration = try await asset.load(.duration)
-            return CMTimeGetSeconds(duration)
-        } catch {
-            print("영상 길이 못찾음: \(error)")
-            return 0
-        }
-    }
-
     private func prepareAudio(url: URL) {
         do {
+            // AVAudioSession 설정 - 녹화 중에도 스피커로 소리 출력
+            let audioSession = AVAudioSession.sharedInstance()
+            try audioSession.setCategory(.playAndRecord, options: [.defaultToSpeaker, .allowBluetooth])
+            try audioSession.setActive(true)
+
             audioPlayer = try AVAudioPlayer(contentsOf: url)
             audioPlayer?.prepareToPlay()
+            audioPlayer?.volume = 1.0
+            print("오디오 준비 완료: \(url.lastPathComponent)")
         } catch {
             print("오디오 준비 실패: \(error)")
         }
     }
 }
 
-// MARK: - Delegates
+// MARK: - RecordButton Delegate
 extension CameraViewController: RecordButtonDelegate {
     func recordButtonDidTapStart(_ button: RecordButton) {
-        startRecording()
+        guard let reactor = reactor else { return }
+
+        // 현재 상태에 따른 분기 처리
+        if reactor.currentState.isPaused {
+            // 일시정지 상태 → 재개
+            reactor.action.onNext(.togglePause)
+        } else {
+            // idle 상태 → 녹화 시작
+            reactor.action.onNext(.startRecording)
+            startCameraRecording()
+        }
     }
 
     func recordButtonDidTapStop(_ button: RecordButton) {
-        stopRecording()
+        guard let reactor = reactor else { return }
+
+        if reactor.currentState.isRecording {
+            // 녹화 중 → 일시정지
+            reactor.action.onNext(.togglePause)
+        } else {
+            // 그 외 (수동 중지)
+            stopCameraRecording()
+            reactor.action.onNext(.stopRecording)
+        }
     }
 
     func recordButtonDidTapCancelDuringCountdown(_ button: RecordButton) {
-        countdownManager.cancel()
+        // 카운트다운 중 취소
         reactor?.action.onNext(.cancelCountdown)
-        stopRecording()
     }
 }
 
-extension CameraViewController: CountdownManagerDelegate {
-    func countdownDidStart() {
-        reactor?.action.onNext(.startCountdown(seconds: 3))
-    }
-
-    func countdownDidUpdate(remaining: Int) {
-        reactor?.action.onNext(.countdownTick(remaining: remaining))
-    }
-
-    func countdownDidFinish() {
-        reactor?.action.onNext(.countdownFinished)
-        startRecording()
-    }
-}
-
-extension CameraViewController: RecordingProgressManagerDelegate {
-    func progressDidUpdate(_ progress: Float) {
-        let remaining = Int(Double(songDuration) * Double(1 - progress))
-        reactor?.action.onNext(.progressUpdate(progress: progress, remainingSeconds: remaining))
-    }
-
-    func timeRemainingDidUpdate(_ seconds: Int) {
-        // Reactor에서 처리
-    }
-
-    func progressDidFinish() {
-        stopRecording()
-    }
-}
-
+// MARK: - RecordingService Delegate
 extension CameraViewController: RecordingManagerDelegate {
     func recordingDidFinish(url: URL) {
-        if progressManager.isCompleted {
+        // Reactor의 isRecordingComplete로 자연 종료 여부 확인
+        guard reactor?.currentState.isRecordingComplete == true else { return }
+
+        // 원본 오디오가 있으면 합성, 없으면 그대로 사용
+        guard let audioURL = audioURL else {
             reactor?.action.onNext(.recordingFinished(url: url))
+            return
+        }
+
+        // 로딩 오버레이 표시
+        loadingOverlayView.isHidden = false
+
+        // 오디오 합성 진행
+        VideoAudioMergeService.mergeVideoWithAudio(videoURL: url, audioURL: audioURL) { [weak self] result in
+            // 로딩 오버레이 숨기기
+            self?.loadingOverlayView.isHidden = true
+
+            switch result {
+            case .success(let mergedURL):
+                print("오디오 합성 완료: \(mergedURL)")
+                self?.reactor?.action.onNext(.recordingFinished(url: mergedURL))
+            case .failure(let error):
+                print("오디오 합성 실패: \(error.localizedDescription)")
+                // 합성 실패 시 원본 비디오 사용
+                self?.reactor?.action.onNext(.recordingFinished(url: url))
+            }
         }
     }
 }
 
+// MARK: - Result View Delegate
 extension CameraViewController: ChallCameraResultViewDelegate {
     func cameraResultViewClose(_ view: ChallCameraResultView) {
         view.removeFromSuperview()
