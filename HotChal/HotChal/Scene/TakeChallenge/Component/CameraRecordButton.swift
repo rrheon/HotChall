@@ -4,6 +4,7 @@ enum RecordState {
     case ready
     case recording
     case countdown
+    case paused      // 일시정지 상태
 }
 
 protocol RecordButtonDelegate: AnyObject {
@@ -68,6 +69,8 @@ final class RecordButton: UIControl {
         switch recordState {
         case .ready:
             countdownIcon.isHidden = true
+            countdownIcon.image = UIImage(systemName: "xmark")  // 기본 아이콘으로 리셋
+            countdownIcon.tintColor = .black
             let diameter = bounds.width * 0.85
             targetFrame = CGRect(
                 x: (bounds.width - diameter) / 2,
@@ -80,6 +83,8 @@ final class RecordButton: UIControl {
 
         case .recording:
             countdownIcon.isHidden = true
+            countdownIcon.image = UIImage(systemName: "xmark")  // 기본 아이콘으로 리셋
+            countdownIcon.tintColor = .black
             let side = bounds.width * 0.5
             targetFrame = CGRect(
                 x: (bounds.width - side) / 2,
@@ -102,6 +107,22 @@ final class RecordButton: UIControl {
             innerShapeView.backgroundColor = .white
             countdownIcon.isHidden = false
             countdownIcon.frame = targetFrame.insetBy(dx: diameter * 0.3, dy: diameter * 0.3)
+
+        case .paused:
+            // 일시정지: 녹화 버튼과 유사하지만 재생 아이콘 표시
+            countdownIcon.isHidden = false
+            countdownIcon.image = UIImage(systemName: "play.fill")
+            countdownIcon.tintColor = .white
+            let side = bounds.width * 0.5
+            targetFrame = CGRect(
+                x: (bounds.width - side) / 2,
+                y: (bounds.height - side) / 2,
+                width: side,
+                height: side
+            )
+            targetCornerRadius = 4
+            innerShapeView.backgroundColor = .red
+            countdownIcon.frame = targetFrame.insetBy(dx: side * 0.15, dy: side * 0.15)
         }
 
         let animations = {
@@ -123,6 +144,10 @@ final class RecordButton: UIControl {
 
         case .countdown:
             delegate?.recordButtonDidTapCancelDuringCountdown(self)
+
+        case .paused:
+            // 일시정지 상태에서 탭 → 재개
+            delegate?.recordButtonDidTapStart(self)
         }
     }
 }

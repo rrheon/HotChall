@@ -32,6 +32,25 @@ final class RecordingService: NSObject {
             videoOutput.stopRecording()
         }
     }
+
+  @available(iOS 18.0, *)
+  func pauseRecording() {
+        if videoOutput.isRecording && !videoOutput.isRecordingPaused {
+            videoOutput.pauseRecording()
+        }
+    }
+
+  @available(iOS 18.0, *)
+  func resumeRecording() {
+        if videoOutput.isRecording && videoOutput.isRecordingPaused {
+            videoOutput.resumeRecording()
+        }
+    }
+
+  @available(iOS 18.0, *)
+  var isRecordingPaused: Bool {
+        return videoOutput.isRecordingPaused
+    }
 }
 
 extension RecordingService: AVCaptureFileOutputRecordingDelegate {

@@ -78,6 +78,8 @@ final class VideoPlayerService {
   
   func play(atRate rate: Float = 1.0) {
     player.playImmediately(atRate: rate)
+    player.rate = rate
+    player.play()
   }
   
   func pause() {
