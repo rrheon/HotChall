@@ -27,9 +27,13 @@ class BaseCoordinator: Coordinator {
 }
 
 extension BaseCoordinator {
-  func cameraCoordinatorDidFinishWithVideo(url: URL) {
-//    navToCompareViewController(url: url)
-//      didFinishCameraRecording(url: url)
+  func cameraCoordinatorDidFinishWithVideo(url: URL, subVideoFilename: String?) {
+    let compareVC = ChallCompareViewController()
+    compareVC.videoURL = url
+    compareVC.subVideoFilename = subVideoFilename
+    compareVC.coordinator = self as? ChallengeNavigationDelegate
+    compareVC.hidesBottomBarWhenPushed = true
+    navigationController.pushViewController(compareVC, animated: true)
   }
   
   func coordinatorDidFinish(childCoordinator: any Coordinator) {

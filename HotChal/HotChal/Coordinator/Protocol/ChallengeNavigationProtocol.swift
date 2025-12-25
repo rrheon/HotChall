@@ -19,22 +19,23 @@ protocol ChallengeNavigationDelegate: AnyObject, CameraCoordinatorDelegate, Coor
 
 extension ChallengeNavigationDelegate where Self: BaseCoordinator {
   func navToTakeChallengeViewController(audioFileName: String) {
+    navToTakeChallengeViewController(audioFileName: audioFileName, subVideoFilename: nil)
+  }
+
+  func navToTakeChallengeViewController() {
+    navToTakeChallengeViewController(audioFileName: "", subVideoFilename: nil)
+  }
+
+  func navToTakeChallengeViewController(audioFileName: String, subVideoFilename: String?) {
     let cameraCoordinator = CameraCoordinator(
       navigationController: navigationController,
-      audioFileName: audioFileName
+      audioFileName: audioFileName,
+      subVideoFilename: subVideoFilename
     )
     cameraCoordinator.delegate = self
     cameraCoordinator.finishDelegate = self
     childCoordinators.append(cameraCoordinator)
     cameraCoordinator.start()
-  }
-  
-  func navToTakeChallengeViewController() {
-    navToTakeChallengeViewController(audioFileName: "")
-  }
-  
-  func navToTakeChallengeViewController(audioFileName: String, subVideoFilename: String?) {
-    navToTakeChallengeViewController(audioFileName: audioFileName)
   }
   
   func navToLearnChallengeViewController(with challenge: ChallengeVideo){
