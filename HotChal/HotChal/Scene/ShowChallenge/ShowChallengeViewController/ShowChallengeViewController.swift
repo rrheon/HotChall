@@ -138,7 +138,8 @@ final class ShowChallengeViewController: UIViewController, View {
         case .learn(let data):
           self.delegate?.navToLearnChallengeViewController(with: data)
         case .take(let audio):
-          self.delegate?.navToTakeChallengeViewController(audioFileName: audio)
+          // audio를 subVideoFilename으로도 전달 (원본 영상에서 오디오 추출)
+          self.delegate?.navToTakeChallengeViewController(audioFileName: audio, subVideoFilename: audio)
         }
         // 네비게이션 후 리셋
         self.reactor?.action.onNext(.setNavigation(nil))

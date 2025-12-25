@@ -7,17 +7,19 @@
 import UIKit
 
 protocol CameraCoordinatorDelegate: AnyObject {
-    func cameraCoordinatorDidFinishWithVideo(url: URL)
+    func cameraCoordinatorDidFinishWithVideo(url: URL, subVideoFilename: String?)
 }
 
 final class CameraCoordinator: BaseCoordinator {
-    
+
     weak var delegate: CameraCoordinatorDelegate?
-    
+
     private let audioFileName: String
-    
-    init(navigationController: UINavigationController, audioFileName: String) {
+    private let subVideoFilename: String?
+
+    init(navigationController: UINavigationController, audioFileName: String, subVideoFilename: String? = nil) {
         self.audioFileName = audioFileName
+        self.subVideoFilename = subVideoFilename
         super.init(navigationController)
     }
     
@@ -39,7 +41,7 @@ extension CameraCoordinator: CameraViewControllerDelegate {
     
     func cameraViewControllerDidFinishRecording(videoURL: URL) {
         navigationController.dismiss(animated: true) { [weak self] in
-            self?.delegate?.cameraCoordinatorDidFinishWithVideo(url: videoURL)
+            self?.delegate?.cameraCoordinatorDidFinishWithVideo(url: videoURL, subVideoFilename: self?.subVideoFilename)
             self?.finish()
         }
     }

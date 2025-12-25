@@ -271,8 +271,9 @@ class ChallCompareViewController: UIViewController {
                 CATransaction.begin()
                 CATransaction.setCompletionBlock { [weak self] in
                     guard self != nil else { return }
+                    // subVideoFilename을 audioFileName으로도 사용 (원본 영상에서 오디오 추출)
                     coordinator.navToTakeChallengeViewController(
-                        audioFileName: "",
+                        audioFileName: subVideoFilename ?? "",
                         subVideoFilename: subVideoFilename
                     )
                 }
@@ -338,7 +339,8 @@ class ChallCompareViewController: UIViewController {
     }
 
     private func swapVideoLayers() {
-        let tempMain = mainVideoPlayer!
+      guard let tempMain = mainVideoPlayer else { return }
+      
         let tempSub = challCompareSubView.videoPlayer
 
         DispatchQueue.main.async {
